@@ -634,7 +634,8 @@ class PostSparkSupabase {
                 hasConfig: !!window.OPENAI_CONFIG,
                 hasApiKey: !!window.OPENAI_CONFIG?.API_KEY,
                 apiKeyValue: window.OPENAI_CONFIG?.API_KEY,
-                isDefaultValue: window.OPENAI_CONFIG?.API_KEY === 'YOUR_OPENAI_API_KEY_HERE'
+                isDefaultValue: window.OPENAI_CONFIG?.API_KEY === 'YOUR_OPENAI_API_KEY_HERE',
+                viteApiKey: window.VITE_OPENAI_API_KEY
             });
             
             if (!window.OPENAI_CONFIG?.API_KEY || window.OPENAI_CONFIG.API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
@@ -680,23 +681,22 @@ Find posts that show:
 - Frustration with current tools
 - Success stories with similar products`;
 
-            const response = await fetch('https://api.openai.com/v1/responses', {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${window.OPENAI_CONFIG.API_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    prompt: {
-                        id: window.OPENAI_CONFIG.PROMPT_ID,
-                        version: window.OPENAI_CONFIG.VERSION
-                    },
+                    model: 'gpt-3.5-turbo',
                     messages: [
                         {
                             role: 'user',
                             content: promptMessage
                         }
-                    ]
+                    ],
+                    max_tokens: 4000,
+                    temperature: 0.7
                 })
             });
 
