@@ -1,21 +1,7 @@
 // Registration Page JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // Load Supabase config first
-    loadSupabaseConfig().then(() => {
-        initializeRegistration();
-    });
+    initializeRegistration();
 });
-
-async function loadSupabaseConfig() {
-    // Load the supabase config script
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'supabase-config.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject();
-        document.head.appendChild(script);
-    });
-}
 
 function initializeRegistration() {
     const registrationForm = document.getElementById('registration-form');
