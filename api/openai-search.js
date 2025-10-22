@@ -87,20 +87,16 @@ Please search Reddit for posts where people are asking for solutions, discussing
         });
 
         // Use OpenAI Chat Assistant with responses API - Version 9
-        const response = await fetch('https://api.openai.com/v1/assistants', {
+        const response = await fetch('https://api.openai.com/v1/responses', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4',
-                instructions: 'You are a Reddit search specialist. Search Reddit for posts where people are asking for solutions, discussing problems, or looking for recommendations. Return results in JSON format.',
-                tools: [{"type": "web_search"}],
-                metadata: {
-                    prompt_id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
-                    version: "9"
-                }
+                model: 'gpt-4o',
+                input: inputString,
+                tools: [{ type: 'web_browsing' }]
             })
         });
 
@@ -121,7 +117,25 @@ Please search Reddit for posts where people are asking for solutions, discussing
         // The responses API returns data in a different format
         let posts = [];
         
-        if (data.choices && data.choices[0] && data.choices[0].message) {
+        if (data.output_text) {
+            // Direct output from responses API
+            console.log('Output text (first 500 chars):', data.output_text.substring(0, 500));
+            console.log('Full output text length:', data.output_text.length);
+            
+            try {
+                const result = JSON.parse(data.output_text);
+                posts = result.posts || [];
+                console.log('Parsed posts count:', posts.length);
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.log('Raw output_text that failed to parse:', data.output_text);
+                return res.status(500).json({ 
+                    error: 'OpenAI returned non-JSON response',
+                    content: data.output_text.substring(0, 500),
+                    parseError: parseError.message
+                });
+            }
+        } else if (data.choices && data.choices[0] && data.choices[0].message) {
             // Standard chat completion format
             const content = data.choices[0].message.content;
             console.log('Response content (first 500 chars):', content.substring(0, 500));
@@ -140,28 +154,6 @@ Please search Reddit for posts where people are asking for solutions, discussing
                     parseError: parseError.message
                 });
             }
-        } else if (data.content) {
-            // Direct content response
-            console.log('Direct content response (first 500 chars):', data.content.substring(0, 500));
-            console.log('Full content length:', data.content.length);
-            
-            try {
-                const result = JSON.parse(data.content);
-                posts = result.posts || [];
-                console.log('Parsed posts count:', posts.length);
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.log('Raw content that failed to parse:', data.content);
-                return res.status(500).json({ 
-                    error: 'OpenAI returned non-JSON response',
-                    content: data.content.substring(0, 500),
-                    parseError: parseError.message
-                });
-            }
-        } else if (data.data && data.data.posts) {
-            // Posts directly in data
-            posts = data.data.posts;
-            console.log('Posts from data.data.posts:', posts.length);
         } else {
             // Try to extract posts from any format
             posts = data.posts || data.data?.posts || [];
