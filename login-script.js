@@ -1,7 +1,21 @@
 // Login Page JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    initializeLogin();
+    // Load Supabase config first
+    loadSupabaseConfig().then(() => {
+        initializeLogin();
+    });
 });
+
+async function loadSupabaseConfig() {
+    // Load the supabase config script
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'supabase-config.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject();
+        document.head.appendChild(script);
+    });
+}
 
 function initializeLogin() {
     const loginForm = document.getElementById('login-form');
