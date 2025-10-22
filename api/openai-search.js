@@ -86,8 +86,24 @@ Return the posts in JSON format with this structure:
         const data = await response.json();
         const content = data.choices[0].message.content;
         
-        // Parse JSON response
-        const result = JSON.parse(content);
+        console.log('OpenAI response content:', content.substring(0, 200) + '...');
+        
+        // Try to parse JSON response
+        let result;
+        try {
+            result = JSON.parse(content);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.log('Raw content:', content);
+            
+            // If it's not JSON, return an error with the content
+            return res.status(500).json({ 
+                error: 'OpenAI returned non-JSON response',
+                content: content.substring(0, 500),
+                parseError: parseError.message
+            });
+        }
+        
         const posts = result.posts || [];
         
         res.status(200).json({ posts: posts.slice(0, 25) });
