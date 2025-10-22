@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         const businessName = campaignData.name || 'Business Solution';
 
         // Create search query for the assistant
-        const searchQuery = `I need help analyzing potential customer conversations for a business. Please create examples of discussion topics that would be relevant for this business:
+        const searchQuery = `You are a Reddit search assistant. I need you to help me find real Reddit posts that are relevant to this business. Please search Reddit and find actual posts where people are discussing topics related to this business.
 
 BUSINESS DETAILS:
 Name: ${businessName}
@@ -39,26 +39,31 @@ Description: ${offer}
 Keywords: ${keywords.join(', ')}
 Target Subreddits: ${subreddits.join(', ')}
 
-Please create examples of discussion topics where potential customers might:
-- Ask for solutions to problems this business solves
-- Discuss pain points this product addresses
-- Look for recommendations in this industry
-- Share frustrations with current tools
+Please search Reddit for posts where people are:
+- Asking for solutions to problems this business solves
+- Discussing pain points this product addresses
+- Looking for recommendations in this industry
+- Sharing frustrations with current tools
+- Expressing interest in similar products/services
 
-Return the examples in JSON format with this structure:
+Search these subreddits: ${subreddits.join(', ')}
+
+Return the actual Reddit posts you find in JSON format:
 {
   "posts": [
     {
-      "title": "Discussion topic title",
-      "content": "Example discussion content",
-      "subreddit": "r/subreddit",
-      "author": "example_user",
+      "title": "Actual Reddit post title",
+      "content": "Actual Reddit post content",
+      "subreddit": "r/actual_subreddit",
+      "author": "actual_username",
       "score": 85,
-      "url": "https://reddit.com/example",
+      "url": "https://reddit.com/actual_post_url",
       "created_utc": 1234567890
     }
   ]
-}`;
+}
+
+Please find real, recent posts from Reddit that match these criteria.`;
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',

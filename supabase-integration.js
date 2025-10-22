@@ -629,10 +629,10 @@ class PostSparkSupabase {
     // OpenAI API Methods
     async generateRedditPosts(campaignData) {
         try {
-            console.log('Searching for real Reddit posts using OpenAI Chat Assistant...');
+            console.log('Searching for real Reddit posts...');
             
-            // Use OpenAI Chat Assistant to search for real posts
-            const realPosts = await this.searchWithOpenAIAssistant(campaignData);
+            // Search real Reddit posts using Reddit API
+            const realPosts = await this.searchRealRedditPosts(campaignData);
             if (realPosts && realPosts.length > 0) {
                 console.log(`Found ${realPosts.length} real Reddit posts`);
                 return realPosts;
@@ -642,14 +642,14 @@ class PostSparkSupabase {
             console.log('No real posts found, using sample posts as fallback');
             return this.generateSampleRedditPosts(campaignData);
         } catch (error) {
-            console.error('Error generating Reddit posts:', error);
+            console.error('Error searching Reddit posts:', error);
             return this.generateSampleRedditPosts(campaignData);
         }
     }
 
     async searchWithOpenAIAssistant(campaignData) {
         try {
-            console.log('Using backend API for OpenAI search...');
+            console.log('Using OpenAI to search Reddit for relevant posts...');
             
             // Use backend API to safely access OpenAI
             const response = await fetch('/api/openai-search', {
@@ -669,11 +669,11 @@ class PostSparkSupabase {
             const data = await response.json();
             const posts = data.posts || [];
             
-            console.log(`OpenAI Assistant found ${posts.length} posts via backend API`);
+            console.log(`OpenAI found ${posts.length} relevant Reddit posts`);
             return posts;
             
         } catch (error) {
-            console.error('Error with OpenAI Assistant via backend:', error);
+            console.error('Error with OpenAI Reddit search:', error);
             return [];
         }
     }
