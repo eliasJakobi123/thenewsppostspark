@@ -17,5 +17,6 @@ if (!window.VITE_REDDIT_REDIRECT_URI) {
 }
 if (!window.VITE_OPENAI_API_KEY) {
     // Add your OpenAI API key here for local development
+    // In production, this should be set by Vercel environment variables
     window.VITE_OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY_HERE';
 }

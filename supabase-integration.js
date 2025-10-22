@@ -630,7 +630,14 @@ class PostSparkSupabase {
     async generateRedditPosts(campaignData) {
         try {
             // Check if OpenAI API key is configured
-            if (!window.OPENAI_CONFIG.API_KEY || window.OPENAI_CONFIG.API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+            console.log('OpenAI Config Debug:', {
+                hasConfig: !!window.OPENAI_CONFIG,
+                hasApiKey: !!window.OPENAI_CONFIG?.API_KEY,
+                apiKeyValue: window.OPENAI_CONFIG?.API_KEY,
+                isDefaultValue: window.OPENAI_CONFIG?.API_KEY === 'YOUR_OPENAI_API_KEY_HERE'
+            });
+            
+            if (!window.OPENAI_CONFIG?.API_KEY || window.OPENAI_CONFIG.API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
                 console.log('OpenAI API key not configured, using sample posts');
                 return this.generateSampleRedditPosts(campaignData);
             }
