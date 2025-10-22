@@ -62,18 +62,20 @@ Please provide realistic examples of the types of posts that would appear in the
 
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
-        // Prepare the request body - try with input parameter
+        // Prepare the request body - input must be a string
+        const inputString = `Business: ${businessName}
+Description: ${offer}
+Keywords: ${keywords.join(', ')}
+Target Subreddits: ${subreddits.join(', ')}
+
+Please search Reddit for posts where people are asking for solutions, discussing problems, or looking for recommendations related to this business.`;
+
         const requestBody = {
             prompt: {
                 id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
                 version: "7"
             },
-            input: {
-                business_name: businessName,
-                business_description: offer,
-                keywords: keywords,
-                target_subreddits: subreddits
-            }
+            input: inputString
         };
 
         // Debug: Log the complete request
