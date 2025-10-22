@@ -631,8 +631,8 @@ class PostSparkSupabase {
         try {
             console.log('Searching for real Reddit posts...');
             
-            // Search real Reddit posts using Reddit API
-            const realPosts = await this.searchRealRedditPosts(campaignData);
+            // Use OpenAI to search for real Reddit posts
+            const realPosts = await this.searchWithOpenAIAssistant(campaignData);
             if (realPosts && realPosts.length > 0) {
                 console.log(`Found ${realPosts.length} real Reddit posts`);
                 return realPosts;
