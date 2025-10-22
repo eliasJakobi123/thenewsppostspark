@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         const businessName = campaignData.name || 'Business Solution';
 
         // Create search query for the assistant
-        const searchQuery = `You are a Reddit search assistant. I need you to help me find real Reddit posts that are relevant to this business. Please search Reddit and find actual posts where people are discussing topics related to this business.
+        const searchQuery = `I need you to help me identify the types of Reddit posts that would be most relevant for lead generation for this business. Based on your training data, what kinds of posts would people make in these subreddits when they need this type of solution?
 
 BUSINESS DETAILS:
 Name: ${businessName}
@@ -39,31 +39,28 @@ Description: ${offer}
 Keywords: ${keywords.join(', ')}
 Target Subreddits: ${subreddits.join(', ')}
 
-Please search Reddit for posts where people are:
-- Asking for solutions to problems this business solves
-- Discussing pain points this product addresses
-- Looking for recommendations in this industry
-- Sharing frustrations with current tools
-- Expressing interest in similar products/services
+Based on your knowledge of Reddit discussions, what types of posts would people make when they:
+- Need solutions to problems this business solves
+- Are frustrated with current tools in this space
+- Are looking for recommendations for this type of product
+- Are expressing interest in similar services
 
-Search these subreddits: ${subreddits.join(', ')}
-
-Return the actual Reddit posts you find in JSON format:
+Please provide realistic examples of the types of posts that would appear in these subreddits, formatted as JSON:
 {
   "posts": [
     {
-      "title": "Actual Reddit post title",
-      "content": "Actual Reddit post content",
-      "subreddit": "r/actual_subreddit",
-      "author": "actual_username",
+      "title": "Realistic post title based on common Reddit patterns",
+      "content": "Realistic post content that someone would actually write",
+      "subreddit": "r/entrepreneur",
+      "author": "realistic_username",
       "score": 85,
-      "url": "https://reddit.com/actual_post_url",
+      "url": "https://reddit.com/r/entrepreneur/example",
       "created_utc": 1234567890
     }
   ]
 }
 
-Please find real, recent posts from Reddit that match these criteria.`;
+Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
