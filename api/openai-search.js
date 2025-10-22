@@ -9,6 +9,12 @@ export default async function handler(req, res) {
     try {
         const { campaignData } = req.body;
         
+        console.log('Environment check:', {
+            hasApiKey: !!process.env.VITE_OPENAI_API_KEY,
+            apiKeyLength: process.env.VITE_OPENAI_API_KEY?.length,
+            apiKeyStart: process.env.VITE_OPENAI_API_KEY?.substring(0, 10)
+        });
+        
         if (!process.env.VITE_OPENAI_API_KEY) {
             return res.status(500).json({ error: 'OpenAI API key not configured' });
         }
