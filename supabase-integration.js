@@ -630,7 +630,7 @@ class PostSparkSupabase {
     async generateRedditPosts(campaignData) {
         try {
             // Check if OpenAI API key is configured
-            if (!OPENAI_CONFIG.API_KEY || OPENAI_CONFIG.API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+            if (!window.OPENAI_CONFIG.API_KEY || window.OPENAI_CONFIG.API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
                 console.log('OpenAI API key not configured, using sample posts');
                 return this.generateSampleRedditPosts(campaignData);
             }
@@ -686,13 +686,13 @@ Return as JSON array with this structure:
             const response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${OPENAI_CONFIG.API_KEY}`,
+                    'Authorization': `Bearer ${window.OPENAI_CONFIG.API_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     prompt: {
-                        id: OPENAI_CONFIG.PROMPT_ID,
-                        version: OPENAI_CONFIG.VERSION
+                        id: window.OPENAI_CONFIG.PROMPT_ID,
+                        version: window.OPENAI_CONFIG.VERSION
                     },
                     messages: [
                         {
