@@ -120,7 +120,7 @@ Please search Reddit for posts where people are asking for solutions, discussing
         // The responses API returns data in output array format
         let posts = [];
         
-        console.log('OpenAI response structure:', {
+        console.log('🚀 NEW CODE VERSION - OpenAI response structure:', {
             hasOutput: !!data.output,
             outputLength: data.output?.length,
             outputTypes: data.output?.map(item => item.type)
