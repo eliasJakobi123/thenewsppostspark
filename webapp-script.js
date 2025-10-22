@@ -1,5 +1,8 @@
 // Webapp JavaScript with Supabase Integration
 document.addEventListener('DOMContentLoaded', async function() {
+    // Initialize PostSparkDB first
+    postSparkDB = new PostSparkDB();
+    
     // Initialize authentication
     const isAuthenticated = await postSparkDB.initializeAuth();
     
