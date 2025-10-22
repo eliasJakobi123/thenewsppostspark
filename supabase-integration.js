@@ -629,31 +629,105 @@ class PostSparkSupabase {
     // OpenAI API Methods
     async generateRedditPosts(campaignData) {
         try {
-            // Check if OpenAI API key is configured
-            // Try multiple ways to get the API key
+            console.log('Searching for real Reddit posts using OpenAI Chat Assistant...');
+            
+            // Use OpenAI Chat Assistant to search for real posts
+            const realPosts = await this.searchWithOpenAIAssistant(campaignData);
+            if (realPosts && realPosts.length > 0) {
+                console.log(`Found ${realPosts.length} real Reddit posts`);
+                return realPosts;
+            }
+            
+            // Fallback to sample posts if no real posts found
+            console.log('No real posts found, using sample posts as fallback');
+            return this.generateSampleRedditPosts(campaignData);
+        } catch (error) {
+            console.error('Error generating Reddit posts:', error);
+            return this.generateSampleRedditPosts(campaignData);
+        }
+    }
+
+    async searchWithOpenAIAssistant(campaignData) {
+        try {
             const apiKey = window.VITE_OPENAI_API_KEY || 
                           (window.OPENAI_CONFIG && window.OPENAI_CONFIG.API_KEY);
             
-            console.log('OpenAI Config Debug:', {
-                hasApiKey: !!apiKey,
-                apiKeyValue: apiKey ? apiKey.substring(0, 10) + '...' : 'undefined',
-                isDefaultValue: apiKey === 'YOUR_OPENAI_API_KEY_HERE' || !apiKey,
-                viteApiKey: window.VITE_OPENAI_API_KEY ? 'present' : 'missing',
-                openaiConfig: window.OPENAI_CONFIG ? 'present' : 'missing'
-            });
-            
             if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY_HERE') {
-                console.log('OpenAI API key not configured, using sample posts');
-                return this.generateSampleRedditPosts(campaignData);
+                console.log('OpenAI API key not configured');
+                return [];
             }
 
-            // Use OpenAI to generate realistic Reddit posts
-            const openaiPosts = await this.generateOpenAIRedditPosts(campaignData);
-            return openaiPosts;
+            const keywords = campaignData.keywords || ['lead generation', 'marketing'];
+            const subreddits = Array.isArray(campaignData.subreddits) ? campaignData.subreddits : ['r/entrepreneur', 'r/smallbusiness'];
+            const offer = campaignData.description || 'business solution';
+            const businessName = campaignData.name || 'Business Solution';
+
+            // Create search query for the assistant
+            const searchQuery = `Find real Reddit posts that match this business:
+
+BUSINESS DETAILS:
+Name: ${businessName}
+Description: ${offer}
+Keywords: ${keywords.join(', ')}
+Target Subreddits: ${subreddits.join(', ')}
+
+Please search for actual Reddit posts where people are:
+- Asking for solutions to problems your business solves
+- Discussing pain points your product addresses
+- Looking for recommendations in your industry
+- Sharing frustrations with current tools
+
+Return the posts in JSON format with this structure:
+{
+  "posts": [
+    {
+      "title": "Post title",
+      "content": "Post content",
+      "subreddit": "r/subreddit",
+      "author": "username",
+      "score": 85,
+      "url": "https://reddit.com/...",
+      "created_utc": 1234567890
+    }
+  ]
+}`;
+
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4',
+                    messages: [
+                        {
+                            role: 'user',
+                            content: searchQuery
+                        }
+                    ],
+                    max_tokens: 4000,
+                    temperature: 0.3
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`OpenAI API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const content = data.choices[0].message.content;
+            
+            // Parse JSON response
+            const result = JSON.parse(content);
+            const posts = result.posts || [];
+            
+            console.log(`OpenAI Assistant found ${posts.length} posts`);
+            return posts.slice(0, 25); // Limit to 25 posts
+            
         } catch (error) {
-            console.error('Error generating Reddit posts:', error);
-            // Fallback to sample posts if OpenAI fails
-            return this.generateSampleRedditPosts(campaignData);
+            console.error('Error with OpenAI Assistant:', error);
+            return [];
         }
     }
 
