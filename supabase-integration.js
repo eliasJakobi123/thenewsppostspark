@@ -649,93 +649,30 @@ class PostSparkSupabase {
 
     async searchWithOpenAIAssistant(campaignData) {
         try {
-            // Debug: Check all possible ways to get the API key
-            console.log('API Key Debug:', {
-                windowVite: window.VITE_OPENAI_API_KEY,
-                windowOpenAI: window.OPENAI_CONFIG?.API_KEY,
-                hasWindowVite: !!window.VITE_OPENAI_API_KEY,
-                hasWindowOpenAI: !!window.OPENAI_CONFIG?.API_KEY,
-                allWindowKeys: Object.keys(window).filter(k => k.includes('OPENAI') || k.includes('VITE'))
-            });
+            console.log('Using backend API for OpenAI search...');
             
-            const apiKey = window.VITE_OPENAI_API_KEY || 
-                          (window.OPENAI_CONFIG && window.OPENAI_CONFIG.API_KEY);
-            
-            if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY_HERE') {
-                console.log('OpenAI API key not configured - available keys:', Object.keys(window).filter(k => k.includes('OPENAI') || k.includes('VITE')));
-                return [];
-            }
-
-            const keywords = campaignData.keywords || ['lead generation', 'marketing'];
-            const subreddits = Array.isArray(campaignData.subreddits) ? campaignData.subreddits : ['r/entrepreneur', 'r/smallbusiness'];
-            const offer = campaignData.description || 'business solution';
-            const businessName = campaignData.name || 'Business Solution';
-
-            // Create search query for the assistant
-            const searchQuery = `Find real Reddit posts that match this business:
-
-BUSINESS DETAILS:
-Name: ${businessName}
-Description: ${offer}
-Keywords: ${keywords.join(', ')}
-Target Subreddits: ${subreddits.join(', ')}
-
-Please search for actual Reddit posts where people are:
-- Asking for solutions to problems your business solves
-- Discussing pain points your product addresses
-- Looking for recommendations in your industry
-- Sharing frustrations with current tools
-
-Return the posts in JSON format with this structure:
-{
-  "posts": [
-    {
-      "title": "Post title",
-      "content": "Post content",
-      "subreddit": "r/subreddit",
-      "author": "username",
-      "score": 85,
-      "url": "https://reddit.com/...",
-      "created_utc": 1234567890
-    }
-  ]
-}`;
-
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            // Use backend API to safely access OpenAI
+            const response = await fetch('/api/openai-search', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    model: 'gpt-4',
-                    messages: [
-                        {
-                            role: 'user',
-                            content: searchQuery
-                        }
-                    ],
-                    max_tokens: 4000,
-                    temperature: 0.3
-                })
+                body: JSON.stringify({ campaignData })
             });
 
             if (!response.ok) {
-                throw new Error(`OpenAI API error: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(`Backend API error: ${errorData.error || response.status}`);
             }
 
             const data = await response.json();
-            const content = data.choices[0].message.content;
+            const posts = data.posts || [];
             
-            // Parse JSON response
-            const result = JSON.parse(content);
-            const posts = result.posts || [];
-            
-            console.log(`OpenAI Assistant found ${posts.length} posts`);
-            return posts.slice(0, 25); // Limit to 25 posts
+            console.log(`OpenAI Assistant found ${posts.length} posts via backend API`);
+            return posts;
             
         } catch (error) {
-            console.error('Error with OpenAI Assistant:', error);
+            console.error('Error with OpenAI Assistant via backend:', error);
             return [];
         }
     }
