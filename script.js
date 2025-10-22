@@ -39,19 +39,32 @@ function initializeRegistrationButtons() {
     
     // Add click handlers
     if (navGetStarted) {
-        navGetStarted.addEventListener('click', redirectToRegistration);
+        navGetStarted.addEventListener('click', (e) => {
+            e.preventDefault();
+            redirectToRegistration();
+        });
     }
     if (heroStartTrial) {
-        heroStartTrial.addEventListener('click', redirectToRegistration);
+        // Hero button is already a link, no need to prevent default
+        console.log('Hero button found:', heroStartTrial);
     }
     if (pricingFreeGetStarted) {
-        pricingFreeGetStarted.addEventListener('click', redirectToRegistration);
+        pricingFreeGetStarted.addEventListener('click', (e) => {
+            e.preventDefault();
+            redirectToRegistration();
+        });
     }
     if (pricingProChoose) {
-        pricingProChoose.addEventListener('click', redirectToRegistration);
+        pricingProChoose.addEventListener('click', (e) => {
+            e.preventDefault();
+            redirectToRegistration();
+        });
     }
     if (pricingEnterpriseContact) {
-        pricingEnterpriseContact.addEventListener('click', redirectToRegistration);
+        pricingEnterpriseContact.addEventListener('click', (e) => {
+            e.preventDefault();
+            redirectToRegistration();
+        });
     }
 }
 
