@@ -62,6 +62,31 @@ Please provide realistic examples of the types of posts that would appear in the
 
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
+        // Prepare the request body
+        const requestBody = {
+            prompt: {
+                id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
+                version: "7"
+            },
+            context: {
+                business_name: businessName,
+                business_description: offer,
+                keywords: keywords,
+                target_subreddits: subreddits
+            }
+        };
+
+        // Debug: Log the complete request
+        console.log('OpenAI Request Debug:', {
+            url: 'https://api.openai.com/v1/responses',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY?.substring(0, 10)}...`,
+                'Content-Type': 'application/json'
+            },
+            body: requestBody
+        });
+
         // Use OpenAI Chat Assistant with responses API
         const response = await fetch('https://api.openai.com/v1/responses', {
             method: 'POST',
@@ -69,22 +94,18 @@ Focus on realistic, authentic-sounding posts that would genuinely appear in thes
                 'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                prompt: {
-                    id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
-                    version: "7"
-                },
-                context: {
-                    business_name: businessName,
-                    business_description: offer,
-                    keywords: keywords,
-                    target_subreddits: subreddits
-                }
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
-            throw new Error(`OpenAI API error: ${response.status}`);
+            const errorText = await response.text();
+            console.error('OpenAI API Error Details:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries()),
+                body: errorText
+            });
+            throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
