@@ -649,11 +649,20 @@ class PostSparkSupabase {
 
     async searchWithOpenAIAssistant(campaignData) {
         try {
+            // Debug: Check all possible ways to get the API key
+            console.log('API Key Debug:', {
+                windowVite: window.VITE_OPENAI_API_KEY,
+                windowOpenAI: window.OPENAI_CONFIG?.API_KEY,
+                hasWindowVite: !!window.VITE_OPENAI_API_KEY,
+                hasWindowOpenAI: !!window.OPENAI_CONFIG?.API_KEY,
+                allWindowKeys: Object.keys(window).filter(k => k.includes('OPENAI') || k.includes('VITE'))
+            });
+            
             const apiKey = window.VITE_OPENAI_API_KEY || 
                           (window.OPENAI_CONFIG && window.OPENAI_CONFIG.API_KEY);
             
             if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY_HERE') {
-                console.log('OpenAI API key not configured');
+                console.log('OpenAI API key not configured - available keys:', Object.keys(window).filter(k => k.includes('OPENAI') || k.includes('VITE')));
                 return [];
             }
 
