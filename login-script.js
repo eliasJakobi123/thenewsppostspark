@@ -1,8 +1,5 @@
 // Login Page JavaScript
-// Initialize Supabase client
-const SUPABASE_URL = 'https://ntutkssgqzqgmbvuwjqu.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50dXRrc3NncXpxZ21idnV3anF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2NzIwODcsImV4cCI6MjA3NjI0ODA4N30.7sVEt76VK0INektXVqB5xsDnfQolW7Bzz0MeJ63CevE';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Use global supabaseClient from supabase-config.js
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeLogin();
