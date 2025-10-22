@@ -66,7 +66,6 @@ Focus on realistic, authentic-sounding posts that would genuinely appear in thes
         const inputString = `Business: ${businessName}
 Description: ${offer}
 Keywords: ${keywords.join(', ')}
-Target Subreddits: ${subreddits.join(', ')}
 
 Please search Reddit for posts where people are asking for solutions, discussing problems, or looking for recommendations related to this business.`;
 
