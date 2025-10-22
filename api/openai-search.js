@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         const businessName = campaignData.name || 'Business Solution';
 
         // Create search query for the assistant
-        const searchQuery = `Find real Reddit posts that match this business:
+        const searchQuery = `I need help analyzing potential customer conversations for a business. Please create examples of discussion topics that would be relevant for this business:
 
 BUSINESS DETAILS:
 Name: ${businessName}
@@ -39,22 +39,22 @@ Description: ${offer}
 Keywords: ${keywords.join(', ')}
 Target Subreddits: ${subreddits.join(', ')}
 
-Please search for actual Reddit posts where people are:
-- Asking for solutions to problems your business solves
-- Discussing pain points your product addresses
-- Looking for recommendations in your industry
-- Sharing frustrations with current tools
+Please create examples of discussion topics where potential customers might:
+- Ask for solutions to problems this business solves
+- Discuss pain points this product addresses
+- Look for recommendations in this industry
+- Share frustrations with current tools
 
-Return the posts in JSON format with this structure:
+Return the examples in JSON format with this structure:
 {
   "posts": [
     {
-      "title": "Post title",
-      "content": "Post content",
+      "title": "Discussion topic title",
+      "content": "Example discussion content",
       "subreddit": "r/subreddit",
-      "author": "username",
+      "author": "example_user",
       "score": 85,
-      "url": "https://reddit.com/...",
+      "url": "https://reddit.com/example",
       "created_utc": 1234567890
     }
   ]
