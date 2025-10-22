@@ -87,18 +87,20 @@ Please search Reddit for posts where people are asking for solutions, discussing
         });
 
         // Use OpenAI Chat Assistant with responses API - Version 9
-        const response = await fetch('https://api.openai.com/v1/responses', {
+        const response = await fetch('https://api.openai.com/v1/assistants', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                prompt: {
-                    id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
+                model: 'gpt-4',
+                instructions: 'You are a Reddit search specialist. Search Reddit for posts where people are asking for solutions, discussing problems, or looking for recommendations. Return results in JSON format.',
+                tools: [{"type": "web_search"}],
+                metadata: {
+                    prompt_id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
                     version: "9"
-                },
-                input: inputString
+                }
             })
         });
 
