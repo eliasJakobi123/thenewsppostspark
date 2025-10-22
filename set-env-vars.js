@@ -16,5 +16,6 @@ if (!window.VITE_REDDIT_REDIRECT_URI) {
     window.VITE_REDDIT_REDIRECT_URI = 'http://localhost:8080';
 }
 if (!window.VITE_OPENAI_API_KEY) {
+    // Add your OpenAI API key here for local development
     window.VITE_OPENAI_API_KEY = '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';
 }

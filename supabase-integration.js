@@ -650,38 +650,28 @@ class PostSparkSupabase {
             const keywords = campaignData.keywords || ['lead generation', 'marketing'];
             const subreddits = Array.isArray(campaignData.subreddits) ? campaignData.subreddits : ['r/entrepreneur', 'r/smallbusiness'];
             const offer = campaignData.description || 'business solution';
+            const businessName = campaignData.name || 'Business Solution';
 
-            // Create prompt for OpenAI
-            const prompt = `Generate 25-30 realistic Reddit posts that would be relevant for someone offering: "${offer}"
+            // Create the prompt message for the Chat Assistant
+            const promptMessage = `Analyze Reddit posts and find ones that match this business:
 
-Keywords to focus on: ${keywords.join(', ')}
-Target subreddits: ${subreddits.join(', ')}
+BUSINESS DETAILS:
+Name: ${businessName}
+Description: ${offer}
+Target Audience: ${campaignData.target_audience || 'Small business owners, entrepreneurs'}
+Keywords: ${keywords.join(', ')}
 
-For each post, provide:
-- A realistic title that someone might post asking for help or discussing problems
-- Content that shows they need a solution related to: ${offer}
-- A subreddit from the list: ${subreddits.join(', ')}
-- A relevance score (70-100) based on how well it matches the offer
-- A realistic author username
-- Upvotes (5-50)
-- Comments count (1-20)
-- A reason why this post is relevant
+SEARCH CRITERIA:
+Subreddits: ${subreddits.join(', ')}
+Post Types: question, discussion, help
+Minimum Score: 70
+Count: 25 posts
 
-Return as JSON array with this structure:
-[
-  {
-    "reddit_id": "t3_" + random_string,
-    "title": "Realistic post title",
-    "content": "Post content showing they need help with...",
-    "subreddit": "r/entrepreneur",
-    "score": 85,
-    "author": "realistic_username",
-    "upvotes": 15,
-    "comments": 8,
-    "relevance_reason": "Looking for solutions related to...",
-    "created_at": "2024-01-15T10:30:00Z"
-  }
-]`;
+Find posts that show:
+- Problems your business could solve
+- Questions asking for solutions
+- Frustration with current tools
+- Success stories with similar products`;
 
             const response = await fetch('https://api.openai.com/v1/responses', {
                 method: 'POST',
@@ -697,7 +687,7 @@ Return as JSON array with this structure:
                     messages: [
                         {
                             role: 'user',
-                            content: prompt
+                            content: promptMessage
                         }
                     ]
                 })
@@ -711,10 +701,11 @@ Return as JSON array with this structure:
             const content = data.choices[0].message.content;
             
             // Parse JSON response
-            const posts = JSON.parse(content);
+            const result = JSON.parse(content);
+            const posts = result.posts || [];
             
             // Ensure we have the right number of posts
-            const targetCount = 25 + Math.floor(Math.random() * 6); // 25-30 posts
+            const targetCount = 25;
             if (posts.length < targetCount) {
                 // Fill with sample posts if needed
                 const samplePosts = this.generateSampleRedditPosts(campaignData);
