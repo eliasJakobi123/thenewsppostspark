@@ -117,51 +117,55 @@ Please search Reddit for posts where people are asking for solutions, discussing
         const data = await response.json();
         console.log('OpenAI Chat Assistant response:', JSON.stringify(data, null, 2));
         
-        // The responses API returns data in a different format
+        // The responses API returns data in output array format
         let posts = [];
         
-        if (data.output_text) {
-            // Direct output from responses API
-            console.log('Output text (first 500 chars):', data.output_text.substring(0, 500));
-            console.log('Full output text length:', data.output_text.length);
-            
-            try {
-                const result = JSON.parse(data.output_text);
-                posts = result.posts || [];
-                console.log('Parsed posts count:', posts.length);
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.log('Raw output_text that failed to parse:', data.output_text);
-                return res.status(500).json({ 
-                    error: 'OpenAI returned non-JSON response',
-                    content: data.output_text.substring(0, 500),
-                    parseError: parseError.message
-                });
+        console.log('OpenAI response structure:', {
+            hasOutput: !!data.output,
+            outputLength: data.output?.length,
+            outputTypes: data.output?.map(item => item.type)
+        });
+        
+        // Look for posts in the output array
+        if (data.output && Array.isArray(data.output)) {
+            for (const outputItem of data.output) {
+                if (outputItem.type === 'message' && outputItem.content) {
+                    for (const contentItem of outputItem.content) {
+                        if (contentItem.type === 'output_text' && contentItem.text) {
+                            console.log('Found text content (first 200 chars):', contentItem.text.substring(0, 200) + '...');
+                            
+                            try {
+                                // Try to extract JSON from the text (look for ```json blocks)
+                                const jsonMatch = contentItem.text.match(/```json\n([\s\S]*?)\n```/);
+                                if (jsonMatch) {
+                                    const jsonText = jsonMatch[1];
+                                    console.log('Extracted JSON (first 200 chars):', jsonText.substring(0, 200) + '...');
+                                    
+                                    const result = JSON.parse(jsonText);
+                                    if (result && result.posts && Array.isArray(result.posts)) {
+                                        posts = result.posts;
+                                        console.log(`OpenAI found ${posts.length} relevant Reddit posts`);
+                                        break;
+                                    }
+                                }
+                            } catch (parseError) {
+                                console.error('JSON parse error:', parseError);
+                                console.log('Raw text content (first 500 chars):', contentItem.text.substring(0, 500));
+                            }
+                        }
+                    }
+                }
             }
-        } else if (data.choices && data.choices[0] && data.choices[0].message) {
-            // Standard chat completion format
-            const content = data.choices[0].message.content;
-            console.log('Response content (first 500 chars):', content.substring(0, 500));
-            console.log('Full response content length:', content.length);
+        }
+        
+        // Fallback: try other response fields
+        if (posts.length === 0) {
+            console.log('No posts found in output array, trying fallback...');
+            console.log('Available data keys:', Object.keys(data));
             
-            try {
-                const result = JSON.parse(content);
-                posts = result.posts || [];
-                console.log('Parsed posts count:', posts.length);
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.log('Raw content that failed to parse:', content);
-                return res.status(500).json({ 
-                    error: 'OpenAI returned non-JSON response',
-                    content: content.substring(0, 500),
-                    parseError: parseError.message
-                });
-            }
-        } else {
-            // Try to extract posts from any format
+            // Try direct posts field
             posts = data.posts || data.data?.posts || [];
             console.log('Posts from fallback extraction:', posts.length);
-            console.log('Available data keys:', Object.keys(data));
         }
         
         res.status(200).json({ posts: posts.slice(0, 25) });
