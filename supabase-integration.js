@@ -630,15 +630,15 @@ class PostSparkSupabase {
     async generateRedditPosts(campaignData) {
         try {
             // Check if OpenAI API key is configured
+            const apiKey = window.VITE_OPENAI_API_KEY;
             console.log('OpenAI Config Debug:', {
-                hasConfig: !!window.OPENAI_CONFIG,
-                hasApiKey: !!window.OPENAI_CONFIG?.API_KEY,
-                apiKeyValue: window.OPENAI_CONFIG?.API_KEY,
-                isDefaultValue: window.OPENAI_CONFIG?.API_KEY === 'YOUR_OPENAI_API_KEY_HERE',
-                viteApiKey: window.VITE_OPENAI_API_KEY
+                hasApiKey: !!apiKey,
+                apiKeyValue: apiKey,
+                isDefaultValue: apiKey === 'YOUR_OPENAI_API_KEY_HERE' || !apiKey,
+                viteApiKey: apiKey
             });
             
-            if (!window.OPENAI_CONFIG?.API_KEY || window.OPENAI_CONFIG.API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+            if (!apiKey || apiKey === 'YOUR_OPENAI_API_KEY_HERE') {
                 console.log('OpenAI API key not configured, using sample posts');
                 return this.generateSampleRedditPosts(campaignData);
             }
@@ -684,7 +684,7 @@ Find posts that show:
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${window.OPENAI_CONFIG.API_KEY}`,
+                    'Authorization': `Bearer ${window.VITE_OPENAI_API_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
