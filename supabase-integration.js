@@ -662,6 +662,7 @@ class PostSparkSupabase {
 
             if (!response.ok) {
                 const errorData = await response.json();
+                console.log('Backend API error details:', errorData);
                 throw new Error(`Backend API error: ${errorData.error || response.status}`);
             }
 
