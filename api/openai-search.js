@@ -80,13 +80,13 @@ Please search Reddit for posts where people are asking for solutions, discussing
             body: {
                 prompt: {
                     id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
-                    version: "8"
+                    version: "9"
                 },
                 input: inputString
             }
         });
 
-        // Use OpenAI Chat Assistant with responses API - Version 8
+        // Use OpenAI Chat Assistant with responses API - Version 9
         const response = await fetch('https://api.openai.com/v1/responses', {
             method: 'POST',
             headers: {
@@ -96,7 +96,7 @@ Please search Reddit for posts where people are asking for solutions, discussing
             body: JSON.stringify({
                 prompt: {
                     id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
-                    version: "8"
+                    version: "9"
                 },
                 input: inputString
             })
