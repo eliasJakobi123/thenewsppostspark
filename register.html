@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration - PostSpark</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="register-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="register-header">
+        <div class="header-container">
+                <div class="logo">
+                    <img src="postspark.png" alt="PostSpark" class="logo-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="logo-fallback" style="display: none;">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="register-main">
+        <div class="register-container">
+            <div class="register-content">
+                <!-- Marketing Section -->
+                <div class="marketing-section">
+                    <div class="marketing-content">
+                        <h1>Let us search for people on Reddit who need your <span class="highlight">SaaS/App</span></h1>
+                    </div>
+                </div>
+
+                <!-- Registration Form Section -->
+                <div class="form-section">
+                    <div class="form-container">
+                        <div class="form-header">
+                            <h2>Start Free</h2>
+                            <p>Create your account and start generating leads immediately</p>
+                        </div>
+
+                        <form class="simple-registration-form" id="registration-form">
+                            <div class="form-group">
+                                <input type="text" id="reg-name" name="name" class="simple-input" placeholder="Your full name" required>
+                                <div class="error-message" id="reg-name-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="email" id="reg-email" name="email" class="simple-input" placeholder="Email address" required>
+                                <div class="error-message" id="reg-email-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="password" id="reg-password" name="password" class="simple-input" placeholder="Password (at least 8 characters)" required>
+                                <div class="error-message" id="reg-password-error"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="password" id="reg-confirm-password" name="confirmPassword" class="simple-input" placeholder="Confirm password" required>
+                                <div class="error-message" id="reg-confirm-password-error"></div>
+                            </div>
+
+                            <button type="submit" class="simple-submit">
+                                <i class="fas fa-rocket"></i>
+                                Register for Free
+                            </button>
+
+                            <div class="form-footer">
+                                <p>Already have an account? <a href="login.html" class="terms-link">Sign in here</a></p>
+                                <p style="margin-top: 0.5rem; font-size: 0.7rem;">By signing up you agree to our <a href="#" class="terms-link">terms of service</a> and <a href="#" class="terms-link">privacy policy</a>.</p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="register-footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Support</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-copyright">
+                    <p>&copy; 2024 PostSpark. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="supabase-config.js"></script>
+    <script src="register-script.js"></script>
+</body>
+</html>

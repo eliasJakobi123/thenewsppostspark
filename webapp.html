@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostSpark - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="webapp-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="webapp-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="PostSpark-removebg-preview.png" alt="PostSpark" class="logo-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="logo-fallback" style="display: none;">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="campaigns">
+                    <i class="fas fa-rocket"></i>
+                    <span>Campaigns</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">John Doe</span>
+                        <span class="user-role">Pro Plan</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div class="page active" id="dashboard">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary create-campaign-btn">
+                            <i class="fas fa-plus"></i>
+                            New Campaign
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>0</h3>
+                            <p>Found Posts</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>0</h3>
+                            <p>Contacted Leads</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>0</h3>
+                            <p>High Potential</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- High Potential Posts -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>High Potential Posts</h2>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-filter"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="posts-grid">
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <h3>No posts found yet</h3>
+                            <p>Create your first campaign to start finding leads on Reddit</p>
+                            <button class="btn btn-primary" onclick="showCreateCampaign()">Create Campaign</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaigns Page -->
+            <div class="page" id="campaigns">
+                <div class="page-header">
+                    <h1>Campaigns</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary create-campaign-btn">
+                            <i class="fas fa-plus"></i>
+                            Create Campaign
+                        </button>
+                    </div>
+                </div>
+
+                <div class="campaigns-grid" id="campaigns-grid">
+                    <!-- Campaigns will be dynamically loaded here -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <i class="fas fa-rocket"></i>
+                    <h3>No campaigns yet</h3>
+                    <p>Create your first campaign to start finding leads on Reddit</p>
+                    <button class="btn btn-primary create-campaign-btn">Create Campaign</button>
+                </div>
+            </div>
+
+            <!-- Campaign Posts Page -->
+            <div class="page" id="campaign-posts">
+                <div class="page-header">
+                    <div class="header-left">
+                        <button class="btn btn-secondary back-btn">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Campaigns
+                        </button>
+                        <h1 id="campaign-posts-title">Campaign Posts</h1>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-danger delete-campaign-btn">
+                            <i class="fas fa-trash"></i>
+                            Delete Campaign
+                        </button>
+                        <button class="btn btn-primary refresh-btn">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="posts-stats">
+                    <div class="posts-stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-posts">0</h3>
+                            <p>Total Posts Found</p>
+                        </div>
+                    </div>
+                    
+                    <div class="posts-stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="high-potential-posts">0</h3>
+                            <p>High Potential</p>
+                        </div>
+                    </div>
+                    
+                    <div class="posts-stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="contacted-posts">0</h3>
+                            <p>Contacted</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Found Posts</h2>
+                        <div class="section-actions">
+                            <div class="filter-dropdown">
+                                <button class="btn btn-secondary filter-btn" id="filter-btn">
+                                    <i class="fas fa-filter"></i>
+                                    Filter
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="filter-menu" id="filter-menu">
+                                    <div class="filter-option" data-filter="all">
+                                        <i class="fas fa-list"></i>
+                                        All Posts
+                                    </div>
+                                    <div class="filter-option" data-filter="high">
+                                        <i class="fas fa-star"></i>
+                                        Only High Potential
+                                    </div>
+                                    <div class="filter-option" data-filter="medium">
+                                        <i class="fas fa-star-half-alt"></i>
+                                        Only Medium Potential
+                                    </div>
+                                    <div class="filter-option" data-filter="high-low">
+                                        <i class="fas fa-sort-amount-down"></i>
+                                        High to Low
+                                    </div>
+                                    <div class="filter-option" data-filter="low-high">
+                                        <i class="fas fa-sort-amount-up"></i>
+                                        Low to High
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="campaign-posts-grid" id="campaign-posts-grid">
+                        <!-- Posts will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Campaign Page -->
+            <div class="page" id="create-campaign">
+                <div class="page-header">
+                    <div class="header-left">
+                        <button class="btn btn-secondary back-to-campaigns-btn">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Campaigns
+                        </button>
+                        <h1>Create New Campaign</h1>
+                    </div>
+                </div>
+
+                <div class="modern-campaign-container">
+                    <!-- Progress Indicator -->
+                    <div class="modern-progress-indicator">
+                        <div class="progress-step active" data-step="1">
+                            <div class="step-circle">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <span class="step-label">Name</span>
+                        </div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="2">
+                            <div class="step-circle">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <span class="step-label">Setup</span>
+                        </div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="3">
+                            <div class="step-circle">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <span class="step-label">Ready</span>
+                        </div>
+                    </div>
+
+                    <!-- Campaign Creation Form -->
+                    <div class="modern-campaign-form">
+                        <!-- Step 1: Campaign Name -->
+                        <div class="form-step active" id="modern-step-1">
+                            <div class="step-header">
+                                <h2>What's your campaign name?</h2>
+                                <p>Choose a descriptive name for your campaign</p>
+                            </div>
+                            <div class="form-content">
+                                <div class="input-group">
+                                    <label for="modern-campaign-name">Campaign Name</label>
+                                    <input type="text" id="modern-campaign-name" placeholder="e.g., Project Management Tool Leads" class="modern-input">
+                                </div>
+                                <button class="modern-btn primary next-step-btn" data-next="2">
+                                    Continue
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Campaign Setup -->
+                        <div class="form-step" id="modern-step-2">
+                            <div class="step-header">
+                                <h2>Set up your campaign</h2>
+                                <p>Add keywords and describe your offer</p>
+                            </div>
+                            <div class="form-content">
+                                <div class="form-row">
+                                    <div class="input-group">
+                                        <label for="modern-keywords">Keywords</label>
+                                        <div class="keywords-container">
+                                            <input type="text" id="modern-keyword-field" placeholder="Type keywords and press Enter" class="modern-input">
+                                            <div class="keywords-tags" id="modern-keywords-tags"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="input-group">
+                                        <label for="modern-offer">Your Offer</label>
+                                        <textarea id="modern-offer" placeholder="Describe what you offer..." class="modern-textarea"></textarea>
+                                    </div>
+                                </div>
+                                <button class="modern-btn primary create-manual-campaign-btn">
+                                    <i class="fas fa-rocket"></i>
+                                    Create Campaign
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Results -->
+                        <div class="form-step" id="modern-step-3">
+                            <div class="step-header">
+                                <h2>Campaign Ready!</h2>
+                                <p>Your campaign has been created successfully</p>
+                            </div>
+                            <div class="form-content">
+                                <div class="campaign-summary">
+                                    <div class="summary-item">
+                                        <div class="summary-label">Campaign Name</div>
+                                        <div class="summary-value" id="modern-campaign-name-display"></div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Keywords</div>
+                                        <div class="summary-keywords" id="modern-keywords-display"></div>
+                                    </div>
+                                    <div class="summary-item">
+                                        <div class="summary-label">Offer</div>
+                                        <div class="summary-value" id="modern-offer-display"></div>
+                                    </div>
+                                </div>
+                                <button class="modern-btn primary find-leads-btn">
+                                    <i class="fas fa-search"></i>
+                                    Find Leads on Reddit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Reddit Search Loading Page -->
+            <div class="page" id="reddit-search-loading">
+                <div class="loading-page-content">
+                    <div class="loading-animation">
+                        <div class="loading-spinner-large"></div>
+                    </div>
+                    <h1>Finding Leads on Reddit</h1>
+                    <p>Searching through millions of Reddit posts to find potential customers who need your solution...</p>
+                    <div class="loading-steps">
+                        <div class="loading-step active">
+                            <i class="fas fa-search"></i>
+                            <span>Scanning Reddit posts</span>
+                        </div>
+                        <div class="loading-step">
+                            <i class="fas fa-filter"></i>
+                            <span>Filtering by relevance</span>
+                        </div>
+                        <div class="loading-step">
+                            <i class="fas fa-star"></i>
+                            <span>Scoring potential leads</span>
+                        </div>
+                        <div class="loading-step">
+                            <i class="fas fa-check"></i>
+                            <span>Finalizing results</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page" id="settings">
+                <div class="page-header">
+                    <h1>Settings</h1>
+                </div>
+                
+                <div class="modern-settings-container">
+                    <!-- Profile Section -->
+                    <div class="modern-settings-section">
+                        <div class="section-header">
+                            <div class="header-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="header-content">
+                                <h2>Profile Information</h2>
+                                <p>Manage your account details and personal information</p>
+                            </div>
+                        </div>
+                        
+                        <div class="modern-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="profile-name">Full Name</label>
+                                    <input type="text" id="profile-name" class="modern-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-email">Email Address</label>
+                                    <input type="email" id="profile-email" class="modern-input" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-company">Company</label>
+                                    <input type="text" id="profile-company" class="modern-input">
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button class="modern-btn primary save-profile-btn">
+                                    <i class="fas fa-save"></i>
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Section -->
+                    <div class="modern-settings-section">
+                        <div class="section-header">
+                            <div class="header-icon">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div class="header-content">
+                                <h2>Subscription & Billing</h2>
+                                <p>Manage your plan and billing information</p>
+                            </div>
+                        </div>
+                        
+                        <div class="subscription-overview">
+                            <div class="plan-card">
+                                <div class="plan-header">
+                                    <div class="plan-info">
+                                        <div class="plan-name">
+                                            <h3 id="current-plan-name">Loading...</h3>
+                                            <span class="plan-badge" id="plan-badge">Current Plan</span>
+                                        </div>
+                                        <div class="plan-price">
+                                            <span class="price" id="plan-price">€0</span>
+                                            <span class="period" id="plan-period">/month</span>
+                                        </div>
+                                    </div>
+                                    <div class="plan-status">
+                                        <span class="status-badge active" id="plan-status">
+                                            <i class="fas fa-check"></i>
+                                            Active
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="plan-features">
+                                    <div class="feature-item">
+                                        <i class="fas fa-check"></i>
+                                        <span>Unlimited Campaigns</span>
+                                    </div>
+                                    <div class="feature-item">
+                                        <i class="fas fa-check"></i>
+                                        <span>10,000 Leads per Month</span>
+                                    </div>
+                                    <div class="feature-item">
+                                        <i class="fas fa-check"></i>
+                                        <span>Advanced Analytics</span>
+                                    </div>
+                                    <div class="feature-item">
+                                        <i class="fas fa-check"></i>
+                                        <span>Priority Support</span>
+                                    </div>
+                                </div>
+                                
+                                
+                                <div class="plan-actions">
+                                    <button class="modern-btn primary">
+                                        <i class="fas fa-arrow-up"></i>
+                                        Upgrade Plan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Danger Zone -->
+                    <div class="modern-settings-section danger-zone">
+                        <div class="section-header">
+                            <div class="header-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="header-content">
+                                <h2>Danger Zone</h2>
+                                <p>Irreversible and destructive actions</p>
+                            </div>
+                        </div>
+                        
+                        <div class="danger-actions">
+                            <div class="danger-item">
+                                <div class="danger-info">
+                                    <h4>Delete Account</h4>
+                                    <p>Permanently delete your account and all data</p>
+                                </div>
+                                <button class="modern-btn danger">
+                                    <i class="fas fa-trash"></i>
+                                    Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Comment Popup -->
+    <div class="comment-popup" id="comment-popup">
+        <div class="popup-overlay"></div>
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>Write Comment</h3>
+                <button class="popup-close" id="popup-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="post-preview" id="post-preview">
+                <!-- Post preview will be inserted here -->
+            </div>
+            
+            <div class="comment-form">
+                <div class="reddit-connection-status" id="reddit-status">
+                    <div class="connection-info">
+                        <i class="fas fa-reddit-alien"></i>
+                        <span id="reddit-status-text">Checking Reddit connection...</span>
+                    </div>
+                    <button class="btn btn-small" id="connect-reddit-btn" style="display: none;">
+                        <i class="fas fa-link"></i>
+                        Connect Reddit
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="comment-text">Your Comment</label>
+                    <textarea id="comment-text" placeholder="Write your comment here..." rows="4"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn btn-secondary" id="send-comment" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                        Send to Reddit
+                    </button>
+                    <button class="btn btn-primary" id="write-with-ai">
+                        <i class="fas fa-robot"></i>
+                        Write with AI
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="supabase-config.js"></script>
+    <script src="supabase-integration.js"></script>
+    <script src="webapp-script.js"></script>
+</body>
+</html>

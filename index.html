@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostSpark - Find Leads in Seconds on Reddit</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="PostSpark.png" alt="PostSpark" class="logo-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="logo-fallback" style="display: none;">
+                    <h2>PostSpark</h2>
+                </div>
+            </div>
+            <div class="nav-menu">
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+                <button class="cta-button" id="nav-get-started">Get Started</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-title-section">
+                <h1 class="hero-title">
+                    Find Leads in Seconds on Reddit Who Want to Pay for Your SaaS or App
+                </h1>
+                <p class="hero-subtitle">
+                    Stop wasting time on cold outreach. PostSpark finds potential customers who are already discussing problems your product solves.
+                </p>
+                <div class="hero-buttons">
+                    <a href="register.html" class="primary-button" id="hero-start-trial">Start Free Trial</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Studies Section -->
+    <section class="case-studies">
+        <div class="container">
+            <div class="case-studies-header">
+                <h2 class="section-title">Case Studies</h2>
+                <p class="case-studies-subtitle">See real examples of what PostSpark can find for you daily.</p>
+            </div>
+            
+            <div class="case-study-filters">
+                <button class="filter-btn active">
+                    <i class="fas fa-chart-line"></i>
+                    B2B SaaS
+                </button>
+                <button class="filter-btn">
+                    <i class="fas fa-heartbeat"></i>
+                    Health Apps
+                </button>
+                <button class="filter-btn">
+                    <i class="fas fa-dumbbell"></i>
+                    Sport Apps
+                </button>
+                <button class="filter-btn">
+                    <i class="fas fa-globe"></i>
+                    B2C Web Apps
+                </button>
+            </div>
+
+            <div class="case-study-quote">
+                <p>"I need a CRM solution for our B2B SaaS company."</p>
+            </div>
+
+            <div class="case-study-cards">
+                <!-- B2B SaaS -->
+                <div class="case-study-card" data-category="b2b">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/entrepreneur • u/startupceo</span>
+                            <span class="time">8. Okt. 2025, 12:42</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need a CRM solution for our B2B SaaS company</h4>
+                        <p>Looking for a CRM that can handle lead management, sales pipeline, and customer support. Budget: $200/month.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="b2b">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/sales • u/salesdirector</span>
+                            <span class="time">8. Okt. 2025, 10:30</span>
+                        </div>
+                        <div class="rating">9/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for email automation software for lead nurturing</h4>
+                        <p>Need a tool that can send personalized follow-up emails based on lead behavior. Must integrate with our CRM.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="b2b">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/marketing • u/marketingmanager</span>
+                            <span class="time">8. Okt. 2025, 09:15</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need analytics dashboard for our marketing campaigns</h4>
+                        <p>Looking for a tool to track ROI across all marketing channels. Must have real-time reporting and custom dashboards.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="b2b">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/startups • u/techfounder</span>
+                            <span class="time">8. Okt. 2025, 07:45</span>
+                        </div>
+                        <div class="rating">8/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for project management tool for remote team</h4>
+                        <p>Need a solution for our 15-person remote team. Must have time tracking, file sharing, and video integration.</p>
+                    </div>
+                </div>
+
+                <!-- Health Apps -->
+                <div class="case-study-card" data-category="health" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/health • u/healthconscious</span>
+                            <span class="time">8. Okt. 2025, 14:07</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for a meditation app with sleep tracking</h4>
+                        <p>Need an app that can track my sleep patterns and provide guided meditation sessions. Must sync with Apple Health.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="health" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/mentalhealth • u/wellnessseeker</span>
+                            <span class="time">8. Okt. 2025, 11:23</span>
+                        </div>
+                        <div class="rating">9/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need a mood tracking app with journaling features</h4>
+                        <p>Looking for an app to track my daily mood and thoughts. Must have privacy features and data export options.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="health" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/nutrition • u/healthyeater</span>
+                            <span class="time">8. Okt. 2025, 09:45</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for a nutrition tracking app with meal planning</h4>
+                        <p>Need an app that can create meal plans based on my dietary restrictions and track nutrients. Must have barcode scanner.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="health" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/medical • u/patient</span>
+                            <span class="time">8. Okt. 2025, 08:12</span>
+                        </div>
+                        <div class="rating">8/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need a symptom tracking app for my chronic condition</h4>
+                        <p>Looking for an app to track symptoms and share data with my doctor. Must be HIPAA compliant and secure.</p>
+                    </div>
+                </div>
+
+                <!-- Sport Apps -->
+                <div class="case-study-card" data-category="sport" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/fitness • u/athlete</span>
+                            <span class="time">8. Okt. 2025, 13:20</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for a running app with GPS tracking</h4>
+                        <p>Need an app that can track my runs with GPS, heart rate zones, and training plans. Must work offline.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="sport" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/bodybuilding • u/strongman</span>
+                            <span class="time">8. Okt. 2025, 11:55</span>
+                        </div>
+                        <div class="rating">9/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need a workout tracking app with form analysis</h4>
+                        <p>Looking for an app that can track my lifts and analyze my form using AI. Must support custom exercises.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="sport" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/cycling • u/cyclist</span>
+                            <span class="time">8. Okt. 2025, 10:10</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for a cycling app with route planning</h4>
+                        <p>Need an app that can plan cycling routes, track performance, and connect with other cyclists. Must integrate with Strava.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="sport" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/yoga • u/yogini</span>
+                            <span class="time">8. Okt. 2025, 08:30</span>
+                        </div>
+                        <div class="rating">8/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need a yoga app with pose recognition</h4>
+                        <p>Looking for an app that can recognize yoga poses and provide feedback. Must have offline mode and customizable routines.</p>
+                    </div>
+                </div>
+
+                <!-- B2C Web Apps -->
+                <div class="case-study-card" data-category="b2c" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/webdev • u/developer</span>
+                            <span class="time">8. Okt. 2025, 15:30</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for a personal finance web app</h4>
+                        <p>Need a web app to track expenses, create budgets, and manage investments. Must have bank account integration.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="b2c" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/productivity • u/student</span>
+                            <span class="time">8. Okt. 2025, 14:15</span>
+                        </div>
+                        <div class="rating">9/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need a study planner web app with flashcards</h4>
+                        <p>Looking for a web app to organize my studies, create flashcards, and track progress. Must work offline.</p>
+                    </div>
+                </div>
+
+                <div class="case-study-card" data-category="b2c" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/entrepreneur • u/creator</span>
+                            <span class="time">8. Okt. 2025, 12:00</span>
+                        </div>
+                        <div class="rating">10/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Looking for a content creation web app</h4>
+                        <p>Need a web app to plan, create, and schedule social media content. Must support multiple platforms and team collaboration.</p>
+                            </div>
+                            </div>
+
+                <div class="case-study-card" data-category="b2c" style="display: none;">
+                    <div class="card-header">
+                        <div class="platform-info">
+                            <span class="platform">r/design • u/designer</span>
+                            <span class="time">8. Okt. 2025, 09:30</span>
+                        </div>
+                        <div class="rating">8/10</div>
+                    </div>
+                    <div class="card-content">
+                        <h4>Need a portfolio web app for my designs</h4>
+                        <p>Looking for a web app to showcase my design portfolio with client galleries and project management. Must be mobile-friendly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Target Audience Section -->
+    <section class="target-audience">
+        <div class="container">
+            <h2 class="section-title">Perfect for Software Providers & App Founders</h2>
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <div class="card-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>SaaS Founders</h3>
+                    <p>Find businesses actively looking for solutions you provide</p>
+                </div>
+                <div class="audience-card">
+                    <div class="card-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>App Developers</h3>
+                    <p>Discover users discussing problems your app solves</p>
+                </div>
+                <div class="audience-card">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Digital Marketers</h3>
+                    <p>Target engaged audiences with relevant solutions</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section class="process">
+        <div class="container">
+            <div class="process-header">
+            <h2 class="section-title">Find Your Next Customers in 3 Simple Steps</h2>
+                <p class="process-subtitle">From setup to success in minutes, not months</p>
+            </div>
+            <div class="process-steps">
+                <div class="step-card" data-step="1">
+                    <div class="step-number-circle">1</div>
+                    <div class="step-content">
+                        <h3>Create Campaign</h3>
+                        <p>Add keywords and your offer</p>
+                    </div>
+                </div>
+                
+                <div class="step-card" data-step="2">
+                    <div class="step-number-circle">2</div>
+                    <div class="step-content">
+                        <h3>Our AI finds potential posts from Reddit</h3>
+                        <p>Advanced AI continuously scans Reddit 24/7, analyzing context and sentiment to find perfect matches for your criteria.</p>
+                    </div>
+                </div>
+                
+                <div class="step-card" data-step="3">
+                    <div class="step-number-circle">3</div>
+                    <div class="step-content">
+                        <h3>Reply to posts from people who need your product</h3>
+                        <p>Generate automated comments with AI</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- Comparison Section -->
+    <section class="comparison">
+        <div class="container">
+            <h2 class="section-title">Contact Only People Who Are Interested in What You Offer</h2>
+            <div class="comparison-grid">
+                <div class="comparison-card without">
+                    <div class="card-header">
+                        <h3>Without PostSpark</h3>
+                        <div class="status-badge bad">❌</div>
+                    </div>
+                    <div class="card-content">
+                        <ul class="comparison-list">
+                            <li>Hours of manual Reddit browsing</li>
+                            <li>Cold outreach to uninterested users</li>
+                            <li>Low conversion rates (1-2%)</li>
+                            <li>Wasted time and resources</li>
+                            <li>Generic messaging that gets ignored</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="vs-divider">
+                    <span>VS</span>
+                </div>
+                
+                <div class="comparison-card with">
+                    <div class="card-header">
+                        <h3>With PostSpark</h3>
+                        <div class="status-badge good">✅</div>
+                    </div>
+                    <div class="card-content">
+                        <ul class="comparison-list">
+                            <li>Automated Reddit monitoring</li>
+                            <li>Target only interested prospects</li>
+                            <li>High conversion rates (15-25%)</li>
+                            <li>Save 10+ hours per week</li>
+                            <li>Personalized messages that convert</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <h2 class="section-title">The Numbers Speak for Themselves</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">180M+</div>
+                    <div class="stat-label">Subreddits Access</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">Billions</div>
+                    <div class="stat-label">Posts Access</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">780K+</div>
+                    <div class="stat-label">Posts Scanned Daily</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Start Small, Grow Big</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="card-header">
+                        <h3>Starter</h3>
+                        <div class="price">
+                            <span class="currency">€</span>
+                            <span class="amount">9</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <ul class="features">
+                            <li><i class="fas fa-check"></i> 1 Campaign Monthly</li>
+                            <li><i class="fas fa-check"></i> 10 Manual Refreshes</li>
+                            <li><i class="fas fa-check"></i> 3 Keywords per Campaign</li>
+                            <li><i class="fas fa-check"></i> Reddit Scanning</li>
+                            <li><i class="fas fa-check"></i> 50 AI Replies</li>
+                        </ul>
+                        <button class="pricing-button" id="pricing-free-get-started">Start 7 Days Free Trial</button>
+                    </div>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="card-header">
+                        <h3>Pro</h3>
+                        <div class="price">
+                            <span class="currency">€</span>
+                            <span class="amount">19</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <ul class="features">
+                            <li><i class="fas fa-check"></i> 5 Campaigns Monthly</li>
+                            <li><i class="fas fa-check"></i> 10 Manual Refreshes</li>
+                            <li><i class="fas fa-check"></i> 5 Keywords per Campaign</li>
+                            <li><i class="fas fa-check"></i> Reddit Scanning</li>
+                            <li><i class="fas fa-check"></i> 150 AI Replies</li>
+                        </ul>
+                        <button class="pricing-button primary" id="pricing-pro-choose">Start 7 Days Free Trial</button>
+                    </div>
+                </div>
+                
+                <div class="pricing-card">
+                    <div class="card-header">
+                        <h3>Enterprise</h3>
+                        <div class="price">
+                            <span class="currency">€</span>
+                            <span class="amount">49</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <ul class="features">
+                            <li><i class="fas fa-check"></i> 15 Campaigns Monthly</li>
+                            <li><i class="fas fa-check"></i> 20 Manual Refreshes</li>
+                            <li><i class="fas fa-check"></i> 10 Keywords per Campaign</li>
+                            <li><i class="fas fa-check"></i> Reddit Scanning</li>
+                            <li><i class="fas fa-check"></i> 1000 AI Replies</li>
+                        </ul>
+                        <button class="pricing-button" id="pricing-enterprise-contact">Start 7 Days Free Trial</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="testimonials-header">
+                <h2 class="section-title">What Our Customers Say</h2>
+                <p class="testimonials-subtitle">Real results from real businesses using PostSpark</p>
+            </div>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="testimonial-text">"PostSpark has been a game-changer for our lead generation. We've seen a 300% increase in qualified leads since using it. The AI really understands our target market."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-info">
+                            <h4>Sarah Chen</h4>
+                            <p>Founder & CEO, Slackify</p>
+                        </div>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="testimonial-text">"I was skeptical at first, but PostSpark consistently finds high-quality prospects that actually convert. It's saved us hours of manual research every week."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-info">
+                            <h4>Marcus Rodriguez</h4>
+                            <p>Sales Director, Notion</p>
+                        </div>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="testimonial-text">"The ROI from PostSpark is incredible. We've generated over $50K in new revenue from leads found through Reddit. The AI really understands our target audience."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-info">
+                            <h4>Emma Thompson</h4>
+                            <p>Marketing Manager, TechFlow</p>
+                        </div>
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How does PostSpark find relevant posts?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>PostSpark uses advanced AI to analyze Reddit posts in real-time, matching them against your specified keywords and criteria. Our algorithm understands context, not just keywords, to find the most relevant opportunities.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Can I customize the keywords and targeting?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Absolutely! You can set up custom keywords, subreddit targeting, and even sentiment analysis to ensure you're only reaching out to people who are genuinely interested in your type of solution.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How quickly will I start seeing results?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Most users see their first qualified leads within 24 hours of setting up their campaign. Our system continuously monitors Reddit, so you'll get notifications as soon as relevant posts appear.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Is there a free trial available?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! We offer a 14-day free trial with full access to all features. No credit card required to get started. You can cancel anytime during the trial period.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>What kind of support do you provide?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We provide email support for all plans, priority support for Pro users, and 24/7 support for Enterprise customers. We also have comprehensive documentation and video tutorials to help you get the most out of PostSpark.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="PostSpark.png" alt="PostSpark" class="footer-logo-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="footer-logo-fallback" style="display: none;">
+                        <h3>PostSpark</h3>
+                    </div>
+                    <p>Find your next customers on Reddit</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Product</h4>
+                        <a href="#">Features</a>
+                        <a href="#">Pricing</a>
+                        <a href="#">API</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Company</h4>
+                        <a href="#">About</a>
+                        <a href="#">Blog</a>
+                        <a href="#">Contact</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Support</h4>
+                        <a href="#">Help Center</a>
+                        <a href="#">Documentation</a>
+                        <a href="#">Status</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PostSpark. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
