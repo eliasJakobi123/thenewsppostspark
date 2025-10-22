@@ -30,8 +30,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize registration button handlers
 function initializeRegistrationButtons() {
-    // Registration buttons are now direct links to register.html
-    // No JavaScript event handlers needed
+    // Get Started buttons
+    const navGetStarted = document.getElementById('nav-get-started');
+    const heroStartTrial = document.getElementById('hero-start-trial');
+    const pricingFreeGetStarted = document.getElementById('pricing-free-get-started');
+    const pricingProChoose = document.getElementById('pricing-pro-choose');
+    const pricingEnterpriseContact = document.getElementById('pricing-enterprise-contact');
+    
+    // Add click handlers
+    if (navGetStarted) {
+        navGetStarted.addEventListener('click', redirectToRegistration);
+    }
+    if (heroStartTrial) {
+        heroStartTrial.addEventListener('click', redirectToRegistration);
+    }
+    if (pricingFreeGetStarted) {
+        pricingFreeGetStarted.addEventListener('click', redirectToRegistration);
+    }
+    if (pricingProChoose) {
+        pricingProChoose.addEventListener('click', redirectToRegistration);
+    }
+    if (pricingEnterpriseContact) {
+        pricingEnterpriseContact.addEventListener('click', redirectToRegistration);
+    }
 }
 
 // Redirect to registration page
