@@ -62,13 +62,13 @@ Please provide realistic examples of the types of posts that would appear in the
 
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
-        // Prepare the request body
+        // Prepare the request body - try with input parameter
         const requestBody = {
             prompt: {
                 id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
                 version: "7"
             },
-            context: {
+            input: {
                 business_name: businessName,
                 business_description: offer,
                 keywords: keywords,
