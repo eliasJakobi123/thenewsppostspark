@@ -94,9 +94,12 @@ Please search Reddit for posts where people are asking for solutions, discussing
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
+                prompt: {
+                    id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
+                    version: "9"
+                },
                 input: inputString,
-                tools: [{ type: 'web_browsing' }]
+                tools: [{ type: 'web_search_preview' }]
             })
         });
 
