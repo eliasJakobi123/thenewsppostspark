@@ -62,21 +62,13 @@ Please provide realistic examples of the types of posts that would appear in the
 
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
-        // Prepare the request body - input must be a string
+        // Prepare the input string
         const inputString = `Business: ${businessName}
 Description: ${offer}
 Keywords: ${keywords.join(', ')}
 Target Subreddits: ${subreddits.join(', ')}
 
 Please search Reddit for posts where people are asking for solutions, discussing problems, or looking for recommendations related to this business.`;
-
-        const requestBody = {
-            prompt: {
-                id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
-                version: "7"
-            },
-            input: inputString
-        };
 
         // Debug: Log the complete request
         console.log('OpenAI Request Debug:', {
@@ -86,17 +78,29 @@ Please search Reddit for posts where people are asking for solutions, discussing
                 'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY?.substring(0, 10)}...`,
                 'Content-Type': 'application/json'
             },
-            body: requestBody
+            body: {
+                prompt: {
+                    id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
+                    version: "8"
+                },
+                input: inputString
+            }
         });
 
-        // Use OpenAI Chat Assistant with responses API
+        // Use OpenAI Chat Assistant with responses API - Version 8
         const response = await fetch('https://api.openai.com/v1/responses', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({
+                prompt: {
+                    id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
+                    version: "8"
+                },
+                input: inputString
+            })
         });
 
         if (!response.ok) {
