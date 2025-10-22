@@ -62,22 +62,24 @@ Please provide realistic examples of the types of posts that would appear in the
 
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Use OpenAI Chat Assistant with responses API
+        const response = await fetch('https://api.openai.com/v1/responses', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4',
-                messages: [
-                    {
-                        role: 'user',
-                        content: searchQuery
-                    }
-                ],
-                max_tokens: 4000,
-                temperature: 0.3
+                prompt: {
+                    id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
+                    version: "6"
+                },
+                context: {
+                    business_name: businessName,
+                    business_description: offer,
+                    keywords: keywords,
+                    target_subreddits: subreddits
+                }
             })
         });
 
@@ -86,27 +88,46 @@ Focus on realistic, authentic-sounding posts that would genuinely appear in thes
         }
 
         const data = await response.json();
-        const content = data.choices[0].message.content;
+        console.log('OpenAI Chat Assistant response:', data);
         
-        console.log('OpenAI response content:', content.substring(0, 200) + '...');
+        // The responses API might return data in a different format
+        let posts = [];
         
-        // Try to parse JSON response
-        let result;
-        try {
-            result = JSON.parse(content);
-        } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            console.log('Raw content:', content);
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            // Standard chat completion format
+            const content = data.choices[0].message.content;
+            console.log('Response content:', content.substring(0, 200) + '...');
             
-            // If it's not JSON, return an error with the content
-            return res.status(500).json({ 
-                error: 'OpenAI returned non-JSON response',
-                content: content.substring(0, 500),
-                parseError: parseError.message
-            });
+            try {
+                const result = JSON.parse(content);
+                posts = result.posts || [];
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                return res.status(500).json({ 
+                    error: 'OpenAI returned non-JSON response',
+                    content: content.substring(0, 500),
+                    parseError: parseError.message
+                });
+            }
+        } else if (data.content) {
+            // Direct content response
+            console.log('Direct content response:', data.content.substring(0, 200) + '...');
+            
+            try {
+                const result = JSON.parse(data.content);
+                posts = result.posts || [];
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                return res.status(500).json({ 
+                    error: 'OpenAI returned non-JSON response',
+                    content: data.content.substring(0, 500),
+                    parseError: parseError.message
+                });
+            }
+        } else {
+            // Try to extract posts from any format
+            posts = data.posts || data.data?.posts || [];
         }
-        
-        const posts = result.posts || [];
         
         res.status(200).json({ posts: posts.slice(0, 25) });
         
