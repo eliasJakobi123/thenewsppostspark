@@ -63,23 +63,44 @@ Please provide realistic examples of the types of posts that would appear in the
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
         // Use OpenAI Chat Assistant with responses API
-        const response = await fetch('https://api.openai.com/v1/responses', {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                prompt: {
-                    id: "pmpt_68f8d8289b30819581a9aa70a071dcfa0b01db2d8e8856af",
-                    version: "6"
-                },
-                context: {
-                    business_name: businessName,
-                    business_description: offer,
-                    keywords: keywords,
-                    target_subreddits: subreddits
-                }
+                model: 'gpt-4',
+                messages: [
+                    {
+                        role: 'user',
+                        content: `Use your web search capabilities to find real Reddit posts for this business:
+
+BUSINESS: ${businessName}
+DESCRIPTION: ${offer}
+KEYWORDS: ${keywords.join(', ')}
+TARGET SUBREDDITS: ${subreddits.join(', ')}
+
+Search Reddit for posts where people are asking for solutions, discussing problems, or looking for recommendations related to this business.
+
+Return the results in JSON format:
+{
+  "posts": [
+    {
+      "title": "Actual Reddit post title",
+      "content": "Actual Reddit post content", 
+      "subreddit": "r/subreddit_name",
+      "author": "username",
+      "score": 85,
+      "url": "https://reddit.com/actual_url",
+      "created_utc": 1234567890
+    }
+  ]
+}`
+                    }
+                ],
+                max_tokens: 4000,
+                temperature: 0.3
             })
         });
 
@@ -88,46 +109,27 @@ Focus on realistic, authentic-sounding posts that would genuinely appear in thes
         }
 
         const data = await response.json();
-        console.log('OpenAI Chat Assistant response:', data);
+        const content = data.choices[0].message.content;
         
-        // The responses API might return data in a different format
-        let posts = [];
+        console.log('OpenAI response content:', content.substring(0, 200) + '...');
         
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            // Standard chat completion format
-            const content = data.choices[0].message.content;
-            console.log('Response content:', content.substring(0, 200) + '...');
+        // Try to parse JSON response
+        let result;
+        try {
+            result = JSON.parse(content);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.log('Raw content:', content);
             
-            try {
-                const result = JSON.parse(content);
-                posts = result.posts || [];
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                return res.status(500).json({ 
-                    error: 'OpenAI returned non-JSON response',
-                    content: content.substring(0, 500),
-                    parseError: parseError.message
-                });
-            }
-        } else if (data.content) {
-            // Direct content response
-            console.log('Direct content response:', data.content.substring(0, 200) + '...');
-            
-            try {
-                const result = JSON.parse(data.content);
-                posts = result.posts || [];
-            } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                return res.status(500).json({ 
-                    error: 'OpenAI returned non-JSON response',
-                    content: data.content.substring(0, 500),
-                    parseError: parseError.message
-                });
-            }
-        } else {
-            // Try to extract posts from any format
-            posts = data.posts || data.data?.posts || [];
+            // If it's not JSON, return an error with the content
+            return res.status(500).json({ 
+                error: 'OpenAI returned non-JSON response',
+                content: content.substring(0, 500),
+                parseError: parseError.message
+            });
         }
+        
+        const posts = result.posts || [];
         
         res.status(200).json({ posts: posts.slice(0, 25) });
         
