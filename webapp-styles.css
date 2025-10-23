@@ -2627,6 +2627,45 @@ input:checked + .toggle-slider:before {
     min-width: 140px;
 }
 
+/* AI Style Info */
+.ai-style-info {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+}
+
+.ai-style-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.ai-style-status i {
+    color: #667eea;
+    font-size: 1rem;
+}
+
+.btn-small {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(102, 126, 234, 0.5);
+    color: #667eea;
+}
+
+.btn-outline:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: #667eea;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .ai-style-popup {
