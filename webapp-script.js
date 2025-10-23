@@ -718,7 +718,7 @@ function setupCommentPopupListeners() {
         if (savedStyle) {
             // Use saved style and show info
             showAIStyleInfo(savedStyle);
-            await generateAIResponseWithSavedStyle(savedStyle);
+            await generateAIResponseWithSavedStyleNew(savedStyle);
         } else {
             // Show AI style popup for first time setup
             showAIStylePopup();
@@ -3094,7 +3094,7 @@ function showAIStyleInfo(style) {
     }
 }
 
-async function generateAIResponseWithSavedStyle(style) {
+async function generateAIResponseWithSavedStyleNew(style) {
     if (!currentPostData) {
         showNotification("No post data available", "error");
         return;
@@ -3176,7 +3176,7 @@ async function loadStyleSettings() {
     console.log("AI style loading disabled - using localStorage only");
 }
 
-async function generateAIResponseWithSavedStyle() {
+async function generateAIResponseWithSavedStyleOld() {
     // This function is now handled by the new generateAIResponseWithSavedStyle(style) function
     console.log("Old function called - redirecting to new implementation");
     const campaignId = window.currentCampaignId;
@@ -3184,6 +3184,22 @@ async function generateAIResponseWithSavedStyle() {
         const style = WritingStyleManager.getStyle(campaignId);
         if (style) {
             await generateAIResponseWithSavedStyle(style);
+        }
+    }
+}
+
+
+// Override the old generateAIResponseWithSavedStyle function
+async function generateAIResponseWithSavedStyle() {
+    console.log("Old function called - redirecting to new implementation");
+    const campaignId = window.currentCampaignId;
+    if (campaignId) {
+        const style = WritingStyleManager.getStyle(campaignId);
+        if (style) {
+            // Call the new function with style parameter
+            await generateAIResponseWithSavedStyleNew(style);
+        } else {
+            showNotification("No saved writing style found. Please set up your writing style first.", "error");
         }
     }
 }
