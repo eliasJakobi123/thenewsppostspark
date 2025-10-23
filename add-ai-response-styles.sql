@@ -67,3 +67,4 @@ DROP TRIGGER IF EXISTS ensure_single_default_ai_style_trigger ON public.ai_respo
 CREATE TRIGGER ensure_single_default_ai_style_trigger
     BEFORE INSERT OR UPDATE ON public.ai_response_styles
     FOR EACH ROW EXECUTE FUNCTION public.ensure_single_default_ai_style();
+
