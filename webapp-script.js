@@ -29,6 +29,9 @@ async function initializeApp() {
         // Update user info in sidebar
         updateUserInfo();
         
+        // Initialize router navigation
+        initializeRouterNavigation();
+        
         // Initialize all other functionality
         initializeNavigation();
         initializeCampaigns();
@@ -383,6 +386,11 @@ async function showCampaignPosts(campaignId) {
     try {
         // Set current campaign ID for refresh functionality
         window.currentCampaignId = campaignId;
+        
+        // Update URL if router is available
+        if (window.router) {
+            window.router.navigate(`/campaigns/${campaignId}`);
+        }
         
         // Get campaign data from database
         const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
@@ -853,16 +861,20 @@ function showDeleteConfirmation() {
 function showCreateCampaign() {
     console.log('showCreateCampaign called'); // Debug log
     
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-    
-    // Show create campaign page
-    const createCampaignPage = document.getElementById('create-campaign');
-    if (createCampaignPage) {
-        createCampaignPage.classList.add('active');
-        console.log('Create campaign page activated'); // Debug log
+    if (window.router) {
+        window.router.navigate('/create-campaign');
     } else {
-        console.error('Create campaign page not found'); // Debug log
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        
+        // Show create campaign page
+        const createCampaignPage = document.getElementById('create-campaign');
+        if (createCampaignPage) {
+            createCampaignPage.classList.add('active');
+            console.log('Create campaign page activated'); // Debug log
+        } else {
+            console.error('Create campaign page not found'); // Debug log
+        }
     }
     
     // Reset to step 1 (use modern version)
@@ -871,15 +883,19 @@ function showCreateCampaign() {
 
 // Show campaigns page
 function showCampaigns() {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-    
-    // Show campaigns page
-    document.getElementById('campaigns').classList.add('active');
-    
-    // Update navigation
-    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-    document.querySelector('[data-page="campaigns"]').classList.add('active');
+    if (window.router) {
+        window.router.navigate('/campaigns');
+    } else {
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        
+        // Show campaigns page
+        document.getElementById('campaigns').classList.add('active');
+        
+        // Update navigation
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        document.querySelector('[data-page="campaigns"]').classList.add('active');
+    }
 }
 
 // Initialize modern campaign creation flow
@@ -2462,5 +2478,46 @@ function showRedditPost(redditId, subreddit = 'SideProject') {
     
     // Open in new tab
     window.open(redditUrl, '_blank');
+}
+
+// Router Navigation Functions
+function initializeRouterNavigation() {
+    // Add click handlers for navigation links
+    document.querySelectorAll('.nav-item').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            if (page) {
+                navigateToPage(page);
+            }
+        });
+    });
+}
+
+function navigateToPage(page) {
+    // Use router for navigation
+    if (window.router) {
+        if (page === 'dashboard') {
+            window.router.navigate('/dashboard');
+        } else if (page === 'campaigns') {
+            window.router.navigate('/campaigns');
+        } else if (page === 'settings') {
+            window.router.navigate('/settings');
+        } else if (page === 'create-campaign') {
+            window.router.navigate('/create-campaign');
+        }
+    } else {
+        // Fallback to hash routing
+        showPage(page);
+    }
+}
+
+function navigateToCampaign(campaignId) {
+    if (window.router) {
+        window.router.navigate(`/campaigns/${campaignId}`);
+    } else {
+        // Fallback to hash routing
+        showCampaignPosts(campaignId);
+    }
 }
 

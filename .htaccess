@@ -1,0 +1,19 @@
+# PostSpark URL Rewriting
+RewriteEngine On
+
+# Handle clean URLs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Dashboard routes
+RewriteRule ^dashboard/?$ webapp.html [L]
+RewriteRule ^campaigns/?$ webapp.html [L]
+RewriteRule ^campaigns/([^/]+)/?$ webapp.html [L]
+RewriteRule ^create-campaign/?$ webapp.html [L]
+RewriteRule ^settings/?$ webapp.html [L]
+
+# Default route
+RewriteRule ^$ webapp.html [L]
+
+# Handle API routes
+RewriteRule ^api/(.*)$ api/$1 [L]
