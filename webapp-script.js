@@ -717,7 +717,7 @@ function setupCommentPopupListeners() {
         
         if (savedStyle) {
             // Use saved style and show info
-            showAIStyleInfo(savedStyle);
+            showAIStyleInfoNew(savedStyle);
             await generateAIResponseWithSavedStyleNew(savedStyle);
         } else {
             // Show AI style popup for first time setup
@@ -3065,7 +3065,7 @@ function showAIStylePopup() {
     }
 }
 
-function showAIStyleInfo(style) {
+function showAIStyleInfoNew(style) {
     const aiStyleInfo = document.getElementById("ai-style-info");
     const aiStylePreview = document.getElementById("ai-style-preview");
     
@@ -3201,5 +3201,25 @@ async function generateAIResponseWithSavedStyle() {
         } else {
             showNotification("No saved writing style found. Please set up your writing style first.", "error");
         }
+    }
+}
+
+
+// Override old showAIStyleInfo function
+async function showAIStyleInfo() {
+    console.log("Old showAIStyleInfo called - redirecting to new implementation");
+    const campaignId = window.currentCampaignId;
+    if (campaignId) {
+        const style = WritingStyleManager.getStyle(campaignId);
+        if (style) {
+            showAIStyleInfoNew(style);
+        }
+    }
+}
+
+function hideAIStyleInfo() {
+    const aiStyleInfo = document.getElementById("ai-style-info");
+    if (aiStyleInfo) {
+        aiStyleInfo.style.display = "none";
     }
 }
