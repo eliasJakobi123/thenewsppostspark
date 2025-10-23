@@ -152,7 +152,8 @@ Return exactly 25-30 posts in JSON format with high relevance scores (70-100).`;
                                 const jsonMatch = contentItem.text.match(/```json\n([\s\S]*?)\n```/);
                                 if (jsonMatch) {
                                     const jsonText = jsonMatch[1];
-                                    console.log('Extracted JSON (first 200 chars):', jsonText.substring(0, 200) + '...');
+                                    console.log('Extracted JSON (first 500 chars):', jsonText.substring(0, 500) + '...');
+                                    console.log('Full JSON length:', jsonText.length);
                                     
                                     const result = JSON.parse(jsonText);
                                     if (result && result.posts && Array.isArray(result.posts)) {
@@ -160,10 +161,26 @@ Return exactly 25-30 posts in JSON format with high relevance scores (70-100).`;
                                         console.log(`OpenAI found ${posts.length} relevant Reddit posts`);
                                         break;
                                     }
+                                } else {
+                                    // Try to find JSON without ```json blocks
+                                    console.log('No ```json block found, trying to find JSON in text...');
+                                    const jsonStart = contentItem.text.indexOf('{');
+                                    const jsonEnd = contentItem.text.lastIndexOf('}');
+                                    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+                                        const jsonText = contentItem.text.substring(jsonStart, jsonEnd + 1);
+                                        console.log('Found JSON in text (first 500 chars):', jsonText.substring(0, 500) + '...');
+                                        
+                                        const result = JSON.parse(jsonText);
+                                        if (result && result.posts && Array.isArray(result.posts)) {
+                                            posts = result.posts;
+                                            console.log(`OpenAI found ${posts.length} relevant Reddit posts`);
+                                            break;
+                                        }
+                                    }
                                 }
                             } catch (parseError) {
                                 console.error('JSON parse error:', parseError);
-                                console.log('Raw text content (first 500 chars):', contentItem.text.substring(0, 500));
+                                console.log('Raw text content (first 1000 chars):', contentItem.text.substring(0, 1000));
                             }
                         }
                     }
