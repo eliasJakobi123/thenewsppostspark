@@ -2415,37 +2415,63 @@ input:checked + .toggle-slider:before {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.8);
-    display: none;
-    justify-content: center;
-    align-items: center;
+    width: 100%;
+    height: 100%;
     z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-style-popup.active {
+    display: flex;
+}
+
+.ai-style-popup .popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(5px);
 }
 
 .ai-style-popup .popup-content {
-    max-width: 600px;
-    width: 90vw;
-    max-height: 80vh;
-    overflow-y: auto;
-    background: #1a1a1a;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+    background: rgba(26, 26, 26, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
 }
 
 .ai-style-form {
-    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .form-section {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    border-color: rgba(255, 107, 53, 0.2);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .form-section h3 {
@@ -2456,6 +2482,8 @@ input:checked + .toggle-slider:before {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .form-section h3 i {
@@ -2464,7 +2492,10 @@ input:checked + .toggle-slider:before {
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .form-group:last-child {
@@ -2472,11 +2503,9 @@ input:checked + .toggle-slider:before {
 }
 
 .form-group label {
-    display: block;
-    color: #cccccc;
+    color: #ffffff;
+    font-weight: 600;
     font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
 }
 
 .form-select {
@@ -2488,12 +2517,14 @@ input:checked + .toggle-slider:before {
     color: #ffffff;
     font-size: 0.9rem;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .form-select:focus {
     outline: none;
     border-color: #ff6b35;
     background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .form-textarea {
@@ -2508,12 +2539,14 @@ input:checked + .toggle-slider:before {
     resize: vertical;
     min-height: 80px;
     transition: all 0.3s ease;
+    line-height: 1.5;
 }
 
 .form-textarea:focus {
     outline: none;
     border-color: #ff6b35;
     background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .form-textarea::placeholder {
@@ -2614,17 +2647,47 @@ input:checked + .toggle-slider:before {
 }
 
 /* Popup Actions */
-.popup-actions {
+.form-actions {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
-    padding: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
     margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.popup-actions .btn {
+.form-actions .btn {
     min-width: 140px;
+}
+
+/* AI Generate Button Loading State */
+.btn-ai-generate {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ai-generate.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-ai-generate.loading .btn-text {
+    opacity: 0;
+}
+
+.btn-ai-generate.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #ffffff;
+    animation: spin 1s ease-in-out infinite;
 }
 
 /* AI Style Info */
