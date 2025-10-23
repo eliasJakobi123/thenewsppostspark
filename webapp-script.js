@@ -713,15 +713,25 @@ function setupCommentPopupListeners() {
         }
         
         // Check if user has saved writing style for this campaign
-        const savedStyle = WritingStyleManager.getStyle(campaignId);
+        console.log('Campaign ID:', campaignId);
         
-        if (savedStyle) {
-            // Use saved style and show info
-            showAIStyleInfoNew(savedStyle);
-            await generateAIResponseWithSavedStyleNew(savedStyle);
-        } else {
-            // Show AI style popup for first time setup
-            showAIStylePopup();
+        try {
+            const savedStyle = WritingStyleManager.getStyle(campaignId);
+            console.log('Saved style:', savedStyle);
+            
+            if (savedStyle) {
+                // Use saved style and show info
+                console.log('Using saved style');
+                showAIStyleInfoNew(savedStyle);
+                await generateAIResponseWithSavedStyleNew(savedStyle);
+            } else {
+                // Show AI style popup for first time setup
+                console.log('No saved style, showing popup');
+                showAIStylePopup();
+            }
+        } catch (error) {
+            console.error('Error in AI button logic:', error);
+            showNotification('Error: ' + error.message, 'error');
         }
     });
     
