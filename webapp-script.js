@@ -3063,15 +3063,28 @@ async function generateAIResponse() {
 
 // New simplified AI functions
 function showAIStylePopup() {
+    console.log("showAIStylePopup called");
     const popup = document.getElementById("ai-style-popup");
+    console.log("Popup element found:", popup);
+    
     if (popup) {
         // Load default values
-        document.getElementById("tone-select").value = "friendly";
-        document.getElementById("sales-strength").value = 2;
-        document.getElementById("custom-offer").value = "";
-        document.getElementById("save-style").checked = true;
+        const toneSelect = document.getElementById("tone-select");
+        const salesStrength = document.getElementById("sales-strength");
+        const customOffer = document.getElementById("custom-offer");
+        const saveStyle = document.getElementById("save-style");
+        
+        if (toneSelect) toneSelect.value = "friendly";
+        if (salesStrength) salesStrength.value = 2;
+        if (customOffer) customOffer.value = "";
+        if (saveStyle) saveStyle.checked = true;
         
         popup.style.display = "flex";
+        popup.style.zIndex = "9999";
+        console.log("Popup should be visible now");
+    } else {
+        console.error("AI style popup element not found!");
+        showNotification("AI style popup not found. Please refresh the page.", "error");
     }
 }
 
