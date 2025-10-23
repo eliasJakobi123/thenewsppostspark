@@ -185,7 +185,7 @@ class PostSparkSupabase {
                 .single();
 
             if (existingPost) {
-                console.log('Post already exists, skipping:', postData.reddit_id);
+                console.log(`Post ${postData.reddit_id} already exists, skipping`);
                 return existingPost;
             }
 
@@ -209,7 +209,12 @@ class PostSparkSupabase {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error(`Error inserting post ${postData.reddit_id}:`, error);
+                throw error;
+            }
+            
+            console.log(`Successfully inserted post: ${postData.title.substring(0, 30)}...`);
             
             this.posts.push(data);
             return data;
@@ -846,8 +851,11 @@ Find posts that show:
             
             // Save posts to database
             const savedPosts = [];
+            console.log(`Attempting to save ${redditPosts.length} posts to database...`);
+            
             for (const postData of redditPosts) {
                 try {
+                    console.log(`Saving post: ${postData.title.substring(0, 50)}...`);
                     const post = await this.addPost(campaignId, {
                         reddit_id: postData.reddit_id,
                         title: postData.title,
@@ -861,10 +869,13 @@ Find posts that show:
                         created_at: postData.created_at
                     });
                     savedPosts.push(post);
+                    console.log(`Successfully saved post: ${postData.title.substring(0, 30)}...`);
                 } catch (error) {
-                    console.error('Error saving post:', error);
+                    console.error(`Error saving post "${postData.title.substring(0, 30)}...":`, error);
                 }
             }
+            
+            console.log(`Successfully saved ${savedPosts.length} out of ${redditPosts.length} posts`);
 
             return savedPosts;
         } catch (error) {
