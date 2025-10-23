@@ -825,11 +825,21 @@ Find posts that show:
 
     async findRedditLeads(campaignId) {
         try {
+            // Refresh campaigns data to ensure we have the latest information
+            await this.getCampaigns();
+            
             // Get campaign data
             const campaign = this.campaigns.find(c => c.id === campaignId);
             if (!campaign) {
                 throw new Error('Campaign not found');
             }
+            
+            console.log('Refreshing leads for campaign:', {
+                id: campaign.id,
+                name: campaign.name,
+                keywords: campaign.keywords,
+                offer: campaign.offer
+            });
 
             // Generate Reddit posts using OpenAI
             const redditPosts = await this.generateRedditPosts(campaign);

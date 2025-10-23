@@ -781,7 +781,9 @@ async function refreshCampaignPosts() {
         const currentPosts = await postSparkDB.getPosts(currentCampaignId);
         const currentPostCount = currentPosts.length;
         
-        // Find new Reddit leads for the current campaign
+        console.log('Refreshing campaign posts with current data...');
+        
+        // Find new Reddit leads for the current campaign using latest campaign data
         await postSparkDB.findRedditLeads(currentCampaignId);
         
         // Get new post count after refresh
