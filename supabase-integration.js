@@ -555,7 +555,7 @@ class PostSparkSupabase {
 
     async storeRedditTokens(tokens) {
         try {
-            const { error } = await this.supabase
+            const { error } = await supabaseClient
                 .from(TABLES.USERS)
                 .update({
                     reddit_access_token: tokens.access_token,
@@ -939,7 +939,7 @@ Find posts that show:
     // AI Response Style Management
     async getAIStyleForCampaign(campaignId) {
         try {
-            const { data, error } = await this.supabase
+            const { data, error } = await supabaseClient
                 .from('ai_response_styles')
                 .select('*')
                 .eq('campaign_id', campaignId)
@@ -958,7 +958,7 @@ Find posts that show:
 
     async getDefaultAIStyle() {
         try {
-            const { data, error } = await this.supabase
+            const { data, error } = await supabaseClient
                 .from('ai_response_styles')
                 .select('*')
                 .eq('user_id', this.userData.id)
@@ -978,7 +978,7 @@ Find posts that show:
 
     async saveAIStyle(styleData) {
         try {
-            const { data, error } = await this.supabase
+            const { data, error } = await supabaseClient
                 .from('ai_response_styles')
                 .upsert({
                     user_id: this.userData.id,
@@ -1006,7 +1006,7 @@ Find posts that show:
 
     async deleteAIStyle(styleId) {
         try {
-            const { error } = await this.supabase
+            const { error } = await supabaseClient
                 .from('ai_response_styles')
                 .delete()
                 .eq('id', styleId)
