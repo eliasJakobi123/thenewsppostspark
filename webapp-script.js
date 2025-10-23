@@ -668,7 +668,10 @@ function setupCommentPopupListeners() {
     
     // Write with AI
     aiBtn.addEventListener('click', function() {
+        console.log('AI Button clicked, currentPostData:', currentPostData); // Debug log
+        
         if (!currentPostData) {
+            console.error('No currentPostData available'); // Debug log
             showNotification('No post data available for AI generation', 'error');
             return;
         }
@@ -2337,6 +2340,8 @@ async function writeComment(postId, subreddit, title, content, created_at) {
             content: content,
             subreddit: subreddit
         };
+        
+        console.log('Post data stored for AI:', currentPostData); // Debug log
         
         // Show comment popup
         const popup = document.getElementById('comment-popup');
