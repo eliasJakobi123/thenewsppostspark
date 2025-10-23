@@ -643,12 +643,12 @@ class PostSparkSupabase {
                 return realPosts;
             }
             
-            // Fallback to sample posts if no real posts found
-            console.log('No real posts found, using sample posts as fallback');
-            return this.generateSampleRedditPosts(campaignData);
+            // No fallback - return empty array if no posts found
+            console.log('No real posts found');
+            return [];
         } catch (error) {
             console.error('Error searching Reddit posts:', error);
-            return this.generateSampleRedditPosts(campaignData);
+            return [];
         }
     }
 
