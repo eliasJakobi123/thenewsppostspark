@@ -3081,6 +3081,12 @@ function showAIStylePopup() {
         
         popup.style.display = "flex";
         popup.style.zIndex = "9999";
+        popup.style.position = "fixed";
+        popup.style.top = "0";
+        popup.style.left = "0";
+        popup.style.width = "100%";
+        popup.style.height = "100%";
+        popup.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
         console.log("Popup should be visible now");
     } else {
         console.error("AI style popup element not found!");
