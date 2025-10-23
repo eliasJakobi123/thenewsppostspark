@@ -12,6 +12,10 @@ RewriteRule ^campaigns/([^/]+)/?$ webapp.html [L]
 RewriteRule ^create-campaign/?$ webapp.html [L]
 RewriteRule ^settings/?$ webapp.html [L]
 
+# Auth routes
+RewriteRule ^login/?$ login.html [L]
+RewriteRule ^register/?$ register.html [L]
+
 # Default route
 RewriteRule ^$ webapp.html [L]
 

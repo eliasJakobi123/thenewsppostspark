@@ -144,9 +144,9 @@ async function loginUser(email, password, submitBtn, originalText) {
         if (data.user) {
             showNotification('Welcome back! Redirecting to your dashboard...', 'success');
             
-            // Redirect to webapp after successful login
+            // Redirect to dashboard after successful login
             setTimeout(() => {
-                window.location.href = 'webapp.html';
+                window.location.href = '/dashboard';
             }, 1500);
         }
         

@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (!isAuthenticated) {
         // Redirect to login if not authenticated
         console.log('Not authenticated, redirecting to login...');
-        window.location.href = 'login.html';
+        window.location.href = '/login';
         return;
     }
     
@@ -2350,7 +2350,7 @@ async function writeComment(postId, subreddit, title, content, created_at) {
 async function logout() {
     try {
         await postSparkDB.logout();
-        window.location.href = 'login.html';
+        window.location.href = '/login';
     } catch (error) {
         console.error('Logout error:', error);
         showNotification('Error logging out', 'error');

@@ -76,6 +76,10 @@ class Router {
             this.showPage('create-campaign');
         } else if (cleanPath === 'settings') {
             this.showPage('settings');
+        } else if (cleanPath === 'login') {
+            this.redirectToAuth('login');
+        } else if (cleanPath === 'register') {
+            this.redirectToAuth('register');
         } else if (cleanPath.startsWith('campaigns/')) {
             // Handle campaign-specific routes
             const campaignId = cleanPath.split('/')[1];
@@ -110,6 +114,15 @@ class Router {
         // Load campaign posts if function exists
         if (typeof window.showCampaignPosts === 'function') {
             window.showCampaignPosts(campaignId);
+        }
+    }
+
+    // Redirect to authentication pages
+    redirectToAuth(page) {
+        if (page === 'login') {
+            window.location.href = 'login.html';
+        } else if (page === 'register') {
+            window.location.href = 'register.html';
         }
     }
 
