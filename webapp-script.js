@@ -2393,7 +2393,6 @@ async function findMoreLeads(campaignId) {
         const redditPosts = await postSparkDB.findRedditLeads(campaignId);
         
         if (redditPosts.length > 0) {
-            showNotification(`Found ${redditPosts.length} new leads!`, 'success');
             // Refresh the campaign posts if we're viewing them
             if (document.getElementById('campaign-posts').classList.contains('active')) {
                 showCampaignPosts(campaignId);
