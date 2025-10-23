@@ -631,8 +631,8 @@ class PostSparkSupabase {
         try {
             console.log('Searching for real Reddit posts...');
             
-            // Use OpenAI to search for real Reddit posts
-            const realPosts = await this.searchWithOpenAIAssistant(campaignData);
+            // Use Reddit API to search for real Reddit posts
+            const realPosts = await this.searchWithRedditAPI(campaignData);
             if (realPosts && realPosts.length > 0) {
                 console.log(`Found ${realPosts.length} real Reddit posts`);
                 return realPosts;
@@ -647,12 +647,12 @@ class PostSparkSupabase {
         }
     }
 
-    async searchWithOpenAIAssistant(campaignData) {
+    async searchWithRedditAPI(campaignData) {
         try {
-            console.log('Using OpenAI to search Reddit for relevant posts...');
+            console.log('Using Reddit API to search for real posts...');
             
-            // Use backend API to safely access OpenAI
-            const response = await fetch('/api/openai-search', {
+            // Use Reddit API to find real posts
+            const response = await fetch('/api/reddit-search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -662,18 +662,18 @@ class PostSparkSupabase {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.log('Backend API error details:', errorData);
-                throw new Error(`Backend API error: ${errorData.error || response.status}`);
+                console.log('Reddit API error details:', errorData);
+                throw new Error(`Reddit API error: ${errorData.error || response.status}`);
             }
 
             const data = await response.json();
             const posts = data.posts || [];
             
-            console.log(`OpenAI found ${posts.length} relevant Reddit posts`);
+            console.log(`Reddit API found ${posts.length} real posts`);
             return posts;
             
         } catch (error) {
-            console.error('Error with OpenAI Reddit search:', error);
+            console.error('Error with Reddit API search:', error);
             return [];
         }
     }
