@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         }
 
         // OpenAI API configuration
-        const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+        const OPENAI_API_KEY = process.env.VITE_OPENAI_API_KEY;
 
         // Build the prompt based on settings
         const prompt = buildPrompt({

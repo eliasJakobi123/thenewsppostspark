@@ -712,46 +712,16 @@ function setupCommentPopupListeners() {
             return;
         }
         
-        // Check if user has saved AI style for this campaign (database first, then localStorage)
-        let hasSavedStyle = false;
+        // Check if user has saved writing style for this campaign
+        const savedStyle = WritingStyleManager.getStyle(campaignId);
         
-        try {
-            const dbStyle = await loadAIStyleFromDatabase();
-            if (dbStyle) {
-                hasSavedStyle = true;
-            }
-        } catch (error) {
-            console.error('Error checking database for saved style:', error);
-        }
-        
-        // Fallback to localStorage check
-        if (!hasSavedStyle) {
-            hasSavedStyle = campaignId && localStorage.getItem(`aiResponseStyle_campaign_${campaignId}`);
-        }
-        
-        if (hasSavedStyle) {
-            // Show AI style info and use saved style directly
-            showAIStyleInfo();
-            showNotification('Using saved AI style...', 'info');
-            await generateAIResponseWithSavedStyle();
+        if (savedStyle) {
+            // Use saved style and show info
+            showAIStyleInfo(savedStyle);
+            await generateAIResponseWithSavedStyle(savedStyle);
         } else {
             // Show AI style popup for first time setup
-            console.log('No saved style found, showing AI style popup');
-            await loadStyleSettings();
-            
-            // Wait a bit for DOM to be ready
-            setTimeout(() => {
-                const aiPopup = document.getElementById('ai-style-popup');
-                console.log('Looking for ai-style-popup element:', aiPopup);
-                
-                if (aiPopup) {
-                    aiPopup.style.display = 'flex';
-                    console.log('AI style popup displayed successfully');
-                } else {
-                    console.error('AI style popup element not found in DOM');
-                    showNotification('AI style popup not found. Please refresh the page.', 'error');
-                }
-            }, 100);
+            showAIStylePopup();
         }
     });
     
@@ -2676,6 +2646,29 @@ function navigateToCampaign(campaignId) {
 // AI Response Generation Functions
 let currentPostData = null;
 
+// Writing Style Management
+class WritingStyleManager {
+    static getStyle(campaignId) {
+        const key = `writingStyle_${campaignId}`;
+        const style = localStorage.getItem(key);
+        return style ? JSON.parse(style) : null;
+    }
+    
+    static saveStyle(campaignId, style) {
+        const key = `writingStyle_${campaignId}`;
+        localStorage.setItem(key, JSON.stringify(style));
+    }
+    
+    static getDefaultStyle() {
+        return {
+            tone: 'friendly',
+            salesStrength: 2,
+            includeWebsite: true,
+            customOffer: ''
+        };
+    }
+}
+
 function openAIStylePopup(postData) {
     currentPostData = postData;
     
@@ -2748,38 +2741,8 @@ function hideAIStyleInfo() {
 
 // Load AI style settings from database
 async function loadAIStyleFromDatabase() {
-    try {
-        const campaignId = window.currentCampaignId;
-        if (!campaignId) {
-            console.log('No campaign ID available for AI style loading');
-            return null;
-        }
-        
-        // Check if postSparkDB is available
-        if (!postSparkDB) {
-            console.log('postSparkDB not available, skipping database load');
-            return null;
-        }
-        
-        // Try to get campaign-specific style first
-        const campaignStyle = await postSparkDB.getAIStyleForCampaign(campaignId);
-        if (campaignStyle) {
-            console.log('Found campaign-specific AI style:', campaignStyle);
-            return campaignStyle;
-        }
-        
-        // Fallback to user's default style
-        const defaultStyle = await postSparkDB.getDefaultAIStyle();
-        if (defaultStyle) {
-            console.log('Found default AI style:', defaultStyle);
-        }
-        return defaultStyle;
-        
-    } catch (error) {
-        console.error('Error loading AI style from database:', error);
-        // Don't throw error, just return null to allow fallback to localStorage
-        return null;
-    }
+    // Disabled to avoid 406 errors - using localStorage only
+    return null;
 }
 
 // Save AI style to database
@@ -2999,33 +2962,36 @@ async function generateAIResponse() {
         return;
     }
     
+    const campaignId = window.currentCampaignId;
+    if (!campaignId) {
+        showNotification('No campaign selected', 'error');
+        return;
+    }
+    
     const tone = document.getElementById('tone-select').value;
     const salesStrength = parseInt(document.getElementById('sales-strength').value);
     const customOffer = document.getElementById('custom-offer').value;
     const saveStyle = document.getElementById('save-style').checked;
+    const includeWebsite = document.getElementById('include-website') ? document.getElementById('include-website').checked : true;
     
-    // Save style settings if requested
+    // Create style object
+    const style = {
+        tone: tone,
+        salesStrength: salesStrength,
+        customOffer: customOffer,
+        includeWebsite: includeWebsite
+    };
+    
+    // Save style if requested
     if (saveStyle) {
-        await saveStyleSettings();
-        // Also save to campaign-specific settings
-        await saveCampaignAIStyle();
+        WritingStyleManager.saveStyle(campaignId, style);
     }
     
     // Get current campaign data
-    const campaign = postSparkDB.campaigns.find(c => c.id === window.currentCampaignId);
+    const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
     if (!campaign) {
         showNotification('Campaign not found', 'error');
         return;
-    }
-    
-    // Get website URL from campaign
-    let websiteUrl = campaign.website_url || '';
-    if (!websiteUrl) {
-        websiteUrl = prompt('Please enter your website URL:');
-        if (!websiteUrl) {
-            showNotification('Website URL is required for AI responses', 'error');
-            return;
-        }
     }
     
     try {
@@ -3040,7 +3006,7 @@ async function generateAIResponse() {
                 postContent: currentPostData.content,
                 postTitle: currentPostData.title,
                 offer: customOffer || campaign.description,
-                websiteUrl: websiteUrl,
+                websiteUrl: includeWebsite ? (campaign.website_url || '') : '',
                 tone: tone,
                 salesStrength: salesStrength,
                 customOffer: customOffer
@@ -3083,3 +3049,141 @@ async function generateAIResponse() {
 }
 
 
+
+
+// New simplified AI functions
+function showAIStylePopup() {
+    const popup = document.getElementById("ai-style-popup");
+    if (popup) {
+        // Load default values
+        document.getElementById("tone-select").value = "friendly";
+        document.getElementById("sales-strength").value = 2;
+        document.getElementById("custom-offer").value = "";
+        document.getElementById("save-style").checked = true;
+        
+        popup.style.display = "flex";
+    }
+}
+
+function showAIStyleInfo(style) {
+    const aiStyleInfo = document.getElementById("ai-style-info");
+    const aiStylePreview = document.getElementById("ai-style-preview");
+    
+    if (aiStyleInfo && aiStylePreview) {
+        const toneNames = {
+            "friendly": "Friendly & Warm",
+            "professional": "Professional",
+            "casual": "Casual & Relaxed",
+            "expert": "Expert & Authoritative"
+        };
+        
+        const salesNames = ["Subtle", "Moderate", "Direct", "Aggressive"];
+        
+        aiStylePreview.innerHTML = `
+            <div class="style-detail">
+                <strong>Tone:</strong> ${toneNames[style.tone] || style.tone}
+            </div>
+            <div class="style-detail">
+                <strong>Sales Approach:</strong> ${salesNames[style.salesStrength - 1] || style.salesStrength}
+            </div>
+            ${style.includeWebsite ? "<div class=\"style-detail\"><strong>Website:</strong> Included</div>" : ""}
+            ${style.customOffer ? `<div class="style-detail"><strong>Custom Offer:</strong> ${style.customOffer}</div>` : ""}
+        `;
+        
+        aiStyleInfo.style.display = "block";
+    }
+}
+
+async function generateAIResponseWithSavedStyle(style) {
+    if (!currentPostData) {
+        showNotification("No post data available", "error");
+        return;
+    }
+    
+    const campaignId = window.currentCampaignId;
+    if (!campaignId) {
+        showNotification("No campaign selected", "error");
+        return;
+    }
+    
+    // Get campaign data
+    const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
+    if (!campaign) {
+        showNotification("Campaign not found", "error");
+        return;
+    }
+    
+    try {
+        showNotification("Generating AI response...", "info");
+        
+        const response = await fetch("/api/ai-response", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                postContent: currentPostData.content,
+                postTitle: currentPostData.title,
+                offer: style.customOffer || campaign.description,
+                websiteUrl: style.includeWebsite ? campaign.website_url : "",
+                tone: style.tone,
+                salesStrength: style.salesStrength,
+                customOffer: style.customOffer
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error("Failed to generate AI response");
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Fill the comment textarea with AI response
+            const textarea = document.getElementById("comment-text");
+            if (textarea) {
+                textarea.value = data.response;
+                textarea.style.height = "auto";
+                textarea.style.height = textarea.scrollHeight + "px";
+            }
+            
+            // Enable the send button
+            const sendBtn = document.getElementById("send-comment");
+            if (sendBtn) {
+                sendBtn.disabled = false;
+            }
+            
+            showNotification("AI response generated successfully!", "success");
+        } else {
+            throw new Error(data.error || "Failed to generate response");
+        }
+        
+    } catch (error) {
+        console.error("Error generating AI response:", error);
+        showNotification("Error generating AI response: " + error.message, "error");
+    }
+}
+
+
+// Override old functions to avoid 406 errors
+async function saveAIStyleToDatabase(styleData, isDefault = false) {
+    // Disabled to avoid 406 errors - using localStorage only
+    console.log("AI style saving disabled - using localStorage only");
+}
+
+async function loadStyleSettings() {
+    // Disabled to avoid 406 errors - using localStorage only
+    console.log("AI style loading disabled - using localStorage only");
+}
+
+async function generateAIResponseWithSavedStyle() {
+    // This function is now handled by the new generateAIResponseWithSavedStyle(style) function
+    console.log("Old function called - redirecting to new implementation");
+    const campaignId = window.currentCampaignId;
+    if (campaignId) {
+        const style = WritingStyleManager.getStyle(campaignId);
+        if (style) {
+            await generateAIResponseWithSavedStyle(style);
+        }
+    }
+}
