@@ -573,7 +573,7 @@ class PostSparkSupabase {
 
     async getRedditTokens() {
         try {
-            const { data, error } = await this.supabase
+            const { data, error } = await supabaseClient
                 .from(TABLES.USERS)
                 .select('reddit_access_token, reddit_refresh_token, reddit_token_expires')
                 .eq('id', this.user.id)
