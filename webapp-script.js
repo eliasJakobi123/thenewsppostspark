@@ -1171,15 +1171,15 @@ async function findModernLeadsOnReddit() {
                 // Find Reddit leads using OpenAI
                 const redditPosts = await postSparkDB.findRedditLeads(campaign.id);
                 
-        // Campaign created successfully (no notification needed)
-        
-        // Show rate limit warning if applicable
-        if (window.redditRateLimitMessage) {
-            setTimeout(() => {
-                showNotification(window.redditRateLimitMessage, 'warning');
-                window.redditRateLimitMessage = null; // Clear after showing
-            }, 2000);
-        }
+                // Campaign created successfully (no notification needed)
+                
+                // Show rate limit warning if applicable
+                if (window.redditRateLimitMessage) {
+                    setTimeout(() => {
+                        showNotification(window.redditRateLimitMessage, 'warning');
+                        window.redditRateLimitMessage = null; // Clear after showing
+                    }, 2000);
+                }
                 
                 // Reload campaigns to show the new one
                 await loadCampaigns();
