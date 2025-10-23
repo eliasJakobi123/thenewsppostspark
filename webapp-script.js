@@ -863,20 +863,17 @@ function showDeleteConfirmation() {
 function showCreateCampaign() {
     console.log('showCreateCampaign called'); // Debug log
     
-    if (window.router) {
-        window.router.navigate('/create-campaign');
+    // Always use direct page switching for local development
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    
+    // Show create campaign page
+    const createCampaignPage = document.getElementById('create-campaign');
+    if (createCampaignPage) {
+        createCampaignPage.classList.add('active');
+        console.log('Create campaign page activated'); // Debug log
     } else {
-        // Hide all pages
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-        
-        // Show create campaign page
-        const createCampaignPage = document.getElementById('create-campaign');
-        if (createCampaignPage) {
-            createCampaignPage.classList.add('active');
-            console.log('Create campaign page activated'); // Debug log
-        } else {
-            console.error('Create campaign page not found'); // Debug log
-        }
+        console.error('Create campaign page not found'); // Debug log
     }
     
     // Reset to step 1 (use modern version)
