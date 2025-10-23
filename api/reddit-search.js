@@ -51,34 +51,33 @@ export default async function handler(req, res) {
         const subreddits = [
             // Core self-improvement and life
             'selfimprovement', 'motivation', 'productivity', 'lifehacks', 
-            'mentalhealth', 'advice', 'AskReddit', 'getmotivated', 
+            'mentalhealth', 'advice', 'getmotivated', 
             'DecidingToBeBetter', 'selfhelp', 'selfconfidence', 'life',
-            'careeradvice', 'personalfinance', 'goals', 'habits', 
+            'careeradvice', 'goals', 'habits', 
             'discipline', 'focus', 'mindfulness', 'meditation',
             
             // Health and fitness
             'fitness', 'loseit', 'gainit', 'bodybuilding', 'running',
             'gym', 'health', 'nutrition', 'keto', 'cooking',
-            'recipes', 'food', 'weightloss', 'fitness', 'workout',
+            'recipes', 'food', 'weightloss', 'workout',
             
             // Business and career
-            'entrepreneur', 'smallbusiness', 'startups', 'marketing',
-            'business', 'freelance', 'work', 'jobs', 'careerguidance',
-            'investing', 'stocks', 'cryptocurrency', 'bitcoin',
+            'smallbusiness', 'marketing', 'business', 'freelance', 'work', 'careerguidance',
+            'bitcoin',
             
             // Technology and digital
-            'technology', 'gadgets', 'android', 'iphone', 'apple',
-            'programming', 'webdev', 'coding', 'software', 'computers',
-            'gaming', 'pcgaming', 'gamedev', 'indiegaming',
+            'gadgets', 'android', 'iphone', 'apple',
+            'programming', 'webdev', 'coding', 'software',
+            'gamedev', 'indiegaming',
             
             // Lifestyle and hobbies
-            'travel', 'solotravel', 'backpacking', 'digitalnomad', 'wanderlust',
-            'photography', 'art', 'design', 'music', 'listentothis',
-            'books', 'booksuggestions', 'bookclub', 'reading', 'literature',
-            'movies', 'television', 'netflix', 'streaming', 'entertainment',
+            'travel', 'solotravel', 'backpacking', 'wanderlust',
+            'music', 'listentothis',
+            'booksuggestions', 'bookclub', 'reading', 'literature',
+            'television', 'netflix', 'streaming', 'entertainment',
             
             // Home and DIY
-            'homeimprovement', 'DIY', 'woodworking', 'gardening', 'plants',
+            'homeimprovement', 'woodworking', 'gardening', 'plants',
             'pets', 'dogs', 'cats', 'aquariums', 'reptiles',
             'cars', 'automotive', 'motorcycles', 'bicycling', 'cycling',
             
@@ -88,23 +87,50 @@ export default async function handler(req, res) {
             
             // Education and learning
             'education', 'college', 'university', 'studying', 'academic',
-            'science', 'askscience', 'explainlikeimfive', 'todayilearned',
-            'languagelearning', 'spanish', 'french', 'german',
+            'askscience', 'languagelearning', 'spanish', 'french', 'german',
             
             // News and current events
             'worldnews', 'news', 'politics', 'europe', 'canada',
             'unitedkingdom', 'australia', 'india', 'japan',
             
             // Entertainment and fun
-            'funny', 'jokes', 'memes', 'dankmemes', 'wholesomememes',
-            'showerthoughts', 'mildlyinfuriating', 'oddlysatisfying', 'perfectfit',
+            'jokes', 'dankmemes', 'wholesomememes',
+            'showerthoughts', 'mildlyinfuriating', 'perfectfit',
             'unpopularopinion', 'changemyview', 'amitheasshole',
             
             // Specialized communities
-            'zen', 'buddhism', 'spirituality', 'meditation', 'mindfulness',
+            'zen', 'buddhism', 'spirituality',
             'minimalism', 'simpleliving', 'frugal', 'budgeting',
-            'cryptocurrency', 'bitcoin', 'ethereum', 'investing',
-            'stocks', 'wallstreetbets', 'investing', 'personalfinance'
+            'ethereum', 'wallstreetbets',
+            
+            // Allgemein & Unterhaltung
+            'all', 'popular', 'AskReddit', 'todayilearned', 'funny', 'pics', 
+            'mildlyinteresting', 'memes', 'interestingasfuck', 'movies',
+            
+            // Technologie & Wissenschaft
+            'technology', 'science', 'Futurology', 'space', 'MachineLearning', 
+            'ArtificialIntelligence', 'Computers', 'engineering', 'Physics', 'CryptoCurrency',
+            
+            // Wirtschaft, Finanzen & Karriere
+            'investing', 'stocks', 'personalfinance', 'Entrepreneur', 'jobs', 
+            'digitalnomad', 'startups', 'Economics',
+            
+            // Gaming
+            'gaming', 'pcgaming', 'PlayStation', 'Xbox', 'NintendoSwitch', 
+            'Steam', 'Games', 'LeagueOfLegends', 'Minecraft',
+            
+            // Kunst, Design & Kreatives
+            'Art', 'Design', 'GraphicDesign', 'photography', 'illustration', 
+            'DIY', 'crafts',
+            
+            // Wissen, Bildung & Diskussion
+            'books', 'history', 'AskHistorians', 'explainlikeimfive', 
+            'philosophy', 'education',
+            
+            // Bonus (zusätzlich nützlich & beliebt)
+            'LifeProTips', 'NoStupidQuestions', 'OutOfTheLoop', 'YouShouldKnow', 
+            'dataisbeautiful', 'MapPorn', 'Documentaries', 'IAmA', 
+            'OldSchoolCool', 'nextfuckinglevel'
         ];
 
         // Search in each subreddit with higher limits
