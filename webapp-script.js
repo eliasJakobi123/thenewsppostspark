@@ -675,9 +675,14 @@ function setupCommentPopupListeners() {
             
             // Try to get post data from the current comment popup
             const postPreview = document.getElementById('post-preview');
+            console.log('Post preview element:', postPreview); // Debug log
+            
             if (postPreview) {
                 const titleElement = postPreview.querySelector('h4');
                 const contentElement = postPreview.querySelector('p');
+                
+                console.log('Title element:', titleElement); // Debug log
+                console.log('Content element:', contentElement); // Debug log
                 
                 if (titleElement && contentElement) {
                     currentPostData = {
@@ -687,7 +692,11 @@ function setupCommentPopupListeners() {
                         subreddit: 'unknown'
                     };
                     console.log('Post data recovered from DOM:', currentPostData);
+                } else {
+                    console.log('Could not find title or content elements in post preview');
                 }
+            } else {
+                console.log('Post preview element not found');
             }
             
             if (!currentPostData) {
