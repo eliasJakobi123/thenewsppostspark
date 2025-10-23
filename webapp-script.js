@@ -700,7 +700,7 @@ function setupCommentPopupListeners() {
             }
             
             if (!currentPostData) {
-                showNotification('No post data available for AI generation', 'error');
+                showNotification('No post data available for AI generation. Please select a post first.', 'error');
                 return;
             }
         }
@@ -732,7 +732,13 @@ function setupCommentPopupListeners() {
             // Show AI style popup for first time setup
             await loadStyleSettings();
             const aiPopup = document.getElementById('ai-style-popup');
-            aiPopup.style.display = 'flex';
+            if (aiPopup) {
+                aiPopup.style.display = 'flex';
+                console.log('AI style popup displayed');
+            } else {
+                console.error('AI style popup element not found');
+                showNotification('AI style popup not found', 'error');
+            }
         }
     });
     
@@ -743,7 +749,13 @@ function setupCommentPopupListeners() {
             // Load saved style settings and show popup
             await loadStyleSettings();
             const aiPopup = document.getElementById('ai-style-popup');
-            aiPopup.style.display = 'flex';
+            if (aiPopup) {
+                aiPopup.style.display = 'flex';
+                console.log('AI style popup displayed for editing');
+            } else {
+                console.error('AI style popup element not found for editing');
+                showNotification('AI style popup not found', 'error');
+            }
         });
     }
     

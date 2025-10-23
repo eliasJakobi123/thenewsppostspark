@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/api/ai-response",
+      "destination": "/api/ai-response.js"
+    },
+    {
+      "source": "/api/openai-search",
+      "destination": "/api/openai-search.js"
+    },
+    {
+      "source": "/api/reddit-search",
+      "destination": "/api/reddit-search.js"
+    },
+    {
       "source": "/dashboard",
       "destination": "/webapp.html"
     },
