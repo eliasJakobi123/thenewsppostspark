@@ -882,19 +882,16 @@ function showCreateCampaign() {
 
 // Show campaigns page
 function showCampaigns() {
-    if (window.router) {
-        window.router.navigate('/campaigns');
-    } else {
-        // Hide all pages
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-        
-        // Show campaigns page
-        document.getElementById('campaigns').classList.add('active');
-        
-        // Update navigation
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        document.querySelector('[data-page="campaigns"]').classList.add('active');
-    }
+    // Always use direct page switching for local development
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    
+    // Show campaigns page
+    document.getElementById('campaigns').classList.add('active');
+    
+    // Update navigation
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    document.querySelector('[data-page="campaigns"]').classList.add('active');
 }
 
 // Initialize modern campaign creation flow
