@@ -7,11 +7,14 @@ export default async function handler(req, res) {
     try {
         const { campaignData } = req.body;
         const { businessName, offer, keywords } = campaignData;
+        
+        // Ensure keywords is an array
+        const searchKeywords = Array.isArray(keywords) ? keywords : [keywords || 'general'];
 
         console.log('Reddit API search started:', {
             businessName,
-            keywords: keywords.join(', '),
-            offer: offer.substring(0, 100) + '...'
+            keywords: searchKeywords.join(', '),
+            offer: offer ? offer.substring(0, 100) + '...' : 'No offer provided'
         });
 
         // Reddit API credentials from environment variables
@@ -59,7 +62,7 @@ export default async function handler(req, res) {
         for (const subreddit of subreddits) {
             try {
                 // Create search query from keywords
-                const searchQuery = keywords.join(' OR ');
+                const searchQuery = searchKeywords.join(' OR ');
                 const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(searchQuery)}&sort=relevance&limit=25&t=all`;
 
                 console.log(`Searching r/${subreddit} for: ${searchQuery} (limit: 25)`);
@@ -93,7 +96,7 @@ export default async function handler(req, res) {
                         const combinedText = `${title} ${selftext}`;
                         
                         let relevanceScore = 0;
-                        for (const keyword of keywords) {
+                        for (const keyword of searchKeywords) {
                             if (combinedText.includes(keyword.toLowerCase())) {
                                 relevanceScore += 20;
                             }
