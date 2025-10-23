@@ -2360,6 +2360,10 @@ async function openCommentForPost(postId) {
         created_at: created_at
     };
     
+    // Set currentPostData for AI generation
+    currentPostData = postData;
+    console.log('Post data set for AI:', currentPostData); // Debug log
+    
     // Call writeComment with the extracted data
     await writeComment(postData.id, postData.subreddit, postData.title, postData.content, postData.created_at);
 }
@@ -2367,15 +2371,18 @@ async function openCommentForPost(postId) {
 // Write comment function
 async function writeComment(postId, subreddit, title, content, created_at) {
     try {
-        // Store current post data for AI generation
-        currentPostData = {
-            id: postId,
-            title: title,
-            content: content,
-            subreddit: subreddit
-        };
-        
-        console.log('Post data stored for AI:', currentPostData); // Debug log
+        // Store current post data for AI generation (only if not already set)
+        if (!currentPostData) {
+            currentPostData = {
+                id: postId,
+                title: title,
+                content: content,
+                subreddit: subreddit
+            };
+            console.log('Post data stored for AI:', currentPostData); // Debug log
+        } else {
+            console.log('Post data already set for AI:', currentPostData); // Debug log
+        }
         
         // Show comment popup
         const popup = document.getElementById('comment-popup');
