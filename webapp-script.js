@@ -1153,8 +1153,7 @@ async function findModernLeadsOnReddit() {
                 // Find Reddit leads using OpenAI
                 const redditPosts = await postSparkDB.findRedditLeads(campaign.id);
                 
-        // Show success notification
-        showNotification('Campaign created successfully!', 'success');
+        // Campaign created successfully (no notification needed)
         
         // Show rate limit warning if applicable
         if (window.redditRateLimitMessage) {
@@ -1461,7 +1460,7 @@ function findLeadsOnReddit() {
     
     setTimeout(() => {
         updateLoadingStep(4);
-        showNotification('Campaign created successfully!', 'success');
+        // Campaign created successfully (no notification needed)
         
         // Go back to campaigns
         setTimeout(() => {
@@ -1984,7 +1983,7 @@ function showLoginForm() {
 async function createCampaign(campaignData) {
     try {
         const campaign = await postSparkDB.createCampaign(campaignData);
-        showNotification('Campaign created successfully!', 'success');
+        // Campaign created successfully (no notification needed)
         await loadCampaigns(); // Reload campaigns
         return campaign;
     } catch (error) {
