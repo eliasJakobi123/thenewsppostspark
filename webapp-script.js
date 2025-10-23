@@ -671,9 +671,29 @@ function setupCommentPopupListeners() {
         console.log('AI Button clicked, currentPostData:', currentPostData); // Debug log
         
         if (!currentPostData) {
-            console.error('No currentPostData available'); // Debug log
-            showNotification('No post data available for AI generation', 'error');
-            return;
+            console.error('No currentPostData available, trying to get from DOM'); // Debug log
+            
+            // Try to get post data from the current comment popup
+            const postPreview = document.getElementById('post-preview');
+            if (postPreview) {
+                const titleElement = postPreview.querySelector('h4');
+                const contentElement = postPreview.querySelector('p');
+                
+                if (titleElement && contentElement) {
+                    currentPostData = {
+                        id: 'unknown',
+                        title: titleElement.textContent,
+                        content: contentElement.textContent,
+                        subreddit: 'unknown'
+                    };
+                    console.log('Post data recovered from DOM:', currentPostData);
+                }
+            }
+            
+            if (!currentPostData) {
+                showNotification('No post data available for AI generation', 'error');
+                return;
+            }
         }
         
         // Check if user has saved AI style for this campaign (database first, then localStorage)
@@ -2371,18 +2391,14 @@ async function openCommentForPost(postId) {
 // Write comment function
 async function writeComment(postId, subreddit, title, content, created_at) {
     try {
-        // Store current post data for AI generation (only if not already set)
-        if (!currentPostData) {
-            currentPostData = {
-                id: postId,
-                title: title,
-                content: content,
-                subreddit: subreddit
-            };
-            console.log('Post data stored for AI:', currentPostData); // Debug log
-        } else {
-            console.log('Post data already set for AI:', currentPostData); // Debug log
-        }
+        // Always update current post data for AI generation
+        currentPostData = {
+            id: postId,
+            title: title,
+            content: content,
+            subreddit: subreddit
+        };
+        console.log('Post data stored for AI in writeComment:', currentPostData); // Debug log
         
         // Show comment popup
         const popup = document.getElementById('comment-popup');
