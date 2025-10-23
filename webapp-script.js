@@ -2495,8 +2495,8 @@ function initializeRouterNavigation() {
 }
 
 function navigateToPage(page) {
-    // Use router for navigation
-    if (window.router) {
+    // Use router for navigation (with loop prevention)
+    if (window.router && !window.router.isNavigating) {
         if (page === 'dashboard') {
             window.router.navigate('/dashboard');
         } else if (page === 'campaigns') {

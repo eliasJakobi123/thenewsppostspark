@@ -3,6 +3,7 @@ class Router {
     constructor() {
         this.routes = new Map();
         this.currentRoute = null;
+        this.isNavigating = false; // Prevent infinite loops
         this.init();
     }
 
@@ -23,16 +24,36 @@ class Router {
 
     // Navigate to route
     navigate(path, data = null) {
-        if (path.startsWith('/')) {
-            window.history.pushState(data, '', path);
-        } else {
-            window.history.pushState(data, '', '/' + path);
+        // Prevent infinite loops
+        if (this.isNavigating) {
+            console.log('Router: Navigation already in progress, skipping');
+            return;
         }
-        this.handleRoute();
+        
+        this.isNavigating = true;
+        
+        try {
+            if (path.startsWith('/')) {
+                window.history.pushState(data, '', path);
+            } else {
+                window.history.pushState(data, '', '/' + path);
+            }
+            this.handleRoute();
+        } finally {
+            // Reset flag after a short delay
+            setTimeout(() => {
+                this.isNavigating = false;
+            }, 100);
+        }
     }
 
     // Handle current route
     handleRoute() {
+        // Prevent infinite loops
+        if (this.isNavigating) {
+            return;
+        }
+        
         const path = window.location.pathname;
         const hash = window.location.hash.substring(1);
         
@@ -103,6 +124,11 @@ class Router {
 
     // Show specific page
     showPage(pageId) {
+        // Prevent infinite loops
+        if (this.isNavigating) {
+            return;
+        }
+        
         // Hide all pages
         document.querySelectorAll('.page').forEach(page => {
             page.classList.remove('active');
