@@ -705,8 +705,14 @@ function setupCommentPopupListeners() {
             }
         }
         
-        // Check if user has saved AI style for this campaign (database first, then localStorage)
+        // Check if we have a saved AI style for this campaign
         const campaignId = window.currentCampaignId;
+        if (!campaignId) {
+            showNotification('No campaign selected. Please select a campaign first.', 'error');
+            return;
+        }
+        
+        // Check if user has saved AI style for this campaign (database first, then localStorage)
         let hasSavedStyle = false;
         
         try {
@@ -3075,4 +3081,5 @@ async function generateAIResponse() {
         showNotification('Error generating AI response: ' + error.message, 'error');
     }
 }
+
 

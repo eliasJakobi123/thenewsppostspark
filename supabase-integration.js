@@ -945,14 +945,28 @@ Find posts that show:
                 .eq('campaign_id', campaignId)
                 .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-                console.log('AI response styles table may not exist, returning null');
-                return null;
+            if (error) {
+                // Handle different error types gracefully
+                if (error.code === 'PGRST116') {
+                    // No rows found - this is normal
+                    return null;
+                } else if (error.code === '42P01') {
+                    // Table doesn't exist
+                    console.log('AI response styles table does not exist, using localStorage fallback');
+                    return null;
+                } else if (error.message && error.message.includes('406')) {
+                    // 406 error - table exists but no access
+                    console.log('No access to AI response styles table, using localStorage fallback');
+                    return null;
+                } else {
+                    console.log('Error accessing AI response styles table:', error.message);
+                    return null;
+                }
             }
 
             return data;
         } catch (error) {
-            console.log('AI response styles table not available, returning null');
+            console.log('AI response styles table not available, using localStorage fallback');
             return null;
         }
     }
@@ -966,14 +980,28 @@ Find posts that show:
                 .eq('is_default', true)
                 .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-                console.log('AI response styles table may not exist, returning null');
-                return null;
+            if (error) {
+                // Handle different error types gracefully
+                if (error.code === 'PGRST116') {
+                    // No rows found - this is normal
+                    return null;
+                } else if (error.code === '42P01') {
+                    // Table doesn't exist
+                    console.log('AI response styles table does not exist, using localStorage fallback');
+                    return null;
+                } else if (error.message && error.message.includes('406')) {
+                    // 406 error - table exists but no access
+                    console.log('No access to AI response styles table, using localStorage fallback');
+                    return null;
+                } else {
+                    console.log('Error accessing AI response styles table:', error.message);
+                    return null;
+                }
             }
 
             return data;
         } catch (error) {
-            console.log('AI response styles table not available, returning null');
+            console.log('AI response styles table not available, using localStorage fallback');
             return null;
         }
     }
@@ -996,13 +1024,24 @@ Find posts that show:
                 .single();
 
             if (error) {
-                console.log('AI response styles table may not exist, skipping save');
-                return null;
+                // Handle different error types gracefully
+                if (error.code === '42P01') {
+                    // Table doesn't exist
+                    console.log('AI response styles table does not exist, saving to localStorage only');
+                    return null;
+                } else if (error.message && error.message.includes('406')) {
+                    // 406 error - table exists but no access
+                    console.log('No access to AI response styles table, saving to localStorage only');
+                    return null;
+                } else {
+                    console.log('Error saving AI style:', error.message);
+                    return null;
+                }
             }
 
             return data;
         } catch (error) {
-            console.log('AI response styles table not available, skipping save');
+            console.log('AI response styles table not available, saving to localStorage only');
             return null;
         }
     }
@@ -1016,13 +1055,24 @@ Find posts that show:
                 .eq('user_id', this.userData.id);
 
             if (error) {
-                console.log('AI response styles table may not exist, skipping delete');
-                return false;
+                // Handle different error types gracefully
+                if (error.code === '42P01') {
+                    // Table doesn't exist
+                    console.log('AI response styles table does not exist, deletion skipped');
+                    return true;
+                } else if (error.message && error.message.includes('406')) {
+                    // 406 error - table exists but no access
+                    console.log('No access to AI response styles table, deletion skipped');
+                    return true;
+                } else {
+                    console.log('Error deleting AI style:', error.message);
+                    return false;
+                }
             }
 
             return true;
         } catch (error) {
-            console.log('AI response styles table not available, skipping delete');
+            console.log('AI response styles table not available, deletion skipped');
             return false;
         }
     }
