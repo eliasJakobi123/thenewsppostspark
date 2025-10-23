@@ -63,24 +63,26 @@ Please provide realistic examples of the types of posts that would appear in the
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
         // Prepare the input string
-        const inputString = `Search Reddit for REAL posts about these topics:
+        const inputString = `Search Reddit for posts related to these topics:
 
 TOPICS: ${keywords.join(', ')}
 
-TASK: Find real Reddit posts where people discuss these topics. Only return actual posts that exist on Reddit.
+TASK: Find Reddit posts where people discuss these topics or related subjects.
 
-SEARCH CRITERIA:
-- Look in subreddits like r/selfimprovement, r/motivation, r/productivity, r/lifehacks, r/mentalhealth, r/advice, r/AskReddit
-- Find posts where people ask questions, share experiences, or discuss problems related to these topics
-- Include posts about personal development, life advice, motivation, productivity, mental health, relationships, career, goals
+SEARCH STRATEGY:
+- Search broadly for posts about: motivation, life advice, personal development, productivity, mental health, self-improvement, goals, habits, success, challenges, problems, questions
+- Look in subreddits: r/selfimprovement, r/motivation, r/productivity, r/lifehacks, r/mentalhealth, r/advice, r/AskReddit, r/getmotivated, r/DecidingToBeBetter, r/selfhelp
+- Find posts where people are asking for help, sharing struggles, seeking advice, or discussing problems
+- Include posts about: career advice, relationships, health, fitness, learning, growth, change, improvement
 
 BUSINESS CONTEXT: ${businessName} - ${offer}
 
 IMPORTANT: 
-1. ONLY search for REAL Reddit posts that actually exist
-2. Do NOT create or generate fake posts
-3. If you can't find enough real posts, return fewer posts but they must be real
-4. Focus on posts where people are seeking help, advice, or solutions
+1. Search for REAL Reddit posts that exist
+2. Look for posts where people need help, advice, or solutions
+3. Include posts that show problems, questions, or challenges
+4. Focus on posts where people are actively seeking solutions
+5. Return posts in JSON format with relevance scores
 
 Return real Reddit posts in JSON format with high relevance scores (70-100).`;
 
