@@ -467,9 +467,9 @@ class PostSparkSupabase {
     }
 
     // Reddit API Methods
-    async connectRedditAccount() {
+    async connectRedditAccount(returnUrl = null) {
         try {
-            const authUrl = this.buildRedditAuthUrl();
+            const authUrl = this.buildRedditAuthUrl(returnUrl);
             window.location.href = authUrl;
         } catch (error) {
             console.error('Error connecting Reddit account:', error);
@@ -477,11 +477,20 @@ class PostSparkSupabase {
         }
     }
 
-    buildRedditAuthUrl() {
+    buildRedditAuthUrl(returnUrl = null) {
+        // Get current campaign ID if available
+        const currentCampaignId = window.currentCampaignId || returnUrl;
+        
+        // Create state with user ID and return URL
+        const stateData = {
+            userId: this.user.id,
+            returnUrl: returnUrl || (currentCampaignId ? `/campaigns/${currentCampaignId}` : '/campaigns')
+        };
+        
         const params = new URLSearchParams({
             client_id: REDDIT_CONFIG.CLIENT_ID,
             response_type: 'code',
-            state: this.user.id, // Use user ID as state
+            state: JSON.stringify(stateData), // Store return URL in state
             redirect_uri: REDDIT_CONFIG.REDIRECT_URI,
             duration: 'permanent',
             scope: REDDIT_CONFIG.SCOPES
@@ -489,6 +498,7 @@ class PostSparkSupabase {
         
         const authUrl = `${REDDIT_CONFIG.AUTH_URL}?${params.toString()}`;
         console.log('Reddit Auth URL:', authUrl); // Debug log
+        console.log('Return URL:', stateData.returnUrl); // Debug log
         return authUrl;
     }
 
@@ -496,7 +506,23 @@ class PostSparkSupabase {
         try {
             const tokens = await this.exchangeCodeForTokens(code);
             await this.storeRedditTokens(tokens);
-            return { success: true, message: 'Reddit account connected successfully!' };
+            
+            // Parse return URL from state
+            let returnUrl = '/campaigns'; // Default return URL
+            try {
+                const stateData = JSON.parse(state);
+                if (stateData.returnUrl) {
+                    returnUrl = stateData.returnUrl;
+                }
+            } catch (e) {
+                console.log('Could not parse state, using default return URL');
+            }
+            
+            return { 
+                success: true, 
+                message: 'Reddit account connected successfully!',
+                returnUrl: returnUrl
+            };
         } catch (error) {
             console.error('Error handling Reddit callback:', error);
             throw error;

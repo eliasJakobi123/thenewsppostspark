@@ -2390,7 +2390,11 @@ async function checkRedditConnection() {
 // Connect Reddit account
 async function connectRedditAccount() {
     try {
-        await postSparkDB.connectRedditAccount();
+        // Get current URL as return URL
+        const currentUrl = window.location.pathname;
+        console.log('Connecting Reddit with return URL:', currentUrl);
+        
+        await postSparkDB.connectRedditAccount(currentUrl);
     } catch (error) {
         console.error('Error connecting Reddit account:', error);
         showNotification('Error connecting Reddit account', 'error');
@@ -2411,11 +2415,21 @@ async function handleRedditCallback() {
     
     if (code && state) {
         try {
-            await postSparkDB.handleRedditCallback(code, state);
+            const result = await postSparkDB.handleRedditCallback(code, state);
             showNotification('Reddit account connected successfully!', 'success');
             
-            // Clean up URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+            // Navigate to return URL if available
+            if (result.returnUrl) {
+                console.log('Redirecting to:', result.returnUrl);
+                if (window.router) {
+                    window.router.navigate(result.returnUrl);
+                } else {
+                    window.location.href = result.returnUrl;
+                }
+            } else {
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         } catch (error) {
             console.error('Error handling Reddit callback:', error);
             showNotification('Error connecting Reddit account', 'error');
