@@ -41,10 +41,19 @@ async function processStoredRedditCode() {
     const code = sessionStorage.getItem('reddit_auth_code');
     const state = sessionStorage.getItem('reddit_auth_state');
     
+    console.log('Checking for stored Reddit code:', { 
+        hasCode: !!code, 
+        hasState: !!state, 
+        hasPostSparkDB: !!postSparkDB, 
+        hasUser: !!(postSparkDB && postSparkDB.user) 
+    });
+    
     if (code && state && postSparkDB && postSparkDB.user) {
         try {
             console.log('Processing stored Reddit OAuth code...');
             const result = await postSparkDB.handleRedditCallback(code, state);
+            
+            console.log('Reddit callback result:', result);
             
             if (result.success) {
                 showNotification('Reddit account connected successfully!', 'success');
@@ -62,11 +71,16 @@ async function processStoredRedditCode() {
                         window.location.href = result.returnUrl;
                     }
                 }
+            } else {
+                console.error('Reddit callback failed:', result);
+                showNotification('Failed to connect Reddit account', 'error');
             }
         } catch (error) {
             console.error('Error processing stored Reddit code:', error);
-            showNotification('Error connecting Reddit account', 'error');
+            showNotification('Error connecting Reddit account: ' + error.message, 'error');
         }
+    } else {
+        console.log('No stored Reddit code or user not ready');
     }
 }
 
@@ -2602,40 +2616,7 @@ async function connectRedditAccount() {
 }
 
 // Handle Reddit callback
-async function handleRedditCallback() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    const error = urlParams.get('error');
-    
-    if (error) {
-        showNotification('Reddit authorization failed: ' + error, 'error');
-        return;
-    }
-    
-    if (code && state) {
-        try {
-            const result = await postSparkDB.handleRedditCallback(code, state);
-            showNotification('Reddit account connected successfully!', 'success');
-            
-            // Navigate to return URL if available
-            if (result.returnUrl) {
-                console.log('Redirecting to:', result.returnUrl);
-                if (window.router) {
-                    window.router.navigate(result.returnUrl);
-                } else {
-                    window.location.href = result.returnUrl;
-                }
-            } else {
-                // Clean up URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-        } catch (error) {
-            console.error('Error handling Reddit callback:', error);
-            showNotification('Error connecting Reddit account', 'error');
-        }
-    }
-}
+// This function is now handled by the main handleRedditCallback() at the top of the file
 
 // Find more leads for existing campaign
 async function findMoreLeads(campaignId) {

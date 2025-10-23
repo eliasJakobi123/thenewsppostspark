@@ -505,8 +505,14 @@ class PostSparkSupabase {
 
     async handleRedditCallback(code, state) {
         try {
+            console.log('Starting Reddit callback handling...');
+            console.log('User ID:', this.user?.id);
+            
             const tokens = await this.exchangeCodeForTokens(code);
+            console.log('Tokens exchanged successfully');
+            
             await this.storeRedditTokens(tokens);
+            console.log('Tokens stored successfully');
             
             // Parse return URL from state
             let returnUrl = '/campaigns'; // Default return URL
@@ -519,6 +525,7 @@ class PostSparkSupabase {
                 console.log('Could not parse state, using default return URL');
             }
             
+            console.log('Reddit callback completed successfully');
             return { 
                 success: true, 
                 message: 'Reddit account connected successfully!',
@@ -531,6 +538,11 @@ class PostSparkSupabase {
     }
 
     async exchangeCodeForTokens(code) {
+        console.log('Exchanging code for tokens...');
+        console.log('Token URL:', REDDIT_CONFIG.TOKEN_URL);
+        console.log('Client ID:', REDDIT_CONFIG.CLIENT_ID);
+        console.log('Redirect URI:', REDDIT_CONFIG.REDIRECT_URI);
+        
         const response = await fetch(REDDIT_CONFIG.TOKEN_URL, {
             method: 'POST',
             headers: {
@@ -544,17 +556,33 @@ class PostSparkSupabase {
             })
         });
 
+        console.log('Token exchange response status:', response.status);
+
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Token exchange error:', errorText);
             throw new Error('Failed to exchange code for tokens: ' + errorText);
         }
 
-        return await response.json();
+        const tokens = await response.json();
+        console.log('Token exchange successful:', { 
+            hasAccessToken: !!tokens.access_token, 
+            hasRefreshToken: !!tokens.refresh_token,
+            expiresIn: tokens.expires_in 
+        });
+        
+        return tokens;
     }
 
     async storeRedditTokens(tokens) {
         try {
+            console.log('Storing Reddit tokens for user:', this.user.id);
+            console.log('Tokens received:', { 
+                hasAccessToken: !!tokens.access_token, 
+                hasRefreshToken: !!tokens.refresh_token,
+                expiresIn: tokens.expires_in 
+            });
+            
             const { error } = await supabaseClient
                 .from(TABLES.USERS)
                 .update({
@@ -564,7 +592,12 @@ class PostSparkSupabase {
                 })
                 .eq('id', this.user.id);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error storing tokens:', error);
+                throw error;
+            }
+            
+            console.log('Reddit tokens stored successfully');
         } catch (error) {
             console.error('Error storing Reddit tokens:', error);
             throw error;
