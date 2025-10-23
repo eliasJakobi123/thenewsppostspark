@@ -86,6 +86,7 @@ class PostSparkSupabase {
                     name: campaignData.name,
                     description: campaignData.description,
                     keywords: campaignData.keywords,
+                    website_url: campaignData.website_url,
                     subreddits: campaignData.subreddits || [],
                     status: 'active'
                 })

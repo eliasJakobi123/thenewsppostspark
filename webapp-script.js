@@ -487,6 +487,10 @@ function renderCampaignPosts(posts) {
                         <i class="fas fa-comment"></i>
                         Comment
                     </button>
+                    <button class="btn btn-ai" onclick="openAIStylePopup({id: '${post.id}', title: '${post.title.replace(/'/g, "\\'")}', content: '${(post.content || '').replace(/'/g, "\\'")}', subreddit: '${post.subreddit}'})">
+                        <i class="fas fa-robot"></i>
+                        AI
+                    </button>
                     <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id}', '${post.subreddit}')">
                         <i class="fas fa-external-link-alt"></i>
                         Show
@@ -1128,6 +1132,7 @@ async function findModernLeadsOnReddit() {
         const campaignName = document.getElementById('modern-campaign-name').value;
         const keywords = getModernKeywordsArray();
         const offer = document.getElementById('modern-offer').value;
+        const websiteUrl = document.getElementById('website-url').value;
         
         if (!campaignName || keywords.length === 0 || !offer) {
             showNotification('Please fill in all required fields', 'warning');
@@ -1142,6 +1147,7 @@ async function findModernLeadsOnReddit() {
             name: campaignName,
             description: offer,
             keywords: keywords,
+            website_url: websiteUrl,
             subreddits: ['r/entrepreneur', 'r/startups', 'r/smallbusiness', 'r/marketing'],
             target_audience: 'Small business owners, entrepreneurs, project managers'
         };
@@ -2532,6 +2538,130 @@ function navigateToCampaign(campaignId) {
     } else {
         // Fallback to hash routing
         showCampaignPosts(campaignId);
+    }
+}
+
+// AI Response Generation Functions
+let currentPostData = null;
+
+function openAIStylePopup(postData) {
+    currentPostData = postData;
+    
+    // Load saved style settings
+    loadStyleSettings();
+    
+    // Show popup
+    const popup = document.getElementById('ai-style-popup');
+    popup.style.display = 'flex';
+}
+
+function closeAIStylePopup() {
+    const popup = document.getElementById('ai-style-popup');
+    popup.style.display = 'none';
+    currentPostData = null;
+}
+
+function loadStyleSettings() {
+    const savedSettings = localStorage.getItem('aiResponseStyle');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        
+        document.getElementById('tone-select').value = settings.tone || 'friendly';
+        document.getElementById('sales-strength').value = settings.salesStrength || 2;
+        document.getElementById('custom-offer').value = settings.customOffer || '';
+        document.getElementById('save-style').checked = settings.saveStyle !== false;
+    }
+}
+
+function saveStyleSettings() {
+    const settings = {
+        tone: document.getElementById('tone-select').value,
+        salesStrength: parseInt(document.getElementById('sales-strength').value),
+        customOffer: document.getElementById('custom-offer').value,
+        saveStyle: document.getElementById('save-style').checked
+    };
+    
+    localStorage.setItem('aiResponseStyle', JSON.stringify(settings));
+}
+
+async function generateAIResponse() {
+    if (!currentPostData) {
+        showNotification('No post data available', 'error');
+        return;
+    }
+    
+    const tone = document.getElementById('tone-select').value;
+    const salesStrength = parseInt(document.getElementById('sales-strength').value);
+    const customOffer = document.getElementById('custom-offer').value;
+    const saveStyle = document.getElementById('save-style').checked;
+    
+    // Save style settings if requested
+    if (saveStyle) {
+        saveStyleSettings();
+    }
+    
+    // Get current campaign data
+    const campaign = postSparkDB.campaigns.find(c => c.id === window.currentCampaignId);
+    if (!campaign) {
+        showNotification('Campaign not found', 'error');
+        return;
+    }
+    
+    // Get website URL from campaign
+    let websiteUrl = campaign.website_url || '';
+    if (!websiteUrl) {
+        websiteUrl = prompt('Please enter your website URL:');
+        if (!websiteUrl) {
+            showNotification('Website URL is required for AI responses', 'error');
+            return;
+        }
+    }
+    
+    try {
+        showNotification('Generating AI response...', 'info');
+        
+        const response = await fetch('/api/ai-response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                postContent: currentPostData.content,
+                postTitle: currentPostData.title,
+                offer: campaign.offer,
+                websiteUrl: websiteUrl,
+                tone: tone,
+                salesStrength: salesStrength,
+                customOffer: customOffer
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to generate AI response');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Fill the comment textarea with AI response
+            const textarea = document.getElementById('comment-text');
+            if (textarea) {
+                textarea.value = data.response;
+                textarea.style.height = 'auto';
+                textarea.style.height = textarea.scrollHeight + 'px';
+            }
+            
+            // Close the AI popup
+            closeAIStylePopup();
+            
+            showNotification('AI response generated successfully!', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to generate response');
+        }
+        
+    } catch (error) {
+        console.error('Error generating AI response:', error);
+        showNotification('Error generating AI response: ' + error.message, 'error');
     }
 }
 
