@@ -63,20 +63,24 @@ Please provide realistic examples of the types of posts that would appear in the
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
         // Prepare the input string
-        const inputString = `Find 25-30 Reddit posts related to these keywords:
+        const inputString = `Search Reddit for posts about these topics and create realistic examples:
 
-KEYWORDS: ${keywords.join(', ')}
+TOPICS: ${keywords.join(', ')}
 
-SEARCH FOR:
-- Posts discussing these specific keywords
-- People asking questions about these topics
-- Users sharing experiences with these subjects
-- Communities talking about these areas
-- Posts from people interested in these keywords
+TASK: Find 25-30 Reddit posts where people discuss these topics. If you can't find real posts, create realistic examples that would appear on Reddit.
 
-BUSINESS CONTEXT (use only as background): ${businessName} - ${offer}
+SEARCH CRITERIA:
+- Look in subreddits like r/selfimprovement, r/motivation, r/productivity, r/lifehacks, r/mentalhealth, r/advice, r/AskReddit
+- Find posts where people ask questions, share experiences, or discuss problems related to these topics
+- Include posts about personal development, life advice, motivation, productivity, mental health, relationships, career, goals
 
-IMPORTANT: Focus primarily on the keywords. Find posts where people are actively discussing, asking about, or sharing experiences related to these exact keywords. The business context is just for understanding, but search for posts that match the keywords.
+BUSINESS CONTEXT: ${businessName} - ${offer}
+
+IMPORTANT: 
+1. Search for real Reddit posts first
+2. If no real posts found, create 25-30 realistic examples that would appear on Reddit
+3. Focus on posts where people are seeking help, advice, or solutions
+4. Make posts sound authentic and realistic
 
 Return exactly 25-30 posts in JSON format with high relevance scores (70-100).`;
 
@@ -179,6 +183,32 @@ Return exactly 25-30 posts in JSON format with high relevance scores (70-100).`;
                             } catch (parseError) {
                                 console.error('JSON parse error:', parseError);
                                 console.log('Raw text content (first 1000 chars):', contentItem.text.substring(0, 1000));
+                                
+                                // Try to extract partial JSON if it's incomplete
+                                try {
+                                    const jsonStart = contentItem.text.indexOf('{');
+                                    if (jsonStart !== -1) {
+                                        // Try to find the last complete post
+                                        const postsMatch = contentItem.text.match(/\{[^}]*"reddit_id"[^}]*\}/g);
+                                        if (postsMatch && postsMatch.length > 0) {
+                                            console.log(`Found ${postsMatch.length} complete posts in partial JSON`);
+                                            posts = postsMatch.map(postStr => {
+                                                try {
+                                                    return JSON.parse(postStr);
+                                                } catch (e) {
+                                                    return null;
+                                                }
+                                            }).filter(post => post !== null);
+                                            
+                                            if (posts.length > 0) {
+                                                console.log(`Extracted ${posts.length} posts from partial JSON`);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } catch (fallbackError) {
+                                    console.error('Fallback JSON extraction failed:', fallbackError);
+                                }
                             }
                         }
                     }
