@@ -385,7 +385,7 @@ body {
     margin-bottom: 1.5rem;
     transition: all 0.3s ease;
     position: relative;
-    min-height: 200px;
+    min-height: 250px;
 }
 
 .post-card:hover {
@@ -448,6 +448,9 @@ body {
 .post-actions {
     display: flex;
     gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Campaigns Grid */
@@ -908,16 +911,17 @@ body {
 
 .read-more-overlay {
     position: absolute;
-    bottom: -10px;
+    bottom: 60px;
     left: 0;
     right: 0;
     background: linear-gradient(transparent, rgba(26, 26, 26, 0.95));
-    padding: 4rem 0 2rem;
+    padding: 2rem 0 1rem;
     display: flex;
     justify-content: center;
     align-items: flex-end;
     opacity: 1;
     transition: opacity 0.3s ease;
+    z-index: 10;
 }
 
 .read-more-overlay.hidden {

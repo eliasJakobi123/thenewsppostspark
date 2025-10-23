@@ -111,11 +111,12 @@ export default async function handler(req, res) {
                         
                         // If no keywords match, skip this post entirely
                         if (keywordMatches === 0) {
+                            console.log(`Post skipped - no keyword matches: "${postData.title.substring(0, 50)}..."`);
                             continue;
                         }
                         
                         // Score based on offer context (if available) - CRITICAL for relevance
-                        if (offer && offer !== 'No offer provided') {
+                        if (offer && offer !== 'No offer provided' && offer.trim() !== '') {
                             const offerWords = offer.toLowerCase().split(' ').filter(word => word.length > 3);
                             let offerMatches = 0;
                             
@@ -128,6 +129,7 @@ export default async function handler(req, res) {
                             
                             // MANDATORY: Must have at least 1 offer word match (more flexible)
                             if (offerMatches < 1) {
+                                console.log(`Post skipped - no offer matches: "${postData.title.substring(0, 50)}..."`);
                                 continue; // Skip posts that don't match the offer at all
                             }
                             
@@ -177,6 +179,7 @@ export default async function handler(req, res) {
                         
                         // High threshold but not impossible - allow some flexibility
                         if (relevanceScore >= 50) {
+                            console.log(`Post accepted - score: ${relevanceScore}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,
