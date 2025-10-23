@@ -1169,7 +1169,7 @@ async function findModernLeadsOnReddit() {
                 const redditPosts = await postSparkDB.findRedditLeads(campaign.id);
                 
                 if (redditPosts.length > 0) {
-                    showNotification(`Campaign created and ${redditPosts.length} leads found!`, 'success');
+                    showNotification('Campaign created successfully!', 'success');
                 } else {
                     showNotification('Campaign created but no leads found. Try different keywords.', 'warning');
                 }
@@ -1471,7 +1471,7 @@ function findLeadsOnReddit() {
     
     setTimeout(() => {
         updateLoadingStep(4);
-        showNotification('Campaign created and leads found!', 'success');
+        showNotification('Campaign created successfully!', 'success');
         
         // Go back to campaigns
         setTimeout(() => {

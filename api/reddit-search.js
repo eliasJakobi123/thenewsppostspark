@@ -57,9 +57,8 @@ export default async function handler(req, res) {
             'discipline', 'focus', 'mindfulness', 'meditation',
             
             // Health and fitness
-            'fitness', 'loseit', 'gainit', 'bodybuilding', 'running',
-            'gym', 'health', 'nutrition', 'keto', 'cooking',
-            'recipes', 'food', 'weightloss', 'workout',
+            'health', 'nutrition', 'keto', 'cooking',
+            'recipes', 'food',
             
             // Business and career
             'smallbusiness', 'marketing', 'business', 'freelance', 'work', 'careerguidance',
@@ -130,7 +129,37 @@ export default async function handler(req, res) {
             // Bonus (zusätzlich nützlich & beliebt)
             'LifeProTips', 'NoStupidQuestions', 'OutOfTheLoop', 'YouShouldKnow', 
             'dataisbeautiful', 'MapPorn', 'Documentaries', 'IAmA', 
-            'OldSchoolCool', 'nextfuckinglevel'
+            'OldSchoolCool', 'nextfuckinglevel',
+            
+            // 🏋️‍♂️ Fitness, Gym & Bodybuilding
+            'Fitness', 'bodybuilding', 'GymMotivation', 'fitnesscirclejerk', 'xxfitness',
+            'progresspics', 'gainit', 'loseit', 'Calisthenics', 'weightroom',
+            'powerlifting', 'StrongCurves', 'naturalbodybuilding', 'veganfitness',
+            'Running', 'Crossfit', 'FitnessMotivation', 'Supplements', 'Flexibility', 'yoga',
+            
+            // 💪 Self-Confidence, Mental Health & Self-Improvement
+            'selfimprovement', 'GetDisciplined', 'productivity', 'DecidingToBeBetter', 'NoFap',
+            'Meditation', 'selfhelp', 'Anxiety', 'Depression', 'happiness',
+            'Stoicism', 'ZenHabits', 'confidence', 'socialskills', 'mentalhealth',
+            'therapy', 'Mindfulness', 'sleep', 'Success', 'psychology',
+            
+            // 🚀 Startups, Entrepreneurship & Business
+            'startups', 'Entrepreneur', 'smallbusiness', 'business', 'SideProject',
+            'EntrepreneurRideAlong', 'IndieHackers', 'StartupsCircle', 'growmybusiness', 'JustStart',
+            'LeanStartup', 'startup_ideas', 'Business_Ideas', 'marketing', 'AskMarketing',
+            'digital_marketing', 'ecommerce', 'dropship', 'Shopify', 'AffiliateMarketing',
+            
+            // 💸 Finance, Passive Income & Wealth
+            'FinancialIndependence', 'passive_income', 'fire', 'leanfire', 'sidehustle',
+            'EntrepreneurshipFinance', 'dividends', 'realestateinvesting', 'investing', 'PersonalFinance',
+            'wallstreetbets', 'CryptoCurrency', 'ethtrader', 'Bitcoin', 'degens',
+            'stocks', 'options', 'wealth', 'Money', 'Frugal',
+            
+            // 🌐 Social Media, Branding & Content Creation
+            'socialmedia', 'Instagram', 'TikTok', 'YouTube', 'YouTubers',
+            'ContentCreators', 'InfluencerMarketing', 'personalbranding', 'SocialMediaMarketing', 'marketingautomation',
+            'SEO', 'copywriting', 'marketinghacks', 'emailmarketing', 'FacebookAds',
+            'AdOps', 'RedditMarketing', 'GrowthHacking', 'CreatorSuccess', 'EntrepreneurMemes'
         ];
 
         // Search in each subreddit with higher limits
