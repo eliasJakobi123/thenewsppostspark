@@ -470,7 +470,17 @@ function renderCampaignPosts(posts) {
             </div>
             <div class="post-content">
                 <h3>${post.title}</h3>
-                <p>${post.content || 'No content available'}</p>
+                <div class="post-text-container">
+                    <p class="post-text">${post.content || 'No content available'}</p>
+                    ${post.content && post.content.length > 200 ? `
+                        <div class="read-more-overlay">
+                            <button class="read-more-btn" onclick="toggleReadMore(this)">
+                                <i class="fas fa-chevron-down"></i>
+                                Read More
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
             </div>
                 <div class="post-actions">
                     <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${post.title}', '${post.content || ''}', '${post.created_at}')">
@@ -488,6 +498,40 @@ function renderCampaignPosts(posts) {
     
     // Add event listeners to new post action buttons
     addPostActionListeners();
+    
+    // Initialize read more functionality
+    initializeReadMore();
+}
+
+// Initialize read more functionality
+function initializeReadMore() {
+    // Add truncated class to long posts
+    document.querySelectorAll('.post-text').forEach(text => {
+        if (text.textContent.length > 200) {
+            text.classList.add('truncated');
+        }
+    });
+}
+
+// Toggle read more functionality
+function toggleReadMore(button) {
+    const container = button.closest('.post-text-container');
+    const text = container.querySelector('.post-text');
+    const overlay = container.querySelector('.read-more-overlay');
+    
+    if (text.classList.contains('truncated')) {
+        // Expand
+        text.classList.remove('truncated');
+        overlay.classList.add('hidden');
+        button.innerHTML = '<i class="fas fa-chevron-up"></i> Read Less';
+        button.classList.add('expanded');
+    } else {
+        // Collapse
+        text.classList.add('truncated');
+        overlay.classList.remove('hidden');
+        button.innerHTML = '<i class="fas fa-chevron-down"></i> Read More';
+        button.classList.remove('expanded');
+    }
 }
 
 // Format time ago

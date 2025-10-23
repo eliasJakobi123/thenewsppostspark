@@ -123,6 +123,18 @@ export default async function handler(req, res) {
                             relevanceScore += 20;
                         }
                         
+                        // Boost for posts showing buying intent or need for solutions
+                        if (combinedText.includes('looking for') || combinedText.includes('need') ||
+                            combinedText.includes('want') || combinedText.includes('seeking') ||
+                            combinedText.includes('searching for') || combinedText.includes('trying to find') ||
+                            combinedText.includes('best') || combinedText.includes('recommendations') ||
+                            combinedText.includes('suggestions') || combinedText.includes('alternatives') ||
+                            combinedText.includes('budget') || combinedText.includes('price') ||
+                            combinedText.includes('cost') || combinedText.includes('worth it') ||
+                            combinedText.includes('worth the money') || combinedText.includes('investment')) {
+                            relevanceScore += 25;
+                        }
+                        
                         // Boost for motivation/life related posts
                         if (combinedText.includes('motivation') || combinedText.includes('motivated') ||
                             combinedText.includes('life') || combinedText.includes('personal') ||
