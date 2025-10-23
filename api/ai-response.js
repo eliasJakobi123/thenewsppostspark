@@ -86,10 +86,10 @@ function buildPrompt({ postContent, postTitle, offer, websiteUrl, tone, salesStr
     };
 
     const salesInstructions = {
-        'subtle': 'Mention your solution very subtly. Focus on being helpful first.',
-        'moderate': 'Present your solution naturally. Balance helpfulness with promotion.',
-        'direct': 'Be more direct about your solution. Still be helpful but more promotional.',
-        'aggressive': 'Be direct and promotional. Focus on selling your solution.'
+        1: 'Mention your solution very subtly. Focus on being helpful first.',
+        2: 'Present your solution naturally. Balance helpfulness with promotion.',
+        3: 'Be more direct about your solution. Still be helpful but more promotional.',
+        4: 'Be direct and promotional. Focus on selling your solution.'
     };
 
     return `

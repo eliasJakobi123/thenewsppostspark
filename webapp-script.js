@@ -667,7 +667,7 @@ function setupCommentPopupListeners() {
     });
     
     // Write with AI
-    aiBtn.addEventListener('click', function() {
+    aiBtn.addEventListener('click', async function() {
         console.log('AI Button clicked, currentPostData:', currentPostData); // Debug log
         
         if (!currentPostData) {
@@ -676,18 +676,32 @@ function setupCommentPopupListeners() {
             return;
         }
         
-        // Check if user has saved AI style for this campaign
+        // Check if user has saved AI style for this campaign (database first, then localStorage)
         const campaignId = window.currentCampaignId;
-        const hasSavedStyle = campaignId && localStorage.getItem(`aiResponseStyle_campaign_${campaignId}`);
+        let hasSavedStyle = false;
+        
+        try {
+            const dbStyle = await loadAIStyleFromDatabase();
+            if (dbStyle) {
+                hasSavedStyle = true;
+            }
+        } catch (error) {
+            console.error('Error checking database for saved style:', error);
+        }
+        
+        // Fallback to localStorage check
+        if (!hasSavedStyle) {
+            hasSavedStyle = campaignId && localStorage.getItem(`aiResponseStyle_campaign_${campaignId}`);
+        }
         
         if (hasSavedStyle) {
             // Show AI style info and use saved style directly
             showAIStyleInfo();
             showNotification('Using saved AI style...', 'info');
-            generateAIResponseWithSavedStyle();
+            await generateAIResponseWithSavedStyle();
         } else {
             // Show AI style popup for first time setup
-            loadStyleSettings();
+            await loadStyleSettings();
             const aiPopup = document.getElementById('ai-style-popup');
             aiPopup.style.display = 'flex';
         }
@@ -696,9 +710,9 @@ function setupCommentPopupListeners() {
     // Edit AI Style button
     const editAIStyleBtn = document.getElementById('edit-ai-style');
     if (editAIStyleBtn) {
-        editAIStyleBtn.addEventListener('click', function() {
+        editAIStyleBtn.addEventListener('click', async function() {
             // Load saved style settings and show popup
-            loadStyleSettings();
+            await loadStyleSettings();
             const aiPopup = document.getElementById('ai-style-popup');
             aiPopup.style.display = 'flex';
         });
@@ -2615,10 +2629,49 @@ function closeAIStylePopup() {
     currentPostData = null;
 }
 
-function showAIStyleInfo() {
+async function showAIStyleInfo() {
     const aiStyleInfo = document.getElementById('ai-style-info');
+    const aiStylePreview = document.getElementById('ai-style-preview');
+    
     if (aiStyleInfo) {
         aiStyleInfo.style.display = 'block';
+        
+        // Load and display style details
+        try {
+            const dbStyle = await loadAIStyleFromDatabase();
+            if (dbStyle && aiStylePreview) {
+                const toneNames = {
+                    'friendly': 'Friendly & Warm',
+                    'professional': 'Professional',
+                    'casual': 'Casual & Relaxed',
+                    'expert': 'Expert & Authoritative'
+                };
+                
+                const salesNames = ['Subtle', 'Moderate', 'Direct', 'Aggressive'];
+                
+                aiStylePreview.innerHTML = `
+                    <div class="style-detail">
+                        <span class="style-label">Tone:</span>
+                        <span class="style-value">${toneNames[dbStyle.tone] || dbStyle.tone}</span>
+                    </div>
+                    <div class="style-detail">
+                        <span class="style-label">Sales:</span>
+                        <span class="style-value">${salesNames[dbStyle.sales_strength - 1] || 'Moderate'}</span>
+                    </div>
+                    ${dbStyle.custom_offer ? `
+                        <div class="style-detail">
+                            <span class="style-label">Custom Offer:</span>
+                            <span class="style-value">${dbStyle.custom_offer.substring(0, 50)}${dbStyle.custom_offer.length > 50 ? '...' : ''}</span>
+                        </div>
+                    ` : ''}
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading AI style details:', error);
+            if (aiStylePreview) {
+                aiStylePreview.innerHTML = '<span class="style-value">Style loaded</span>';
+            }
+        }
     }
 }
 
@@ -2629,33 +2682,93 @@ function hideAIStyleInfo() {
     }
 }
 
-function loadStyleSettings() {
-    // First try to load campaign-specific settings
-    const campaignId = window.currentCampaignId;
-    let savedSettings = null;
-    
-    if (campaignId) {
-        savedSettings = localStorage.getItem(`aiResponseStyle_campaign_${campaignId}`);
-    }
-    
-    // Fallback to global settings if no campaign-specific settings
-    if (!savedSettings) {
-        savedSettings = localStorage.getItem('aiResponseStyle');
-    }
-    
-    if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
+// Load AI style settings from database
+async function loadAIStyleFromDatabase() {
+    try {
+        const campaignId = window.currentCampaignId;
+        if (!campaignId) return null;
         
-        document.getElementById('tone-select').value = settings.tone || 'friendly';
-        document.getElementById('sales-strength').value = settings.salesStrength || 2;
-        document.getElementById('custom-offer').value = settings.customOffer || '';
-        document.getElementById('save-style').checked = settings.saveStyle !== false;
+        // Try to get campaign-specific style first
+        const campaignStyle = await postSparkDB.getAIStyleForCampaign(campaignId);
+        if (campaignStyle) {
+            return campaignStyle;
+        }
         
-        console.log('AI style settings loaded:', settings);
+        // Fallback to user's default style
+        const defaultStyle = await postSparkDB.getDefaultAIStyle();
+        return defaultStyle;
+        
+    } catch (error) {
+        console.error('Error loading AI style from database:', error);
+        return null;
     }
 }
 
-function saveStyleSettings() {
+// Save AI style to database
+async function saveAIStyleToDatabase(styleData, isDefault = false) {
+    try {
+        const campaignId = window.currentCampaignId;
+        if (!campaignId) return;
+        
+        await postSparkDB.saveAIStyle({
+            campaign_id: campaignId,
+            tone: styleData.tone,
+            sales_strength: styleData.salesStrength,
+            custom_offer: styleData.customOffer,
+            is_default: isDefault
+        });
+        
+        console.log('AI style saved to database:', styleData);
+        
+    } catch (error) {
+        console.error('Error saving AI style to database:', error);
+        showNotification('Error saving AI style: ' + error.message, 'error');
+    }
+}
+
+async function loadStyleSettings() {
+    try {
+        // First try to load from database
+        const dbStyle = await loadAIStyleFromDatabase();
+        if (dbStyle) {
+            document.getElementById('tone-select').value = dbStyle.tone || 'friendly';
+            document.getElementById('sales-strength').value = dbStyle.sales_strength || 2;
+            document.getElementById('custom-offer').value = dbStyle.custom_offer || '';
+            document.getElementById('save-style').checked = true;
+            
+            console.log('AI style settings loaded from database:', dbStyle);
+            return;
+        }
+        
+        // Fallback to localStorage
+        const campaignId = window.currentCampaignId;
+        let savedSettings = null;
+        
+        if (campaignId) {
+            savedSettings = localStorage.getItem(`aiResponseStyle_campaign_${campaignId}`);
+        }
+        
+        // Fallback to global settings if no campaign-specific settings
+        if (!savedSettings) {
+            savedSettings = localStorage.getItem('aiResponseStyle');
+        }
+        
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            
+            document.getElementById('tone-select').value = settings.tone || 'friendly';
+            document.getElementById('sales-strength').value = settings.salesStrength || 2;
+            document.getElementById('custom-offer').value = settings.customOffer || '';
+            document.getElementById('save-style').checked = settings.saveStyle !== false;
+            
+            console.log('AI style settings loaded from localStorage:', settings);
+        }
+    } catch (error) {
+        console.error('Error loading style settings:', error);
+    }
+}
+
+async function saveStyleSettings() {
     const settings = {
         tone: document.getElementById('tone-select').value,
         salesStrength: parseInt(document.getElementById('sales-strength').value),
@@ -2663,10 +2776,20 @@ function saveStyleSettings() {
         saveStyle: document.getElementById('save-style').checked
     };
     
+    // Save to localStorage as backup
     localStorage.setItem('aiResponseStyle', JSON.stringify(settings));
+    
+    // Save to database if saveStyle is checked
+    if (settings.saveStyle) {
+        try {
+            await saveAIStyleToDatabase(settings, false);
+        } catch (error) {
+            console.error('Error saving to database:', error);
+        }
+    }
 }
 
-function saveCampaignAIStyle() {
+async function saveCampaignAIStyle() {
     const campaignId = window.currentCampaignId;
     if (!campaignId) return;
     
@@ -2677,9 +2800,16 @@ function saveCampaignAIStyle() {
         saveStyle: document.getElementById('save-style').checked
     };
     
-    // Save campaign-specific AI style
+    // Save campaign-specific AI style to localStorage as backup
     localStorage.setItem(`aiResponseStyle_campaign_${campaignId}`, JSON.stringify(settings));
-    console.log('AI style saved for campaign:', campaignId, settings);
+    
+    // Save to database
+    try {
+        await saveAIStyleToDatabase(settings, false);
+        console.log('AI style saved for campaign:', campaignId, settings);
+    } catch (error) {
+        console.error('Error saving campaign AI style:', error);
+    }
 }
 
 async function generateAIResponseWithSavedStyle() {
@@ -2688,16 +2818,34 @@ async function generateAIResponseWithSavedStyle() {
         return;
     }
     
-    // Load saved style settings
-    const campaignId = window.currentCampaignId;
-    const savedSettings = localStorage.getItem(`aiResponseStyle_campaign_${campaignId}`);
+    // Load saved style settings from database first, then localStorage
+    let settings = null;
     
-    if (!savedSettings) {
-        showNotification('No saved AI style found', 'error');
-        return;
+    try {
+        const dbStyle = await loadAIStyleFromDatabase();
+        if (dbStyle) {
+            settings = {
+                tone: dbStyle.tone,
+                salesStrength: dbStyle.sales_strength,
+                customOffer: dbStyle.custom_offer
+            };
+        }
+    } catch (error) {
+        console.error('Error loading from database, trying localStorage:', error);
     }
     
-    const settings = JSON.parse(savedSettings);
+    // Fallback to localStorage if database failed
+    if (!settings) {
+        const campaignId = window.currentCampaignId;
+        const savedSettings = localStorage.getItem(`aiResponseStyle_campaign_${campaignId}`);
+        
+        if (!savedSettings) {
+            showNotification('No saved AI style found', 'error');
+            return;
+        }
+        
+        settings = JSON.parse(savedSettings);
+    }
     
     // Get current campaign data
     const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
@@ -2727,7 +2875,7 @@ async function generateAIResponseWithSavedStyle() {
             body: JSON.stringify({
                 postContent: currentPostData.content,
                 postTitle: currentPostData.title,
-                offer: campaign.description,
+                offer: settings.customOffer || campaign.description,
                 websiteUrl: websiteUrl,
                 tone: settings.tone,
                 salesStrength: settings.salesStrength,
@@ -2780,9 +2928,9 @@ async function generateAIResponse() {
     
     // Save style settings if requested
     if (saveStyle) {
-        saveStyleSettings();
+        await saveStyleSettings();
         // Also save to campaign-specific settings
-        saveCampaignAIStyle();
+        await saveCampaignAIStyle();
     }
     
     // Get current campaign data
@@ -2813,7 +2961,7 @@ async function generateAIResponse() {
             body: JSON.stringify({
                 postContent: currentPostData.content,
                 postTitle: currentPostData.title,
-                offer: campaign.offer,
+                offer: customOffer || campaign.description,
                 websiteUrl: websiteUrl,
                 tone: tone,
                 salesStrength: salesStrength,

@@ -2638,7 +2638,7 @@ input:checked + .toggle-slider:before {
 
 .ai-style-status {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
     color: #cccccc;
     font-size: 0.9rem;
@@ -2647,6 +2647,44 @@ input:checked + .toggle-slider:before {
 .ai-style-status i {
     color: #667eea;
     font-size: 1rem;
+    margin-top: 0.2rem;
+}
+
+.ai-style-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ai-style-label {
+    font-weight: 500;
+    color: #667eea;
+    margin-bottom: 0.25rem;
+}
+
+.ai-style-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.style-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.style-label {
+    color: #999;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.style-value {
+    color: #ddd;
+    font-weight: 400;
 }
 
 .btn-small {

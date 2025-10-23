@@ -935,6 +935,93 @@ Find posts that show:
             throw error;
         }
     }
+
+    // AI Response Style Management
+    async getAIStyleForCampaign(campaignId) {
+        try {
+            const { data, error } = await this.supabase
+                .from('ai_response_styles')
+                .select('*')
+                .eq('campaign_id', campaignId)
+                .single();
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error getting AI style for campaign:', error);
+            throw error;
+        }
+    }
+
+    async getDefaultAIStyle() {
+        try {
+            const { data, error } = await this.supabase
+                .from('ai_response_styles')
+                .select('*')
+                .eq('user_id', this.userData.id)
+                .eq('is_default', true)
+                .single();
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error getting default AI style:', error);
+            throw error;
+        }
+    }
+
+    async saveAIStyle(styleData) {
+        try {
+            const { data, error } = await this.supabase
+                .from('ai_response_styles')
+                .upsert({
+                    user_id: this.userData.id,
+                    campaign_id: styleData.campaign_id,
+                    tone: styleData.tone,
+                    sales_strength: styleData.sales_strength,
+                    custom_offer: styleData.custom_offer,
+                    is_default: styleData.is_default
+                }, {
+                    onConflict: 'user_id,campaign_id'
+                })
+                .select()
+                .single();
+
+            if (error) {
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error saving AI style:', error);
+            throw error;
+        }
+    }
+
+    async deleteAIStyle(styleId) {
+        try {
+            const { error } = await this.supabase
+                .from('ai_response_styles')
+                .delete()
+                .eq('id', styleId)
+                .eq('user_id', this.userData.id);
+
+            if (error) {
+                throw error;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error deleting AI style:', error);
+            throw error;
+        }
+    }
 }
 
 // Initialize global instance
