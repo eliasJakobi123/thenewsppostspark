@@ -48,17 +48,21 @@ export default async function handler(req, res) {
         const subreddits = [
             'selfimprovement', 'motivation', 'productivity', 'lifehacks', 
             'mentalhealth', 'advice', 'AskReddit', 'getmotivated', 
-            'DecidingToBeBetter', 'selfhelp', 'careeradvice', 'personalfinance'
+            'DecidingToBeBetter', 'selfhelp', 'careeradvice', 'personalfinance',
+            'entrepreneur', 'smallbusiness', 'startups', 'marketing',
+            'business', 'freelance', 'work', 'jobs', 'careerguidance',
+            'productivity', 'organization', 'timemanagement', 'goals',
+            'habits', 'discipline', 'focus', 'mindfulness', 'meditation'
         ];
 
-        // Search in each subreddit
+        // Search in each subreddit with higher limits
         for (const subreddit of subreddits) {
             try {
                 // Create search query from keywords
                 const searchQuery = keywords.join(' OR ');
-                const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(searchQuery)}&sort=relevance&limit=10&t=month`;
+                const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(searchQuery)}&sort=relevance&limit=25&t=all`;
 
-                console.log(`Searching r/${subreddit} for: ${searchQuery}`);
+                console.log(`Searching r/${subreddit} for: ${searchQuery} (limit: 25)`);
 
                 const searchResponse = await fetch(searchUrl, {
                     headers: {
@@ -75,6 +79,8 @@ export default async function handler(req, res) {
                 const searchData = await searchResponse.json();
                 
                 if (searchData.data && searchData.data.children) {
+                    console.log(`Found ${searchData.data.children.length} posts in r/${subreddit}`);
+                    
                     for (const post of searchData.data.children) {
                         const postData = post.data;
                         
@@ -95,12 +101,13 @@ export default async function handler(req, res) {
                         
                         // Boost score for posts asking for help
                         if (combinedText.includes('help') || combinedText.includes('advice') || 
-                            combinedText.includes('struggling') || combinedText.includes('problem')) {
+                            combinedText.includes('struggling') || combinedText.includes('problem') ||
+                            combinedText.includes('question') || combinedText.includes('recommend')) {
                             relevanceScore += 15;
                         }
                         
-                        // Only include posts with decent relevance
-                        if (relevanceScore >= 20) {
+                        // Lower threshold to get more posts
+                        if (relevanceScore >= 10) {
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,
@@ -118,7 +125,13 @@ export default async function handler(req, res) {
                     }
                 }
                 
-                console.log(`Found ${posts.length} posts so far`);
+                console.log(`Total posts found so far: ${posts.length}`);
+                
+                // Stop if we have enough posts
+                if (posts.length >= 50) {
+                    console.log('Reached target of 50+ posts, stopping search');
+                    break;
+                }
                 
             } catch (error) {
                 console.error(`Error searching r/${subreddit}:`, error);
