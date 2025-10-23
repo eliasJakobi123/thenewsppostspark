@@ -63,11 +63,11 @@ Please provide realistic examples of the types of posts that would appear in the
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
         // Prepare the input string
-        const inputString = `Search Reddit for posts about these topics and create realistic examples:
+        const inputString = `Search Reddit for REAL posts about these topics:
 
 TOPICS: ${keywords.join(', ')}
 
-TASK: Find 25-30 Reddit posts where people discuss these topics. If you can't find real posts, create realistic examples that would appear on Reddit.
+TASK: Find real Reddit posts where people discuss these topics. Only return actual posts that exist on Reddit.
 
 SEARCH CRITERIA:
 - Look in subreddits like r/selfimprovement, r/motivation, r/productivity, r/lifehacks, r/mentalhealth, r/advice, r/AskReddit
@@ -77,12 +77,12 @@ SEARCH CRITERIA:
 BUSINESS CONTEXT: ${businessName} - ${offer}
 
 IMPORTANT: 
-1. Search for real Reddit posts first
-2. If no real posts found, create 25-30 realistic examples that would appear on Reddit
-3. Focus on posts where people are seeking help, advice, or solutions
-4. Make posts sound authentic and realistic
+1. ONLY search for REAL Reddit posts that actually exist
+2. Do NOT create or generate fake posts
+3. If you can't find enough real posts, return fewer posts but they must be real
+4. Focus on posts where people are seeking help, advice, or solutions
 
-Return exactly 25-30 posts in JSON format with high relevance scores (70-100).`;
+Return real Reddit posts in JSON format with high relevance scores (70-100).`;
 
         // Debug: Log the complete request
         console.log('OpenAI Request Debug:', {
