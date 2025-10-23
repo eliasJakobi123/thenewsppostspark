@@ -452,6 +452,8 @@ function renderCampaignPosts(posts) {
         const postCard = document.createElement('div');
         postCard.className = `post-card ${post.score >= 85 ? 'high-potential' : post.score >= 70 ? 'medium-potential' : 'low-potential'}`;
         postCard.setAttribute('data-post-id', post.id);
+        postCard.setAttribute('data-subreddit', post.subreddit);
+        postCard.setAttribute('data-created-at', post.created_at);
         
         // Format time
         const timeAgo = formatTimeAgo(new Date(post.created_at));
@@ -2072,7 +2074,7 @@ async function markAsContacted(postId) {
             postCard.classList.add('contacted');
             const actions = postCard.querySelector('.post-actions');
             actions.innerHTML = `
-                <button class="btn btn-primary" onclick="writeComment('${postId}')">
+                <button class="btn btn-primary" onclick="openCommentForPost('${postId}')">
                     <i class="fas fa-comment"></i> Write Comment
                 </button>
             `;
@@ -2303,6 +2305,32 @@ async function saveProfile() {
             saveBtn.disabled = false;
         }
     }
+}
+
+// Open comment for post (when only postId is available)
+async function openCommentForPost(postId) {
+    // Find the post data from the current campaign posts
+    const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+    if (!postElement) {
+        showNotification('Post not found', 'error');
+        return;
+    }
+    
+    const titleElement = postElement.querySelector('h3');
+    const contentElement = postElement.querySelector('.post-text');
+    const subreddit = postElement.getAttribute('data-subreddit') || 'unknown';
+    const created_at = postElement.getAttribute('data-created-at') || new Date().toISOString();
+    
+    const postData = {
+        id: postId,
+        title: titleElement ? titleElement.textContent : '',
+        content: contentElement ? contentElement.textContent : '',
+        subreddit: subreddit,
+        created_at: created_at
+    };
+    
+    // Call writeComment with the extracted data
+    await writeComment(postData.id, postData.subreddit, postData.title, postData.content, postData.created_at);
 }
 
 // Write comment function
