@@ -573,6 +573,16 @@ class PostSparkSupabase {
 
     async getRedditTokens() {
         try {
+            // Ensure user is initialized
+            if (!this.user) {
+                await this.initializeAuth();
+            }
+            
+            if (!this.user) {
+                console.log('No user found for Reddit tokens');
+                return null;
+            }
+
             const { data, error } = await supabaseClient
                 .from(TABLES.USERS)
                 .select('reddit_access_token, reddit_refresh_token, reddit_token_expires')
@@ -588,8 +598,19 @@ class PostSparkSupabase {
     }
 
     async isRedditConnected() {
-        const tokens = await this.getRedditTokens();
-        return tokens && tokens.reddit_access_token;
+        try {
+            const tokens = await this.getRedditTokens();
+            const isConnected = tokens && tokens.reddit_access_token;
+            console.log('Reddit connection check:', { 
+                hasTokens: !!tokens, 
+                hasAccessToken: !!(tokens && tokens.reddit_access_token),
+                isConnected 
+            });
+            return isConnected;
+        } catch (error) {
+            console.error('Error checking Reddit connection:', error);
+            return false;
+        }
     }
 
     async refreshRedditToken() {

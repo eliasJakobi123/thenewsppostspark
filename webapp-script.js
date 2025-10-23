@@ -2525,16 +2525,20 @@ async function checkRedditConnection() {
     const connectionInfo = document.querySelector('.connection-info');
     
     try {
+        console.log('Checking Reddit connection...');
         const isConnected = await postSparkDB.isRedditConnected();
+        console.log('Reddit connection result:', isConnected);
         
         if (isConnected) {
             statusElement.textContent = 'Reddit account connected';
             connectionInfo.classList.add('connected');
+            connectionInfo.classList.remove('error');
             connectBtn.style.display = 'none';
             sendBtn.disabled = false;
         } else {
             statusElement.textContent = 'Reddit account not connected';
             connectionInfo.classList.add('error');
+            connectionInfo.classList.remove('connected');
             connectBtn.style.display = 'block';
             sendBtn.disabled = true;
         }
@@ -2542,6 +2546,7 @@ async function checkRedditConnection() {
         console.error('Error checking Reddit connection:', error);
         statusElement.textContent = 'Error checking connection';
         connectionInfo.classList.add('error');
+        connectionInfo.classList.remove('connected');
         connectBtn.style.display = 'block';
         sendBtn.disabled = true;
     }
