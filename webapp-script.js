@@ -481,6 +481,10 @@ function renderCampaignPosts(posts) {
                     </button>
                     <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id}', '${post.subreddit}')">
                         <i class="fas fa-external-link-alt"></i>
+                        Show
+                    </button>
+                    <button class="btn btn-tertiary" onclick="togglePostExpansion(this)">
+                        <i class="fas fa-expand-arrows-alt"></i>
                         Show All
                     </button>
                 </div>
@@ -494,7 +498,26 @@ function renderCampaignPosts(posts) {
     // Read more functionality removed
 }
 
-// Read more functionality removed
+// Toggle post expansion functionality
+function togglePostExpansion(button) {
+    const postCard = button.closest('.post-card');
+    const postText = postCard.querySelector('.post-text');
+    const icon = button.querySelector('i');
+    
+    if (postCard.classList.contains('expanded')) {
+        // Collapse
+        postCard.classList.remove('expanded');
+        postText.style.maxHeight = '4.5em';
+        icon.className = 'fas fa-expand-arrows-alt';
+        button.innerHTML = '<i class="fas fa-expand-arrows-alt"></i> Show All';
+    } else {
+        // Expand
+        postCard.classList.add('expanded');
+        postText.style.maxHeight = 'none';
+        icon.className = 'fas fa-compress-arrows-alt';
+        button.innerHTML = '<i class="fas fa-compress-arrows-alt"></i> Show Less';
+    }
+}
 
 // Format time ago
 function formatTimeAgo(date) {
