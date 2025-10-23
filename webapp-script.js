@@ -487,10 +487,6 @@ function renderCampaignPosts(posts) {
                         <i class="fas fa-comment"></i>
                         Comment
                     </button>
-                    <button class="btn btn-ai" onclick="openAIStylePopup({id: '${post.id}', title: '${post.title.replace(/'/g, "\\'")}', content: '${(post.content || '').replace(/'/g, "\\'")}', subreddit: '${post.subreddit}'})">
-                        <i class="fas fa-robot"></i>
-                        AI
-                    </button>
                     <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id}', '${post.subreddit}')">
                         <i class="fas fa-external-link-alt"></i>
                         Show
@@ -670,17 +666,17 @@ function setupCommentPopupListeners() {
     
     // Write with AI
     aiBtn.addEventListener('click', function() {
-        const comment = textarea.value.trim();
-        if (comment) {
-            showNotification('AI is generating your comment...', 'info');
-            // Simulate AI generation
-            setTimeout(() => {
-                textarea.value = `Based on your input, here's an AI-generated comment: "${comment}" - This has been enhanced with AI to be more engaging and professional.`;
-                showNotification('AI comment generated!', 'success');
-            }, 2000);
-        } else {
-            showNotification('Please write a comment first for AI enhancement', 'warning');
+        if (!currentPostData) {
+            showNotification('No post data available for AI generation', 'error');
+            return;
         }
+        
+        // Load saved style settings
+        loadStyleSettings();
+        
+        // Show AI style popup
+        const aiPopup = document.getElementById('ai-style-popup');
+        aiPopup.style.display = 'flex';
     });
     
     // Connect Reddit button
@@ -2312,6 +2308,14 @@ async function saveProfile() {
 // Write comment function
 async function writeComment(postId, subreddit, title, content, created_at) {
     try {
+        // Store current post data for AI generation
+        currentPostData = {
+            id: postId,
+            title: title,
+            content: content,
+            subreddit: subreddit
+        };
+        
         // Show comment popup
         const popup = document.getElementById('comment-popup');
         const postPreview = document.getElementById('post-preview');
@@ -2653,6 +2657,12 @@ async function generateAIResponse() {
             
             // Close the AI popup
             closeAIStylePopup();
+            
+            // Enable the send button
+            const sendBtn = document.getElementById('send-comment');
+            if (sendBtn) {
+                sendBtn.disabled = false;
+            }
             
             showNotification('AI response generated successfully!', 'success');
         } else {
