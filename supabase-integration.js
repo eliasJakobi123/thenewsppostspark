@@ -198,18 +198,23 @@ class PostSparkSupabase {
                     content: postData.content,
                     author: postData.author,
                     subreddit: postData.subreddit,
-                    url: postData.url,
+                    url: postData.url || '',
                     score: postData.score || 0,
                     upvotes: postData.upvotes || 0,
                     downvotes: postData.downvotes || 0,
                     comments_count: postData.comments_count || 0,
-                    reddit_created_at: postData.reddit_created_at,
+                    reddit_created_at: postData.reddit_created_at || new Date().toISOString(),
                     is_contacted: false
                 })
                 .select()
                 .single();
 
             if (error) {
+                // Handle duplicate key constraint violation gracefully
+                if (error.code === '23505') {
+                    console.log(`Post ${postData.reddit_id} already exists (duplicate key), skipping`);
+                    return null; // Return null to indicate it was skipped
+                }
                 console.error(`Error inserting post ${postData.reddit_id}:`, error);
                 throw error;
             }
@@ -872,12 +877,19 @@ Find posts that show:
                         score: postData.score,
                         author: postData.author,
                         upvotes: postData.upvotes || 0,
-                        comments: postData.comments || 0,
-                        relevance_reason: postData.relevance_reason,
-                        created_at: postData.created_at
+                        comments_count: postData.comments_count || 0,
+                        downvotes: postData.downvotes || 0,
+                        url: postData.url || '',
+                        reddit_created_at: postData.reddit_created_at || new Date().toISOString()
                     });
-                    savedPosts.push(post);
-                    console.log(`Successfully saved post: ${postData.title.substring(0, 30)}...`);
+                    
+                    // Only add to savedPosts if post was actually saved (not null)
+                    if (post) {
+                        savedPosts.push(post);
+                        console.log(`Successfully saved post: ${postData.title.substring(0, 30)}...`);
+                    } else {
+                        console.log(`Post skipped (already exists): ${postData.title.substring(0, 30)}...`);
+                    }
                 } catch (error) {
                     console.error(`Error saving post "${postData.title.substring(0, 30)}...":`, error);
                 }
