@@ -54,16 +54,14 @@ export default async function handler(req, res) {
             'DecidingToBeBetter', 'selfhelp', 'careeradvice', 'personalfinance',
             'entrepreneur', 'smallbusiness', 'startups', 'marketing',
             'business', 'freelance', 'work', 'jobs', 'careerguidance',
-            'productivity', 'organization', 'timemanagement', 'goals',
-            'habits', 'discipline', 'focus', 'mindfulness', 'meditation'
+            'goals', 'habits', 'discipline', 'focus', 'mindfulness'
         ];
 
         // Search in each subreddit with higher limits
         for (const subreddit of subreddits) {
             try {
-                // Create search query from keywords with problem-focused terms
-                const problemTerms = ['struggling', 'help', 'problem', 'issue', 'difficult', 'challenge', 'need', 'want', 'looking for'];
-                const searchQuery = `${searchKeywords.join(' OR ')} AND (${problemTerms.join(' OR ')})`;
+                // Create search query focusing on exact keyword matches
+                const searchQuery = searchKeywords.join(' OR ');
                 const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(searchQuery)}&sort=relevance&limit=25&t=all`;
 
                 console.log(`Searching r/${subreddit} for: ${searchQuery} (limit: 25)`);
@@ -102,27 +100,40 @@ export default async function handler(req, res) {
                         
                         let relevanceScore = 0;
                         
-                        // Score based on keywords
+                        // Score based on keywords - MUST match at least one keyword
+                        let keywordMatches = 0;
                         for (const keyword of searchKeywords) {
                             if (combinedText.includes(keyword.toLowerCase())) {
-                                relevanceScore += 25;
+                                keywordMatches++;
+                                relevanceScore += 40; // Higher weight for keywords
                             }
                         }
                         
-                        // Score based on offer context (if available) - much higher weight
+                        // If no keywords match, skip this post entirely
+                        if (keywordMatches === 0) {
+                            continue;
+                        }
+                        
+                        // Score based on offer context (if available) - CRITICAL for relevance
                         if (offer && offer !== 'No offer provided') {
-                            const offerWords = offer.toLowerCase().split(' ');
+                            const offerWords = offer.toLowerCase().split(' ').filter(word => word.length > 3);
                             let offerMatches = 0;
+                            
                             for (const word of offerWords) {
-                                if (word.length > 3 && combinedText.includes(word)) {
+                                if (combinedText.includes(word)) {
                                     offerMatches++;
-                                    relevanceScore += 20; // Higher weight for offer matches
+                                    relevanceScore += 50; // Much higher weight for offer matches
                                 }
                             }
                             
-                            // Extra boost if multiple offer words match
-                            if (offerMatches >= 2) {
-                                relevanceScore += 30;
+                            // MANDATORY: Must have at least 2 offer word matches
+                            if (offerMatches < 2) {
+                                continue; // Skip posts that don't match the offer well enough
+                            }
+                            
+                            // Extra boost for multiple offer matches
+                            if (offerMatches >= 3) {
+                                relevanceScore += 60;
                             }
                         }
                         
@@ -164,8 +175,8 @@ export default async function handler(req, res) {
                         const daysAgo = (Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24);
                         if (daysAgo < 30) relevanceScore += 10;
                         
-                        // Higher threshold to get only relevant posts that need the offer
-                        if (relevanceScore >= 25) {
+                        // VERY HIGH threshold - only posts that perfectly match keywords AND offer
+                        if (relevanceScore >= 80) {
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,
@@ -185,9 +196,9 @@ export default async function handler(req, res) {
                 
                 console.log(`Total posts found so far: ${posts.length}`);
                 
-                // Stop if we have enough posts
-                if (posts.length >= 50) {
-                    console.log('Reached target of 50+ posts, stopping search');
+                // Stop if we have enough high-quality posts
+                if (posts.length >= 20) {
+                    console.log('Reached target of 20+ high-quality posts, stopping search');
                     break;
                 }
                 
@@ -197,10 +208,10 @@ export default async function handler(req, res) {
             }
         }
 
-        // Sort by relevance score and limit to 50 posts
+        // Sort by relevance score and limit to 20 high-quality posts
         const sortedPosts = posts
             .sort((a, b) => b.score - a.score)
-            .slice(0, 50);
+            .slice(0, 20);
 
         console.log(`Reddit API search completed: ${sortedPosts.length} posts found`);
 
@@ -211,3 +222,4 @@ export default async function handler(req, res) {
         res.status(500).json({ error: error.message });
     }
 }
+
