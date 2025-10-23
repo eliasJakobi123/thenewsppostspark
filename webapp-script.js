@@ -1,5 +1,47 @@
 // Webapp JavaScript with Supabase Integration
+
+// Handle Reddit OAuth callback
+function handleRedditCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const error = urlParams.get('error');
+    
+    if (error) {
+        console.error('Reddit OAuth error:', error);
+        showNotification('Reddit authorization failed: ' + error, 'error');
+        return;
+    }
+    
+    if (code && state) {
+        try {
+            // Parse state data
+            const stateData = JSON.parse(state);
+            console.log('Reddit OAuth callback received:', { code, stateData });
+            
+            // Store the code for later use
+            sessionStorage.setItem('reddit_auth_code', code);
+            sessionStorage.setItem('reddit_auth_state', state);
+            
+            // Show success message
+            showNotification('Reddit authorization successful! You can now send comments.', 'success');
+            
+            // If there was a return URL, we could redirect back to it
+            // For now, just remove the OAuth parameters from URL
+            const newUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+            
+        } catch (error) {
+            console.error('Error handling Reddit callback:', error);
+            showNotification('Error processing Reddit authorization', 'error');
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
+    // Check for Reddit OAuth callback first
+    handleRedditCallback();
+    
     // Initialize PostSparkDB first
     postSparkDB = new PostSparkSupabase();
     
@@ -2727,10 +2769,150 @@ function setupAIPopupEventListeners() {
         generateBtn.onclick = generateAIResponseWithLoading;
     }
     
+    // Tone selection
+    setupToneSelection();
+    
+    // Length selection
+    setupLengthSelection();
+    
+    // Load campaign data
+    loadCampaignData();
+    
     // Close on overlay click
     const overlay = document.querySelector('.ai-style-popup .popup-overlay');
     if (overlay) {
         overlay.onclick = closeAIStylePopup;
+    }
+}
+
+function setupToneSelection() {
+    const toneOptions = document.querySelectorAll('.tone-option');
+    const hiddenInput = document.getElementById('tone-select');
+    
+    toneOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // Remove selected class from all options
+            toneOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to clicked option
+            option.classList.add('selected');
+            
+            // Update hidden input
+            const tone = option.getAttribute('data-tone');
+            hiddenInput.value = tone;
+        });
+    });
+    
+    // Set default selection
+    const defaultOption = document.querySelector('.tone-option[data-tone="friendly"]');
+    if (defaultOption) {
+        defaultOption.classList.add('selected');
+    }
+}
+
+function setupLengthSelection() {
+    const lengthOptions = document.querySelectorAll('.length-option');
+    const hiddenInput = document.getElementById('response-length');
+    
+    lengthOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // Remove selected class from all options
+            lengthOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to clicked option
+            option.classList.add('selected');
+            
+            // Update hidden input
+            const length = option.getAttribute('data-length');
+            hiddenInput.value = length;
+        });
+    });
+    
+    // Set default selection
+    const defaultOption = document.querySelector('.length-option[data-length="medium"]');
+    if (defaultOption) {
+        defaultOption.classList.add('selected');
+    }
+}
+
+async function loadCampaignData() {
+    const campaignId = window.currentCampaignId;
+    if (!campaignId) return;
+    
+    try {
+        // Load campaign data
+        const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
+        if (campaign) {
+            // Load website URL
+            const websiteUrl = campaign.website_url || '';
+            if (websiteUrl) {
+                // You can display the website URL somewhere in the UI if needed
+                console.log('Campaign website URL:', websiteUrl);
+            }
+            
+            // Load saved style if exists
+            const savedStyle = WritingStyleManager.getStyle(campaignId);
+            if (savedStyle) {
+                loadSavedStyleSettings(savedStyle);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading campaign data:', error);
+    }
+}
+
+function loadSavedStyleSettings(style) {
+    // Set tone
+    const toneInput = document.getElementById('tone-select');
+    if (toneInput && style.tone) {
+        toneInput.value = style.tone;
+        
+        // Update visual selection
+        const toneOptions = document.querySelectorAll('.tone-option');
+        toneOptions.forEach(option => {
+            option.classList.remove('selected');
+            if (option.getAttribute('data-tone') === style.tone) {
+                option.classList.add('selected');
+            }
+        });
+    }
+    
+    // Set sales strength
+    const salesStrengthInput = document.getElementById('sales-strength');
+    if (salesStrengthInput && style.salesStrength) {
+        salesStrengthInput.value = style.salesStrength;
+    }
+    
+    // Set response length
+    const lengthInput = document.getElementById('response-length');
+    if (lengthInput && style.responseLength) {
+        lengthInput.value = style.responseLength;
+        
+        // Update visual selection
+        const lengthOptions = document.querySelectorAll('.length-option');
+        lengthOptions.forEach(option => {
+            option.classList.remove('selected');
+            if (option.getAttribute('data-length') === style.responseLength) {
+                option.classList.add('selected');
+            }
+        });
+    }
+    
+    // Set custom offer
+    const customOfferInput = document.getElementById('custom-offer');
+    if (customOfferInput && style.customOffer) {
+        customOfferInput.value = style.customOffer;
+    }
+    
+    // Set checkboxes
+    const includeWebsiteInput = document.getElementById('include-website');
+    if (includeWebsiteInput) {
+        includeWebsiteInput.checked = style.includeWebsite !== false; // Default to true
+    }
+    
+    const saveStyleInput = document.getElementById('save-style');
+    if (saveStyleInput) {
+        saveStyleInput.checked = style.saveStyle !== false; // Default to true
     }
 }
 
@@ -3016,6 +3198,7 @@ async function saveAIStyleAndClose() {
         const style = {
             tone: document.getElementById('tone-select').value,
             salesStrength: parseInt(document.getElementById('sales-strength').value),
+            responseLength: document.getElementById('response-length').value,
             customOffer: document.getElementById('custom-offer').value,
             includeWebsite: document.getElementById('include-website').checked,
             saveStyle: document.getElementById('save-style').checked
@@ -3076,6 +3259,7 @@ async function generateAIResponse() {
     const style = {
         tone: document.getElementById('tone-select').value,
         salesStrength: parseInt(document.getElementById('sales-strength').value),
+        responseLength: document.getElementById('response-length').value,
         customOffer: document.getElementById('custom-offer').value,
         includeWebsite: document.getElementById('include-website').checked,
         saveStyle: document.getElementById('save-style').checked
@@ -3108,7 +3292,9 @@ async function generateAIResponse() {
                 websiteUrl: style.includeWebsite ? (campaign.website_url || '') : '',
                 tone: style.tone,
                 salesStrength: style.salesStrength,
-                customOffer: style.customOffer
+                responseLength: style.responseLength,
+                customOffer: style.customOffer,
+                subreddit: currentPostData.subreddit || ''
             })
         });
         

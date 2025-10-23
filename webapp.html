@@ -612,13 +612,38 @@
                     <h3><i class="fas fa-palette"></i> Response Style</h3>
                     
                     <div class="form-group">
-                        <label for="tone-select">Tone</label>
-                        <select id="tone-select" class="modern-input">
-                            <option value="friendly">Friendly & Warm</option>
-                            <option value="professional">Professional</option>
-                            <option value="casual">Casual & Relaxed</option>
-                            <option value="expert">Expert & Authoritative</option>
-                        </select>
+                        <label>Tone</label>
+                        <div class="tone-selection">
+                            <div class="tone-option" data-tone="friendly">
+                                <div class="tone-icon">😊</div>
+                                <div class="tone-content">
+                                    <div class="tone-name">Friendly & Warm</div>
+                                    <div class="tone-desc">Approachable and helpful</div>
+                                </div>
+                            </div>
+                            <div class="tone-option" data-tone="professional">
+                                <div class="tone-icon">💼</div>
+                                <div class="tone-content">
+                                    <div class="tone-name">Professional</div>
+                                    <div class="tone-desc">Formal and business-like</div>
+                                </div>
+                            </div>
+                            <div class="tone-option" data-tone="casual">
+                                <div class="tone-icon">😎</div>
+                                <div class="tone-content">
+                                    <div class="tone-name">Casual & Relaxed</div>
+                                    <div class="tone-desc">Easy-going and informal</div>
+                                </div>
+                            </div>
+                            <div class="tone-option" data-tone="expert">
+                                <div class="tone-icon">🎓</div>
+                                <div class="tone-content">
+                                    <div class="tone-name">Expert & Authoritative</div>
+                                    <div class="tone-desc">Knowledgeable and confident</div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="tone-select" value="friendly">
                     </div>
                     
                     <div class="form-group">
@@ -632,6 +657,34 @@
                                 <span>Aggressive</span>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Response Length</label>
+                        <div class="length-selection">
+                            <div class="length-option" data-length="short">
+                                <div class="length-icon">📝</div>
+                                <div class="length-content">
+                                    <div class="length-name">Short</div>
+                                    <div class="length-desc">1-2 sentences, quick response</div>
+                                </div>
+                            </div>
+                            <div class="length-option" data-length="medium">
+                                <div class="length-icon">📄</div>
+                                <div class="length-content">
+                                    <div class="length-name">Medium</div>
+                                    <div class="length-desc">2-3 sentences, balanced</div>
+                                </div>
+                            </div>
+                            <div class="length-option" data-length="long">
+                                <div class="length-icon">📋</div>
+                                <div class="length-content">
+                                    <div class="length-name">Long</div>
+                                    <div class="length-desc">3+ sentences, detailed response</div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="response-length" value="medium">
                     </div>
                 </div>
                 
@@ -647,20 +700,32 @@
                 <div class="form-section">
                     <h3><i class="fas fa-cog"></i> Style Settings</h3>
                     
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="include-website" checked>
-                            <span class="checkmark"></span>
-                            Include website link in response
-                        </label>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="save-style" checked>
-                            <span class="checkmark"></span>
-                            Save this style for future responses
-                        </label>
+                    <div class="modern-checkbox-group">
+                        <div class="modern-checkbox-item">
+                            <label class="modern-checkbox-label">
+                                <input type="checkbox" id="include-website" checked>
+                                <span class="modern-checkmark">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <div class="checkbox-content">
+                                    <div class="checkbox-title">Include Website Link</div>
+                                    <div class="checkbox-desc">Add your website URL to the response</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="modern-checkbox-item">
+                            <label class="modern-checkbox-label">
+                                <input type="checkbox" id="save-style" checked>
+                                <span class="modern-checkmark">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <div class="checkbox-content">
+                                    <div class="checkbox-title">Save Style</div>
+                                    <div class="checkbox-desc">Remember these settings for future responses</div>
+                                </div>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 
@@ -681,6 +746,7 @@
 
     <script src="supabase-config.js"></script>
     <script src="supabase-integration.js"></script>
+    <script src="setup-ai-styles.js"></script>
     <script src="webapp-script.js"></script>
 </body>
 </html>
