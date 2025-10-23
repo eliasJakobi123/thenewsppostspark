@@ -29,6 +29,9 @@ async function handleRedditCallback() {
             
             console.log('Reddit OAuth code stored, will process after login');
             
+            // Show notification that we received the code
+            showNotification('Reddit authorization received! Processing...', 'info');
+            
         } catch (error) {
             console.error('Error handling Reddit callback:', error);
             showNotification('Error processing Reddit authorization', 'error');

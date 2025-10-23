@@ -594,21 +594,26 @@ class PostSparkSupabase {
                 expiresIn: tokens.expires_in 
             });
             
-            const { error } = await supabaseClient
+            const updateData = {
+                reddit_access_token: tokens.access_token,
+                reddit_refresh_token: tokens.refresh_token,
+                reddit_token_expires: new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+            };
+            
+            console.log('Update data:', updateData);
+            
+            const { data, error } = await supabaseClient
                 .from(TABLES.USERS)
-                .update({
-                    reddit_access_token: tokens.access_token,
-                    reddit_refresh_token: tokens.refresh_token,
-                    reddit_token_expires: new Date(Date.now() + tokens.expires_in * 1000).toISOString()
-                })
-                .eq('id', this.user.id);
+                .update(updateData)
+                .eq('id', this.user.id)
+                .select();
 
             if (error) {
                 console.error('Supabase error storing tokens:', error);
                 throw error;
             }
             
-            console.log('Reddit tokens stored successfully');
+            console.log('Reddit tokens stored successfully:', data);
         } catch (error) {
             console.error('Error storing Reddit tokens:', error);
             throw error;
@@ -627,13 +632,25 @@ class PostSparkSupabase {
                 return null;
             }
 
+            console.log('Fetching Reddit tokens for user:', this.user.id);
+
             const { data, error } = await supabaseClient
                 .from(TABLES.USERS)
                 .select('reddit_access_token, reddit_refresh_token, reddit_token_expires')
                 .eq('id', this.user.id)
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error('Error fetching Reddit tokens:', error);
+                throw error;
+            }
+            
+            console.log('Reddit tokens fetched:', { 
+                hasData: !!data, 
+                hasAccessToken: !!(data && data.reddit_access_token),
+                hasRefreshToken: !!(data && data.reddit_refresh_token)
+            });
+            
             return data;
         } catch (error) {
             console.error('Error fetching Reddit tokens:', error);
@@ -643,12 +660,18 @@ class PostSparkSupabase {
 
     async isRedditConnected() {
         try {
+            console.log('Checking Reddit connection for user:', this.user?.id);
             const tokens = await this.getRedditTokens();
             const isConnected = tokens && tokens.reddit_access_token;
-            console.log('Reddit connection check:', { 
+            console.log('Reddit connection check result:', { 
                 hasTokens: !!tokens, 
                 hasAccessToken: !!(tokens && tokens.reddit_access_token),
-                isConnected 
+                isConnected,
+                tokens: tokens ? {
+                    hasAccessToken: !!tokens.reddit_access_token,
+                    hasRefreshToken: !!tokens.reddit_refresh_token,
+                    hasExpires: !!tokens.reddit_token_expires
+                } : null
             });
             return isConnected;
         } catch (error) {
