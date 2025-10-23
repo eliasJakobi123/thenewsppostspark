@@ -90,27 +90,49 @@ export default async function handler(req, res) {
                         // Filter out stickied posts and ads
                         if (postData.stickied || postData.promoted) continue;
                         
-                        // Calculate relevance score based on keywords
+                        // Calculate relevance score based on keywords and offer
                         const title = postData.title.toLowerCase();
                         const selftext = (postData.selftext || '').toLowerCase();
                         const combinedText = `${title} ${selftext}`;
                         
                         let relevanceScore = 0;
+                        
+                        // Score based on keywords
                         for (const keyword of searchKeywords) {
                             if (combinedText.includes(keyword.toLowerCase())) {
-                                relevanceScore += 20;
+                                relevanceScore += 25;
                             }
                         }
                         
-                        // Boost score for posts asking for help
+                        // Score based on offer context (if available)
+                        if (offer && offer !== 'No offer provided') {
+                            const offerWords = offer.toLowerCase().split(' ');
+                            for (const word of offerWords) {
+                                if (word.length > 3 && combinedText.includes(word)) {
+                                    relevanceScore += 10;
+                                }
+                            }
+                        }
+                        
+                        // Boost score for posts asking for help or showing problems
                         if (combinedText.includes('help') || combinedText.includes('advice') || 
                             combinedText.includes('struggling') || combinedText.includes('problem') ||
-                            combinedText.includes('question') || combinedText.includes('recommend')) {
+                            combinedText.includes('question') || combinedText.includes('recommend') ||
+                            combinedText.includes('stuck') || combinedText.includes('difficult') ||
+                            combinedText.includes('challenge') || combinedText.includes('issue')) {
+                            relevanceScore += 20;
+                        }
+                        
+                        // Boost for motivation/life related posts
+                        if (combinedText.includes('motivation') || combinedText.includes('motivated') ||
+                            combinedText.includes('life') || combinedText.includes('personal') ||
+                            combinedText.includes('improve') || combinedText.includes('better') ||
+                            combinedText.includes('goal') || combinedText.includes('success')) {
                             relevanceScore += 15;
                         }
                         
                         // Lower threshold to get more posts
-                        if (relevanceScore >= 10) {
+                        if (relevanceScore >= 5) {
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,
@@ -142,10 +164,10 @@ export default async function handler(req, res) {
             }
         }
 
-        // Sort by relevance score and limit to 30 posts
+        // Sort by relevance score and limit to 50 posts
         const sortedPosts = posts
             .sort((a, b) => b.score - a.score)
-            .slice(0, 30);
+            .slice(0, 50);
 
         console.log(`Reddit API search completed: ${sortedPosts.length} posts found`);
 
