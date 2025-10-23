@@ -730,15 +730,22 @@ function setupCommentPopupListeners() {
             await generateAIResponseWithSavedStyle();
         } else {
             // Show AI style popup for first time setup
+            console.log('No saved style found, showing AI style popup');
             await loadStyleSettings();
-            const aiPopup = document.getElementById('ai-style-popup');
-            if (aiPopup) {
-                aiPopup.style.display = 'flex';
-                console.log('AI style popup displayed');
-            } else {
-                console.error('AI style popup element not found');
-                showNotification('AI style popup not found', 'error');
-            }
+            
+            // Wait a bit for DOM to be ready
+            setTimeout(() => {
+                const aiPopup = document.getElementById('ai-style-popup');
+                console.log('Looking for ai-style-popup element:', aiPopup);
+                
+                if (aiPopup) {
+                    aiPopup.style.display = 'flex';
+                    console.log('AI style popup displayed successfully');
+                } else {
+                    console.error('AI style popup element not found in DOM');
+                    showNotification('AI style popup not found. Please refresh the page.', 'error');
+                }
+            }, 100);
         }
     });
     
@@ -747,15 +754,22 @@ function setupCommentPopupListeners() {
     if (editAIStyleBtn) {
         editAIStyleBtn.addEventListener('click', async function() {
             // Load saved style settings and show popup
+            console.log('Edit AI style button clicked');
             await loadStyleSettings();
-            const aiPopup = document.getElementById('ai-style-popup');
-            if (aiPopup) {
-                aiPopup.style.display = 'flex';
-                console.log('AI style popup displayed for editing');
-            } else {
-                console.error('AI style popup element not found for editing');
-                showNotification('AI style popup not found', 'error');
-            }
+            
+            // Wait a bit for DOM to be ready
+            setTimeout(() => {
+                const aiPopup = document.getElementById('ai-style-popup');
+                console.log('Looking for ai-style-popup element for editing:', aiPopup);
+                
+                if (aiPopup) {
+                    aiPopup.style.display = 'flex';
+                    console.log('AI style popup displayed for editing');
+                } else {
+                    console.error('AI style popup element not found for editing');
+                    showNotification('AI style popup not found. Please refresh the page.', 'error');
+                }
+            }, 100);
         });
     }
     
@@ -2730,20 +2744,34 @@ function hideAIStyleInfo() {
 async function loadAIStyleFromDatabase() {
     try {
         const campaignId = window.currentCampaignId;
-        if (!campaignId) return null;
+        if (!campaignId) {
+            console.log('No campaign ID available for AI style loading');
+            return null;
+        }
+        
+        // Check if postSparkDB is available
+        if (!postSparkDB) {
+            console.log('postSparkDB not available, skipping database load');
+            return null;
+        }
         
         // Try to get campaign-specific style first
         const campaignStyle = await postSparkDB.getAIStyleForCampaign(campaignId);
         if (campaignStyle) {
+            console.log('Found campaign-specific AI style:', campaignStyle);
             return campaignStyle;
         }
         
         // Fallback to user's default style
         const defaultStyle = await postSparkDB.getDefaultAIStyle();
+        if (defaultStyle) {
+            console.log('Found default AI style:', defaultStyle);
+        }
         return defaultStyle;
         
     } catch (error) {
         console.error('Error loading AI style from database:', error);
+        // Don't throw error, just return null to allow fallback to localStorage
         return null;
     }
 }

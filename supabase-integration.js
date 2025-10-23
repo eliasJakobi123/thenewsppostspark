@@ -946,13 +946,14 @@ Find posts that show:
                 .single();
 
             if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-                throw error;
+                console.log('AI response styles table may not exist, returning null');
+                return null;
             }
 
             return data;
         } catch (error) {
-            console.error('Error getting AI style for campaign:', error);
-            throw error;
+            console.log('AI response styles table not available, returning null');
+            return null;
         }
     }
 
@@ -966,13 +967,14 @@ Find posts that show:
                 .single();
 
             if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-                throw error;
+                console.log('AI response styles table may not exist, returning null');
+                return null;
             }
 
             return data;
         } catch (error) {
-            console.error('Error getting default AI style:', error);
-            throw error;
+            console.log('AI response styles table not available, returning null');
+            return null;
         }
     }
 
@@ -994,13 +996,14 @@ Find posts that show:
                 .single();
 
             if (error) {
-                throw error;
+                console.log('AI response styles table may not exist, skipping save');
+                return null;
             }
 
             return data;
         } catch (error) {
-            console.error('Error saving AI style:', error);
-            throw error;
+            console.log('AI response styles table not available, skipping save');
+            return null;
         }
     }
 
@@ -1013,13 +1016,14 @@ Find posts that show:
                 .eq('user_id', this.userData.id);
 
             if (error) {
-                throw error;
+                console.log('AI response styles table may not exist, skipping delete');
+                return false;
             }
 
             return true;
         } catch (error) {
-            console.error('Error deleting AI style:', error);
-            throw error;
+            console.log('AI response styles table not available, skipping delete');
+            return false;
         }
     }
 }
