@@ -63,22 +63,20 @@ Please provide realistic examples of the types of posts that would appear in the
 Focus on realistic, authentic-sounding posts that would genuinely appear in these communities.`;
 
         // Prepare the input string
-        const inputString = `Find 25-30 Reddit posts that could benefit from this business:
+        const inputString = `Find 25-30 Reddit posts related to these keywords:
 
-BUSINESS: ${businessName}
-DESCRIPTION: ${offer}
 KEYWORDS: ${keywords.join(', ')}
 
 SEARCH FOR:
-- People struggling with problems this business solves
-- Users asking for recommendations or solutions
-- Discussions about pain points this business addresses
-- Posts showing frustration with current solutions
-- Questions about how to achieve goals this business helps with
-- Communities discussing related challenges
-- Posts from people who would be ideal customers
+- Posts discussing these specific keywords
+- People asking questions about these topics
+- Users sharing experiences with these subjects
+- Communities talking about these areas
+- Posts from people interested in these keywords
 
-IMPORTANT: Find posts where people would genuinely benefit from this business, even if they don't explicitly mention the exact product. Look for underlying problems and needs.
+BUSINESS CONTEXT (use only as background): ${businessName} - ${offer}
+
+IMPORTANT: Focus primarily on the keywords. Find posts where people are actively discussing, asking about, or sharing experiences related to these exact keywords. The business context is just for understanding, but search for posts that match the keywords.
 
 Return exactly 25-30 posts in JSON format with high relevance scores (70-100).`;
 
