@@ -74,7 +74,9 @@ class Router {
         const cleanPath = path.startsWith('/') ? path.substring(1) : path;
         
         // Handle specific routes
-        if (cleanPath === '' || cleanPath === 'dashboard') {
+        if (cleanPath === '' || cleanPath === 'home') {
+            this.redirectToWebsite();
+        } else if (cleanPath === 'dashboard') {
             this.showPage('campaigns');
         } else if (cleanPath === 'campaigns') {
             this.showPage('campaigns');
@@ -133,6 +135,11 @@ class Router {
         } else if (page === 'register') {
             window.location.href = 'register.html';
         }
+    }
+
+    // Redirect to website
+    redirectToWebsite() {
+        window.location.href = '/home';
     }
 
     // Update navigation state

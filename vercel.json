@@ -29,6 +29,10 @@
       "destination": "/register.html"
     },
     {
+      "source": "/home",
+      "destination": "/index.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/webapp.html"
     }
@@ -36,7 +40,7 @@
   "redirects": [
     {
       "source": "/",
-      "destination": "/dashboard",
+      "destination": "/home",
       "permanent": false
     }
   ],

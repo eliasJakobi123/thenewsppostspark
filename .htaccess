@@ -16,8 +16,11 @@ RewriteRule ^settings/?$ webapp.html [L]
 RewriteRule ^login/?$ login.html [L]
 RewriteRule ^register/?$ register.html [L]
 
+# Website routes
+RewriteRule ^home/?$ index.html [L]
+
 # Default route
-RewriteRule ^$ webapp.html [L]
+RewriteRule ^$ index.html [L]
 
 # Handle API routes
 RewriteRule ^api/(.*)$ api/$1 [L]
