@@ -416,7 +416,7 @@ async function showCampaignPosts(campaignId) {
         // Render posts
         renderCampaignPosts(posts);
         
-        showNotification(`Loaded ${totalPosts} posts for: ${campaign.name}`, 'success');
+        // Posts loaded successfully (no notification needed)
         
     } catch (error) {
         console.error('Error loading campaign posts:', error);
