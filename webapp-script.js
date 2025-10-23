@@ -841,7 +841,7 @@ async function refreshCampaignPosts() {
         // Update campaign stats
         await loadCampaigns();
         
-        showNotification(`Found ${newLeadsFound} new leads! Total: ${newPostCount} posts`, 'success');
+        showNotification(`Found ${newLeadsFound} new leads! Total: ${newPostCount} posts (${newLeadsFound} newly added)`, 'success');
         
     } catch (error) {
         console.error('Error refreshing posts:', error);

@@ -894,7 +894,7 @@ body {
     color: #cccccc;
     font-size: 0.9rem;
     line-height: 1.4;
-    margin: 0;
+    margin: 0 0 1.5rem 0;
     transition: all 0.3s ease;
 }
 
@@ -910,7 +910,7 @@ body {
     left: 0;
     right: 0;
     background: linear-gradient(transparent, rgba(26, 26, 26, 0.95));
-    padding: 1rem 0 0.5rem;
+    padding: 2rem 0 1rem;
     display: flex;
     justify-content: center;
     align-items: flex-end;

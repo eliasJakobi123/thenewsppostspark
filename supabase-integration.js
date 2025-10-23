@@ -877,6 +877,11 @@ Find posts that show:
             
             console.log(`Successfully saved ${savedPosts.length} out of ${redditPosts.length} posts`);
 
+            // Update the campaign stats to reflect actual saved posts
+            if (savedPosts.length > 0) {
+                console.log(`Campaign now has ${savedPosts.length} new posts added`);
+            }
+
             return savedPosts;
         } catch (error) {
             console.error('Error finding Reddit leads:', error);

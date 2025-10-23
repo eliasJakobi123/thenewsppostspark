@@ -87,8 +87,12 @@ export default async function handler(req, res) {
                     for (const post of searchData.data.children) {
                         const postData = post.data;
                         
-                        // Filter out stickied posts and ads
-                        if (postData.stickied || postData.promoted) continue;
+                        // Filter out stickied posts, ads, and reposts
+                        if (postData.stickied || postData.promoted || 
+                            postData.is_self === false || postData.crosspost_parent_list ||
+                            postData.title.toLowerCase().includes('[removed]') ||
+                            postData.title.toLowerCase().includes('[deleted]') ||
+                            postData.selftext === '[removed]' || postData.selftext === '[deleted]') continue;
                         
                         // Calculate relevance score based on keywords and offer
                         const title = postData.title.toLowerCase();
@@ -142,6 +146,15 @@ export default async function handler(req, res) {
                             combinedText.includes('goal') || combinedText.includes('success')) {
                             relevanceScore += 15;
                         }
+                        
+                        // Boost for posts with engagement (comments, upvotes)
+                        if (postData.num_comments > 5) relevanceScore += 10;
+                        if (postData.ups > 10) relevanceScore += 5;
+                        
+                        // Boost for recent posts (within last 30 days)
+                        const postDate = new Date(postData.created_utc * 1000);
+                        const daysAgo = (Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24);
+                        if (daysAgo < 30) relevanceScore += 10;
                         
                         // Lower threshold to get more posts
                         if (relevanceScore >= 5) {
