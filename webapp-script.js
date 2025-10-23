@@ -1,7 +1,7 @@
 // Webapp JavaScript with Supabase Integration
 
 // Handle Reddit OAuth callback
-function handleRedditCallback() {
+async function handleRedditCallback() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const state = urlParams.get('state');
@@ -19,17 +19,15 @@ function handleRedditCallback() {
             const stateData = JSON.parse(state);
             console.log('Reddit OAuth callback received:', { code, stateData });
             
-            // Store the code for later use
+            // Store the code for later use - we'll process it after login
             sessionStorage.setItem('reddit_auth_code', code);
             sessionStorage.setItem('reddit_auth_state', state);
             
-            // Show success message
-            showNotification('Reddit authorization successful! You can now send comments.', 'success');
-            
-            // If there was a return URL, we could redirect back to it
-            // For now, just remove the OAuth parameters from URL
+            // Clean up URL immediately
             const newUrl = window.location.origin + window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
+            
+            console.log('Reddit OAuth code stored, will process after login');
             
         } catch (error) {
             console.error('Error handling Reddit callback:', error);
@@ -38,9 +36,43 @@ function handleRedditCallback() {
     }
 }
 
+// Process stored Reddit OAuth code after login
+async function processStoredRedditCode() {
+    const code = sessionStorage.getItem('reddit_auth_code');
+    const state = sessionStorage.getItem('reddit_auth_state');
+    
+    if (code && state && postSparkDB && postSparkDB.user) {
+        try {
+            console.log('Processing stored Reddit OAuth code...');
+            const result = await postSparkDB.handleRedditCallback(code, state);
+            
+            if (result.success) {
+                showNotification('Reddit account connected successfully!', 'success');
+                
+                // Clear stored data
+                sessionStorage.removeItem('reddit_auth_code');
+                sessionStorage.removeItem('reddit_auth_state');
+                
+                // Navigate to return URL if available
+                if (result.returnUrl) {
+                    console.log('Redirecting to:', result.returnUrl);
+                    if (window.router) {
+                        window.router.navigate(result.returnUrl);
+                    } else {
+                        window.location.href = result.returnUrl;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error processing stored Reddit code:', error);
+            showNotification('Error connecting Reddit account', 'error');
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     // Check for Reddit OAuth callback first
-    handleRedditCallback();
+    await handleRedditCallback();
     
     // Initialize PostSparkDB first
     postSparkDB = new PostSparkSupabase();
@@ -54,6 +86,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = '/login';
         return;
     }
+    
+    // Process any stored Reddit OAuth code after successful login
+    await processStoredRedditCode();
     
     // Load user data and initialize the app
     await initializeApp();
@@ -2753,25 +2788,25 @@ function setupAIPopupEventListeners() {
     // Close button
     const closeBtn = document.getElementById('ai-popup-close');
     if (closeBtn) {
-        closeBtn.onclick = closeAIStylePopup;
+        closeBtn.addEventListener('click', closeAIStylePopup);
     }
     
     // Cancel button
     const cancelBtn = document.getElementById('ai-cancel-btn');
     if (cancelBtn) {
-        cancelBtn.onclick = closeAIStylePopup;
+        cancelBtn.addEventListener('click', closeAIStylePopup);
     }
     
     // Save Style button
     const saveStyleBtn = document.getElementById('ai-save-style-btn');
     if (saveStyleBtn) {
-        saveStyleBtn.onclick = saveAIStyleAndClose;
+        saveStyleBtn.addEventListener('click', saveAIStyleAndClose);
     }
     
     // Generate Response button
     const generateBtn = document.getElementById('ai-generate-btn');
     if (generateBtn) {
-        generateBtn.onclick = generateAIResponseWithLoading;
+        generateBtn.addEventListener('click', generateAIResponseWithLoading);
     }
     
     // Tone selection
@@ -2786,7 +2821,7 @@ function setupAIPopupEventListeners() {
     // Close on overlay click
     const overlay = document.querySelector('.ai-style-popup .popup-overlay');
     if (overlay) {
-        overlay.onclick = closeAIStylePopup;
+        overlay.addEventListener('click', closeAIStylePopup);
     }
 }
 
