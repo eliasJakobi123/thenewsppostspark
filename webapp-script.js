@@ -3245,10 +3245,8 @@ async function saveAIStyleAndClose() {
         };
 
         // Save style using WritingStyleManager
-        if (style.saveStyle) {
-            WritingStyleManager.saveStyle(campaignId, style);
-            showNotification('Writing style saved successfully!', 'success');
-        }
+        WritingStyleManager.saveStyle(campaignId, style);
+        showNotification('Writing style saved successfully!', 'success');
 
         // Close popup and return to comment popup
         closeAIStylePopup();
