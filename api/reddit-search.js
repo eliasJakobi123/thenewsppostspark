@@ -160,7 +160,79 @@ export default async function handler(req, res) {
             'socialmedia', 'Instagram', 'TikTok', 'YouTube', 'YouTubers',
             'ContentCreators', 'InfluencerMarketing', 'personalbranding', 'SocialMediaMarketing', 'marketingautomation',
             'SEO', 'copywriting', 'marketinghacks', 'emailmarketing', 'FacebookAds',
-            'AdOps', 'RedditMarketing', 'GrowthHacking', 'CreatorSuccess', 'EntrepreneurMemes'
+            'AdOps', 'RedditMarketing', 'GrowthHacking', 'CreatorSuccess', 'EntrepreneurMemes',
+            
+            // 🚀 BUSINESS & ENTREPRENEURSHIP (25 Subreddits)
+            'business', 'startups', 'Entrepreneur', 'smallbusiness', 'IndieHackers',
+            'EntrepreneurRideAlong', 'Business_Ideas', 'StartupIdeas', 'SideProject', 'JustStart',
+            'StartupsCircle', 'LeanStartup', 'Founders', 'YoungEntrepreneurs', 'FemaleEntrepreneurs',
+            'TechStartups', 'growmybusiness', 'startup', 'foundersclub', 'buildinpublic',
+            'Productivity', 'BusinessIntelligence', 'consulting', 'startupfounders', 'EntrepreneurMemes',
+            
+            // 📈 MARKETING, SALES & BRANDING (25 Subreddits)
+            'marketing', 'digital_marketing', 'marketinghacks', 'AskMarketing', 'ContentMarketing',
+            'marketingautomation', 'GrowthHacking', 'advertising', 'Copywriting', 'SocialMediaMarketing',
+            'SEO', 'emailmarketing', 'FacebookAds', 'AdOps', 'Branding',
+            'personalbranding', 'InfluencerMarketing', 'ContentCreators', 'YouTube', 'YouTubers',
+            'Instagram', 'TikTok', 'SocialMedia', 'marketingresearch', 'UXDesign',
+            
+            // 💡 BUSINESS MODELS, SIDE HUSTLES & E-COMMERCE (20 Subreddits)
+            'dropship', 'Shopify', 'ecommerce', 'AffiliateMarketing', 'FBA',
+            'PrintOnDemand', 'SideHustle', 'smallbusinessowners', 'EntrepreneurshipFinance', 'BusinessHub',
+            'SaaS', 'NoCode', 'WebApps', 'LowCode', 'Passive_Income',
+            'OnlineBusiness', 'Wealth', 'WorkOnline', 'MoneyMaking', 'solopreneur',
+            
+            // 💸 FINANCE, INVESTING & MONEY (30 Subreddits)
+            'Finance', 'personalfinance', 'FinancialIndependence', 'fire', 'leanfire',
+            'fatfire', 'SideHustleFinance', 'investing', 'stocks', 'options',
+            'RealEstate', 'RealEstateInvesting', 'dividends', 'Bogleheads', 'CryptoCurrency',
+            'Bitcoin', 'Ethereum', 'cryptomarkets', 'defi', 'NFT',
+            'StockMarket', 'Robinhood', 'Money', 'Frugal', 'FinancialPlanning',
+            'wealthbuilding', 'financialliteracy', 'Economics', 'wallstreetbets', 'ValueInvesting',
+            
+            // 🧠 SELF-IMPROVEMENT, CONFIDENCE & LIFE (25 Subreddits)
+            'selfimprovement', 'GetDisciplined', 'DecidingToBeBetter', 'selfhelp', 'Success',
+            'happiness', 'zenhabits', 'Stoicism', 'Meditation', 'Mindfulness',
+            'psychology', 'socialskills', 'confidence', 'productivity', 'motivation',
+            'lifehacks', 'discipline', 'habits', 'lifeprotips', 'NoFap',
+            'Anxiety', 'MentalHealth', 'Depression', 'therapy', 'DecideToBeBetter',
+            
+            // 🏋️‍♂️ FITNESS, GYM & SPORTS (25 Subreddits)
+            'Fitness', 'GymMotivation', 'Bodybuilding', 'xxfitness', 'powerlifting',
+            'weightroom', 'progresspics', 'StrongCurves', 'gainit', 'loseit',
+            'FitnessCircleJerk', 'Running', 'CrossFit', 'yoga', 'FitnessMotivation',
+            'Calisthenics', 'Supplements', 'naturalbodybuilding', 'health', 'Nutrition',
+            'diet', 'HealthyFood', 'Sports', 'boxing', 'MMA',
+            
+            // 🌍 LIFESTYLE, PRODUCTIVITY & HABITS (20 Subreddits)
+            'simpleliving', 'minimalism', 'slowliving', 'decoration', 'coolguides',
+            'NonZeroDay', 'digitalminimalism', 'smartHome', 'frugalmalefashion', 'life',
+            'GetMotivated', 'DecentWork', 'meditationpractice', 'SelfDiscipline', 'LearnUselessTalents',
+            'learnprogramming', 'study', 'ProductivityApps', 'organization', 'timeManagement',
+            
+            // 💻 TECH, STARTUP TOOLS & CREATOR ECONOMY (25 Subreddits)
+            'InternetIsBeautiful', 'WebDev', 'SaaSStartups', 'Design', 'UI_Design',
+            'UXResearch', 'EntrepreneurTech', 'ProductDesign', 'AppIdeas', 'Programming',
+            'Coding', 'NoCodeDevs', 'EntrepreneurTools', 'DevOps', 'TechNews',
+            'freelance', 'freelancers', 'remotework', 'DigitalNomad', 'WorkOnline',
+            'WorkFromHome', 'CareerSuccess', 'Resume', 'jobs', 'ProductManagement',
+            
+            // 📚 EDUCATION, IDEAS & LEARNING (20 Subreddits)
+            'explainlikeimfive', 'AskAcademia', 'AskHistorians', 'learnmath', 'LearnEnglish',
+            'LearnSpanish', 'science', 'Futurology', 'DataIsBeautiful', 'AskReddit',
+            'AskMen', 'AskWomen', 'DecidingToBeBetter', 'CasualConversation', 'OutOfTheLoop',
+            'IWantToLearn', 'LearnUselessTalents', 'StudyTips', 'LearnPython', 'Education',
+            
+            // 🧭 MOTIVATION, MINDSET & SUCCESS (20 Subreddits)
+            'GetMotivated', 'Motivation', 'SelfDiscipline', 'NoExcuses', 'Discipline',
+            'GoalSetting', 'SuccessStories', 'EntrepreneurMindset', 'NonZeroDay', 'HardWorkPaysOff',
+            'Mindset', 'Improvement', 'PersonalDevelopment', 'DeepWork', 'MotivationMonday',
+            'MakeItHappen', 'LearnToGrow', 'Focus', 'DecideToBeBetter', 'LearnNewThings',
+            
+            // 🧩 OTHER USEFUL / META & NETWORKING (15 Subreddits)
+            'RedditMarketing', 'Subreddit', 'ModHelp', 'FindAPath', 'EntrepreneurRideAlong',
+            'TechBiz', 'FinanceCareer', 'StartupsForGood', 'RemoteJobs', 'WorkFromHome',
+            'CareerGuidance', 'MoneyTalks', 'Philosophy', 'SelfReliance', 'LifeLessons'
         ];
 
         // Search in each subreddit with higher limits

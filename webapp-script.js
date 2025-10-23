@@ -481,7 +481,7 @@ function renderCampaignPosts(posts) {
                     </button>
                     <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id}', '${post.subreddit}')">
                         <i class="fas fa-external-link-alt"></i>
-                        Show
+                        Show All
                     </button>
                 </div>
         `;
