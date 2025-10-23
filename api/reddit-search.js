@@ -61,8 +61,9 @@ export default async function handler(req, res) {
         // Search in each subreddit with higher limits
         for (const subreddit of subreddits) {
             try {
-                // Create search query from keywords
-                const searchQuery = searchKeywords.join(' OR ');
+                // Create search query from keywords with problem-focused terms
+                const problemTerms = ['struggling', 'help', 'problem', 'issue', 'difficult', 'challenge', 'need', 'want', 'looking for'];
+                const searchQuery = `${searchKeywords.join(' OR ')} AND (${problemTerms.join(' OR ')})`;
                 const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(searchQuery)}&sort=relevance&limit=25&t=all`;
 
                 console.log(`Searching r/${subreddit} for: ${searchQuery} (limit: 25)`);
@@ -108,13 +109,20 @@ export default async function handler(req, res) {
                             }
                         }
                         
-                        // Score based on offer context (if available)
+                        // Score based on offer context (if available) - much higher weight
                         if (offer && offer !== 'No offer provided') {
                             const offerWords = offer.toLowerCase().split(' ');
+                            let offerMatches = 0;
                             for (const word of offerWords) {
                                 if (word.length > 3 && combinedText.includes(word)) {
-                                    relevanceScore += 10;
+                                    offerMatches++;
+                                    relevanceScore += 20; // Higher weight for offer matches
                                 }
+                            }
+                            
+                            // Extra boost if multiple offer words match
+                            if (offerMatches >= 2) {
+                                relevanceScore += 30;
                             }
                         }
                         
@@ -156,8 +164,8 @@ export default async function handler(req, res) {
                         const daysAgo = (Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24);
                         if (daysAgo < 30) relevanceScore += 10;
                         
-                        // Lower threshold to get more posts
-                        if (relevanceScore >= 5) {
+                        // Higher threshold to get only relevant posts that need the offer
+                        if (relevanceScore >= 25) {
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,

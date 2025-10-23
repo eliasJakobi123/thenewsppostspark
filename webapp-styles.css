@@ -899,7 +899,7 @@ body {
 }
 
 .post-text.truncated {
-    max-height: 4.5em; /* Approximately 6 lines */
+    max-height: 5.5em; /* Approximately 8 lines for more space */
     overflow: hidden;
     position: relative;
 }
@@ -910,7 +910,7 @@ body {
     left: 0;
     right: 0;
     background: linear-gradient(transparent, rgba(26, 26, 26, 0.95));
-    padding: 2rem 0 1rem;
+    padding: 3rem 0 1.5rem;
     display: flex;
     justify-content: center;
     align-items: flex-end;
