@@ -483,7 +483,7 @@ function renderCampaignPosts(posts) {
                 </div>
             </div>
                 <div class="post-actions">
-                    <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${post.title}', '${post.content || ''}', '${post.created_at}')">
+                    <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}')">
                         <i class="fas fa-comment"></i>
                         Comment
                     </button>
@@ -2047,7 +2047,7 @@ function createPostCard(post) {
             <p>${post.content || 'No content available'}</p>
         </div>
         <div class="post-actions">
-            <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${post.title}', '${post.content || ''}', '${post.created_at}')">
+            <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}')">
                 <i class="fas fa-comment"></i> Write Comment
             </button>
             ${!post.is_contacted ? `
@@ -2321,6 +2321,9 @@ async function writeComment(postId, subreddit, title, content, created_at) {
         const postPreview = document.getElementById('post-preview');
         
         // Create post preview HTML
+        const safeTitle = (title || '').replace(/['"`]/g, '');
+        const safeContent = (content || 'No content available').replace(/['"`]/g, '');
+        
         postPreview.innerHTML = `
             <div class="post-header">
                 <div class="post-meta">
@@ -2333,8 +2336,8 @@ async function writeComment(postId, subreddit, title, content, created_at) {
                 </div>
             </div>
             <div class="post-content">
-                <h4>${title}</h4>
-                <p>${content || 'No content available'}</p>
+                <h4>${safeTitle}</h4>
+                <p>${safeContent}</p>
             </div>
         `;
         
