@@ -382,8 +382,10 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     padding: 0.875rem;
+    margin-bottom: 1.5rem;
     transition: all 0.3s ease;
     position: relative;
+    min-height: 200px;
 }
 
 .post-card:hover {
@@ -906,11 +908,11 @@ body {
 
 .read-more-overlay {
     position: absolute;
-    bottom: 0;
+    bottom: -10px;
     left: 0;
     right: 0;
     background: linear-gradient(transparent, rgba(26, 26, 26, 0.95));
-    padding: 3rem 0 1.5rem;
+    padding: 4rem 0 2rem;
     display: flex;
     justify-content: center;
     align-items: flex-end;

@@ -126,9 +126,9 @@ export default async function handler(req, res) {
                                 }
                             }
                             
-                            // MANDATORY: Must have at least 2 offer word matches
-                            if (offerMatches < 2) {
-                                continue; // Skip posts that don't match the offer well enough
+                            // MANDATORY: Must have at least 1 offer word match (more flexible)
+                            if (offerMatches < 1) {
+                                continue; // Skip posts that don't match the offer at all
                             }
                             
                             // Extra boost for multiple offer matches
@@ -175,8 +175,8 @@ export default async function handler(req, res) {
                         const daysAgo = (Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24);
                         if (daysAgo < 30) relevanceScore += 10;
                         
-                        // VERY HIGH threshold - only posts that perfectly match keywords AND offer
-                        if (relevanceScore >= 80) {
+                        // High threshold but not impossible - allow some flexibility
+                        if (relevanceScore >= 50) {
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,
@@ -197,8 +197,8 @@ export default async function handler(req, res) {
                 console.log(`Total posts found so far: ${posts.length}`);
                 
                 // Stop if we have enough high-quality posts
-                if (posts.length >= 20) {
-                    console.log('Reached target of 20+ high-quality posts, stopping search');
+                if (posts.length >= 30) {
+                    console.log('Reached target of 30+ high-quality posts, stopping search');
                     break;
                 }
                 
@@ -208,10 +208,10 @@ export default async function handler(req, res) {
             }
         }
 
-        // Sort by relevance score and limit to 20 high-quality posts
+        // Sort by relevance score and limit to 30 high-quality posts
         const sortedPosts = posts
             .sort((a, b) => b.score - a.score)
-            .slice(0, 20);
+            .slice(0, 30);
 
         console.log(`Reddit API search completed: ${sortedPosts.length} posts found`);
 
