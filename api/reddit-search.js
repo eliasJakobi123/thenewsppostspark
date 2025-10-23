@@ -49,31 +49,62 @@ export default async function handler(req, res) {
         // Search for posts using Reddit API
         const posts = [];
         const subreddits = [
+            // Core self-improvement and life
             'selfimprovement', 'motivation', 'productivity', 'lifehacks', 
             'mentalhealth', 'advice', 'AskReddit', 'getmotivated', 
-            'DecidingToBeBetter', 'selfhelp', 'careeradvice', 'personalfinance',
+            'DecidingToBeBetter', 'selfhelp', 'selfconfidence', 'life',
+            'careeradvice', 'personalfinance', 'goals', 'habits', 
+            'discipline', 'focus', 'mindfulness', 'meditation',
+            
+            // Health and fitness
+            'fitness', 'loseit', 'gainit', 'bodybuilding', 'running',
+            'gym', 'health', 'nutrition', 'keto', 'cooking',
+            'recipes', 'food', 'weightloss', 'fitness', 'workout',
+            
+            // Business and career
             'entrepreneur', 'smallbusiness', 'startups', 'marketing',
             'business', 'freelance', 'work', 'jobs', 'careerguidance',
-            'goals', 'habits', 'discipline', 'focus', 'mindfulness',
-            'meditation', 'mindfulness', 'zen', 'buddhism', 'spirituality',
-            'fitness', 'loseit', 'gainit', 'bodybuilding', 'running',
-            'cooking', 'recipes', 'food', 'nutrition', 'keto',
+            'investing', 'stocks', 'cryptocurrency', 'bitcoin',
+            
+            // Technology and digital
+            'technology', 'gadgets', 'android', 'iphone', 'apple',
+            'programming', 'webdev', 'coding', 'software', 'computers',
+            'gaming', 'pcgaming', 'gamedev', 'indiegaming',
+            
+            // Lifestyle and hobbies
             'travel', 'solotravel', 'backpacking', 'digitalnomad', 'wanderlust',
-            'photography', 'art', 'design', 'webdev', 'programming',
-            'gaming', 'pcgaming', 'gamedev', 'indiegaming', 'gaming',
+            'photography', 'art', 'design', 'music', 'listentothis',
             'books', 'booksuggestions', 'bookclub', 'reading', 'literature',
             'movies', 'television', 'netflix', 'streaming', 'entertainment',
-            'music', 'listentothis', 'hiphopheads', 'popheads', 'indieheads',
-            'technology', 'gadgets', 'android', 'iphone', 'apple',
-            'cars', 'automotive', 'motorcycles', 'bicycling', 'cycling',
+            
+            // Home and DIY
             'homeimprovement', 'DIY', 'woodworking', 'gardening', 'plants',
             'pets', 'dogs', 'cats', 'aquariums', 'reptiles',
+            'cars', 'automotive', 'motorcycles', 'bicycling', 'cycling',
+            
+            // Relationships and social
             'relationships', 'dating', 'marriage', 'parenting', 'family',
+            'socialskills', 'communication', 'friendship', 'loneliness',
+            
+            // Education and learning
             'education', 'college', 'university', 'studying', 'academic',
-            'science', 'askscience', 'explainlikeimfive', 'todayilearned', 'mildlyinteresting',
+            'science', 'askscience', 'explainlikeimfive', 'todayilearned',
+            'languagelearning', 'spanish', 'french', 'german',
+            
+            // News and current events
             'worldnews', 'news', 'politics', 'europe', 'canada',
+            'unitedkingdom', 'australia', 'india', 'japan',
+            
+            // Entertainment and fun
             'funny', 'jokes', 'memes', 'dankmemes', 'wholesomememes',
-            'showerthoughts', 'mildlyinfuriating', 'mildlyinteresting', 'oddlysatisfying', 'perfectfit'
+            'showerthoughts', 'mildlyinfuriating', 'oddlysatisfying', 'perfectfit',
+            'unpopularopinion', 'changemyview', 'amitheasshole',
+            
+            // Specialized communities
+            'zen', 'buddhism', 'spirituality', 'meditation', 'mindfulness',
+            'minimalism', 'simpleliving', 'frugal', 'budgeting',
+            'cryptocurrency', 'bitcoin', 'ethereum', 'investing',
+            'stocks', 'wallstreetbets', 'investing', 'personalfinance'
         ];
 
         // Search in each subreddit with higher limits
@@ -122,9 +153,21 @@ export default async function handler(req, res) {
                         // Score based on keywords - MUST match at least one keyword
                         let keywordMatches = 0;
                         for (const keyword of searchKeywords) {
-                            if (combinedText.includes(keyword.toLowerCase())) {
+                            const keywordLower = keyword.toLowerCase();
+                            // Check for exact match
+                            if (combinedText.includes(keywordLower)) {
                                 keywordMatches++;
-                                relevanceScore += 30; // Lower weight for keywords
+                                relevanceScore += 30;
+                            } else {
+                                // Check for partial matches (word parts)
+                                const keywordWords = keywordLower.split(' ');
+                                for (const word of keywordWords) {
+                                    if (word.length > 3 && combinedText.includes(word)) {
+                                        keywordMatches++;
+                                        relevanceScore += 20; // Lower score for partial matches
+                                        break;
+                                    }
+                                }
                             }
                         }
                         
@@ -190,8 +233,8 @@ export default async function handler(req, res) {
                         const daysAgo = (Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24);
                         if (daysAgo < 30) relevanceScore += 10;
                         
-                        // Lower threshold to find more posts
-                        if (relevanceScore >= 30) {
+                        // Very low threshold to find many posts
+                        if (relevanceScore >= 20) {
                             console.log(`Post accepted - score: ${relevanceScore}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,
@@ -213,8 +256,8 @@ export default async function handler(req, res) {
                 console.log(`Total posts found so far: ${posts.length}`);
                 
                 // Stop if we have enough high-quality posts
-                if (posts.length >= 50) {
-                    console.log('Reached target of 50+ high-quality posts, stopping search');
+                if (posts.length >= 100) {
+                    console.log('Reached target of 100+ high-quality posts, stopping search');
                     break;
                 }
                 
@@ -224,10 +267,10 @@ export default async function handler(req, res) {
             }
         }
 
-        // Sort by relevance score and limit to 50 high-quality posts
+        // Sort by relevance score and limit to 100 high-quality posts
         const sortedPosts = posts
             .sort((a, b) => b.score - a.score)
-            .slice(0, 50);
+            .slice(0, 100);
 
         console.log(`Reddit API search completed: ${sortedPosts.length} posts found`);
 
