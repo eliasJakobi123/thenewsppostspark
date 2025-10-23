@@ -44,6 +44,12 @@ class Router {
 
         // Handle path-based routing
         this.handlePathRoute(path);
+        
+        // If we're on webapp.html, try to extract route from path
+        if (window.location.pathname === '/webapp.html' || window.location.pathname.endsWith('/webapp.html')) {
+            // Try to get route from referrer or default to campaigns
+            this.showPage('campaigns');
+        }
     }
 
     // Handle hash routes (legacy)
@@ -84,6 +90,9 @@ class Router {
             // Handle campaign-specific routes
             const campaignId = cleanPath.split('/')[1];
             this.showCampaignPosts(campaignId);
+        } else if (cleanPath === 'webapp.html') {
+            // Handle direct webapp.html access
+            this.showPage('campaigns');
         } else {
             // Default to campaigns
             this.showPage('campaigns');

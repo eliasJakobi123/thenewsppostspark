@@ -27,6 +27,17 @@
     {
       "source": "/register",
       "destination": "/register.html"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/webapp.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/dashboard",
+      "permanent": false
     }
   ],
   "headers": [
