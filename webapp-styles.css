@@ -874,6 +874,30 @@ body {
 
 /* Read more functionality removed */
 
+/* Rate Limit Warning Styles */
+.notification.warning {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    border-left: 4px solid #e65100;
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
+}
+
+.notification.warning .notification-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.notification.warning .notification-content {
+    color: #fff;
+}
+
+.notification.warning .notification-close {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.notification.warning .notification-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
 .comment-form {
     display: flex;
     flex-direction: column;

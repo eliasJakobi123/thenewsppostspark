@@ -1130,8 +1130,16 @@ async function findModernLeadsOnReddit() {
                 // Find Reddit leads using OpenAI
                 const redditPosts = await postSparkDB.findRedditLeads(campaign.id);
                 
-                // No notification about leads count - just show success
-                showNotification('Campaign created successfully!', 'success');
+        // Show success notification
+        showNotification('Campaign created successfully!', 'success');
+        
+        // Show rate limit warning if applicable
+        if (window.redditRateLimitMessage) {
+            setTimeout(() => {
+                showNotification(window.redditRateLimitMessage, 'warning');
+                window.redditRateLimitMessage = null; // Clear after showing
+            }, 2000);
+        }
                 
                 // Reload campaigns to show the new one
                 await loadCampaigns();

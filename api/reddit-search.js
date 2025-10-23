@@ -48,6 +48,7 @@ export default async function handler(req, res) {
 
         // Search for posts using Reddit API
         const posts = [];
+        let rateLimitHit = false;
         const subreddits = [
             // Core self-improvement and life
             'selfimprovement', 'motivation', 'productivity', 'lifehacks', 
@@ -179,6 +180,11 @@ export default async function handler(req, res) {
                 });
 
                 if (!searchResponse.ok) {
+                    if (searchResponse.status === 429) {
+                        console.log(`Rate limit reached for r/${subreddit}, skipping...`);
+                        rateLimitHit = true;
+                        continue;
+                    }
                     console.log(`Search failed for r/${subreddit}: ${searchResponse.status}`);
                     continue;
                 }
@@ -329,7 +335,12 @@ export default async function handler(req, res) {
 
         console.log(`Reddit API search completed: ${sortedPosts.length} posts found`);
 
-        res.status(200).json({ posts: sortedPosts });
+        // Return posts with rate limit info
+        res.status(200).json({ 
+            posts: sortedPosts,
+            rateLimitHit: rateLimitHit,
+            message: rateLimitHit ? 'Reddit API rate limit reached. Some subreddits were skipped. Try again in a few minutes.' : null
+        });
 
     } catch (error) {
         console.error('Error with Reddit search:', error);

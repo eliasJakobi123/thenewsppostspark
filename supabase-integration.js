@@ -675,6 +675,14 @@ class PostSparkSupabase {
             const posts = data.posts || [];
             
             console.log(`Reddit API found ${posts.length} real posts`);
+            
+            // Show rate limit warning if applicable
+            if (data.rateLimitHit && data.message) {
+                console.warn('Reddit API Rate Limit:', data.message);
+                // Store rate limit info for UI display
+                window.redditRateLimitMessage = data.message;
+            }
+            
             return posts;
             
         } catch (error) {
