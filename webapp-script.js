@@ -106,6 +106,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Load user data and initialize the app
     await initializeApp();
+    
+    // Check Reddit connection status after app initialization
+    await checkRedditConnection();
 });
 
 // Initialize the application

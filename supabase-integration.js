@@ -508,6 +508,22 @@ class PostSparkSupabase {
             console.log('Starting Reddit callback handling...');
             console.log('User ID:', this.user?.id);
             
+            // Parse and validate state
+            let stateData = {};
+            try {
+                stateData = JSON.parse(state);
+                console.log('Parsed state data:', stateData);
+            } catch (e) {
+                console.error('Could not parse state:', e);
+                throw new Error('Invalid state parameter');
+            }
+            
+            // Validate that the user ID in state matches current user
+            if (stateData.userId && stateData.userId !== this.user?.id) {
+                console.error('State user ID mismatch:', stateData.userId, 'vs', this.user?.id);
+                throw new Error('User ID mismatch in state parameter');
+            }
+            
             const tokens = await this.exchangeCodeForTokens(code);
             console.log('Tokens exchanged successfully');
             
@@ -516,13 +532,8 @@ class PostSparkSupabase {
             
             // Parse return URL from state
             let returnUrl = '/campaigns'; // Default return URL
-            try {
-                const stateData = JSON.parse(state);
-                if (stateData.returnUrl) {
-                    returnUrl = stateData.returnUrl;
-                }
-            } catch (e) {
-                console.log('Could not parse state, using default return URL');
+            if (stateData.returnUrl) {
+                returnUrl = stateData.returnUrl;
             }
             
             console.log('Reddit callback completed successfully');
