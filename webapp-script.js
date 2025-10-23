@@ -3063,35 +3063,117 @@ async function generateAIResponse() {
 
 // New simplified AI functions
 function showAIStylePopup() {
-    console.log("showAIStylePopup called");
-    const popup = document.getElementById("ai-style-popup");
-    console.log("Popup element found:", popup);
+    console.log("showAIStylePopup called - creating simple popup");
     
-    if (popup) {
-        // Load default values
-        const toneSelect = document.getElementById("tone-select");
-        const salesStrength = document.getElementById("sales-strength");
-        const customOffer = document.getElementById("custom-offer");
-        const saveStyle = document.getElementById("save-style");
+    // Create a simple popup overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'ai-style-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    // Create popup content
+    const popupContent = document.createElement('div');
+    popupContent.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    `;
+    
+    popupContent.innerHTML = `
+        <h2 style="margin-top: 0; color: #333;">🤖 AI Writing Style Setup</h2>
         
-        if (toneSelect) toneSelect.value = "friendly";
-        if (salesStrength) salesStrength.value = 2;
-        if (customOffer) customOffer.value = "";
-        if (saveStyle) saveStyle.checked = true;
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tone:</label>
+            <select id="simple-tone-select" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="friendly">Friendly & Warm</option>
+                <option value="professional">Professional</option>
+                <option value="casual">Casual & Relaxed</option>
+                <option value="expert">Expert & Authoritative</option>
+            </select>
+        </div>
         
-        popup.style.display = "flex";
-        popup.style.zIndex = "9999";
-        popup.style.position = "fixed";
-        popup.style.top = "0";
-        popup.style.left = "0";
-        popup.style.width = "100%";
-        popup.style.height = "100%";
-        popup.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-        console.log("Popup should be visible now");
-    } else {
-        console.error("AI style popup element not found!");
-        showNotification("AI style popup not found. Please refresh the page.", "error");
-    }
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Sales Approach:</label>
+            <input type="range" id="simple-sales-strength" min="1" max="4" value="2" style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                <span>Subtle</span>
+                <span>Moderate</span>
+                <span>Direct</span>
+                <span>Aggressive</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Custom Offer (optional):</label>
+            <textarea id="simple-custom-offer" placeholder="Customize your offer message..." style="width: 100%; height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: flex; align-items: center;">
+                <input type="checkbox" id="simple-include-website" checked style="margin-right: 8px;">
+                Include website link in response
+            </label>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: flex; align-items: center;">
+                <input type="checkbox" id="simple-save-style" checked style="margin-right: 8px;">
+                Save this style for future responses
+            </label>
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button id="simple-cancel-btn" style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+            <button id="simple-generate-btn" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Generate AI Response</button>
+        </div>
+    `;
+    
+    overlay.appendChild(popupContent);
+    document.body.appendChild(overlay);
+    
+    // Add event listeners
+    document.getElementById('simple-cancel-btn').addEventListener('click', () => {
+        document.body.removeChild(overlay);
+    });
+    
+    document.getElementById('simple-generate-btn').addEventListener('click', async () => {
+        const style = {
+            tone: document.getElementById('simple-tone-select').value,
+            salesStrength: parseInt(document.getElementById('simple-sales-strength').value),
+            customOffer: document.getElementById('simple-custom-offer').value,
+            includeWebsite: document.getElementById('simple-include-website').checked
+        };
+        
+        const campaignId = window.currentCampaignId;
+        if (document.getElementById('simple-save-style').checked) {
+            WritingStyleManager.saveStyle(campaignId, style);
+        }
+        
+        document.body.removeChild(overlay);
+        await generateAIResponseWithSavedStyleNew(style);
+    });
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            document.body.removeChild(overlay);
+        }
+    });
+    
+    console.log("Simple popup created and should be visible");
 }
 
 function showAIStyleInfoNew(style) {
