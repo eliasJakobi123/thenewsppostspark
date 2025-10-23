@@ -472,14 +472,6 @@ function renderCampaignPosts(posts) {
                 <h3>${post.title}</h3>
                 <div class="post-text-container">
                     <p class="post-text">${post.content || 'No content available'}</p>
-                    ${post.content && post.content.length > 200 ? `
-                        <div class="read-more-overlay">
-                            <button class="read-more-btn" onclick="toggleReadMore(this)">
-                                <i class="fas fa-chevron-down"></i>
-                                Read More
-                            </button>
-                        </div>
-                    ` : ''}
                 </div>
             </div>
                 <div class="post-actions">
@@ -499,40 +491,10 @@ function renderCampaignPosts(posts) {
     // Add event listeners to new post action buttons
     addPostActionListeners();
     
-    // Initialize read more functionality
-    initializeReadMore();
+    // Read more functionality removed
 }
 
-// Initialize read more functionality
-function initializeReadMore() {
-    // Add truncated class to long posts
-    document.querySelectorAll('.post-text').forEach(text => {
-        if (text.textContent.length > 200) {
-            text.classList.add('truncated');
-        }
-    });
-}
-
-// Toggle read more functionality
-function toggleReadMore(button) {
-    const container = button.closest('.post-text-container');
-    const text = container.querySelector('.post-text');
-    const overlay = container.querySelector('.read-more-overlay');
-    
-    if (text.classList.contains('truncated')) {
-        // Expand
-        text.classList.remove('truncated');
-        overlay.classList.add('hidden');
-        button.innerHTML = '<i class="fas fa-chevron-up"></i> Read Less';
-        button.classList.add('expanded');
-    } else {
-        // Collapse
-        text.classList.add('truncated');
-        overlay.classList.remove('hidden');
-        button.innerHTML = '<i class="fas fa-chevron-down"></i> Read More';
-        button.classList.remove('expanded');
-    }
-}
+// Read more functionality removed
 
 // Format time ago
 function formatTimeAgo(date) {
@@ -841,7 +803,7 @@ async function refreshCampaignPosts() {
         // Update campaign stats
         await loadCampaigns();
         
-        showNotification(`Added ${newLeadsFound} new leads to campaign`, 'success');
+        showNotification('Campaign refreshed successfully!', 'success');
         
     } catch (error) {
         console.error('Error refreshing posts:', error);
@@ -1168,11 +1130,8 @@ async function findModernLeadsOnReddit() {
                 // Find Reddit leads using OpenAI
                 const redditPosts = await postSparkDB.findRedditLeads(campaign.id);
                 
-                if (redditPosts.length > 0) {
-                    showNotification('Campaign created successfully!', 'success');
-                } else {
-                    showNotification('Campaign created but no leads found. Try different keywords.', 'warning');
-                }
+                // No notification about leads count - just show success
+                showNotification('Campaign created successfully!', 'success');
                 
                 // Reload campaigns to show the new one
                 await loadCampaigns();

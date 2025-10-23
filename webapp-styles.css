@@ -810,38 +810,7 @@ body {
     max-height: none;
 }
 
-.read-more-btn {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(26, 26, 26, 0.95));
-    padding: 1rem 0.75rem 0.75rem;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-}
-
-.read-more-btn.hidden {
-    display: none;
-}
-
-.read-more-btn button {
-    background: rgba(255, 107, 53, 0.2);
-    border: 1px solid rgba(255, 107, 53, 0.3);
-    color: #ff6b35;
-    padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.read-more-btn button:hover {
-    background: rgba(255, 107, 53, 0.3);
-    border-color: rgba(255, 107, 53, 0.5);
-}
+/* Read more functionality removed */
 
 .post-preview .post-header {
     display: flex;
@@ -903,59 +872,7 @@ body {
     transition: all 0.3s ease;
 }
 
-.post-text.truncated {
-    max-height: 5.5em; /* Approximately 8 lines for more space */
-    overflow: hidden;
-    position: relative;
-}
-
-.read-more-overlay {
-    position: absolute;
-    bottom: 60px;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(26, 26, 26, 0.95));
-    padding: 2rem 0 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-    z-index: 10;
-}
-
-.read-more-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.read-more-btn {
-    background: rgba(255, 107, 53, 0.2);
-    border: 1px solid rgba(255, 107, 53, 0.3);
-    color: #ff6b35;
-    padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.read-more-btn:hover {
-    background: rgba(255, 107, 53, 0.3);
-    border-color: rgba(255, 107, 53, 0.5);
-}
-
-.read-more-btn i {
-    transition: transform 0.3s ease;
-}
-
-.read-more-btn.expanded i {
-    transform: rotate(180deg);
-}
+/* Read more functionality removed */
 
 .comment-form {
     display: flex;
