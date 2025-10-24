@@ -736,11 +736,13 @@ class PostSparkSupabase {
                 throw new Error('No refresh token available');
             }
 
+            console.log('Refreshing Reddit token...');
             const response = await fetch(REDDIT_CONFIG.TOKEN_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': 'Basic ' + btoa(`${REDDIT_CONFIG.CLIENT_ID}:${REDDIT_CONFIG.CLIENT_SECRET}`)
+                    'Authorization': 'Basic ' + btoa(`${REDDIT_CONFIG.CLIENT_ID}:${REDDIT_CONFIG.CLIENT_SECRET}`),
+                    'User-Agent': 'PostSpark/1.0'
                 },
                 body: new URLSearchParams({
                     grant_type: 'refresh_token',
@@ -748,12 +750,24 @@ class PostSparkSupabase {
                 })
             });
 
+            console.log('Token refresh response status:', response.status);
+
             if (!response.ok) {
-                throw new Error('Failed to refresh token');
+                const errorText = await response.text();
+                console.error('Token refresh error:', errorText);
+                throw new Error(`Failed to refresh token: ${response.status} - ${errorText}`);
             }
 
             const newTokens = await response.json();
+            console.log('Token refresh successful, storing new tokens...');
+            
+            // Calculate expiration time (Reddit tokens typically last 1 hour)
+            const expiresAt = new Date();
+            expiresAt.setHours(expiresAt.getHours() + 1);
+            newTokens.reddit_token_expires = expiresAt.toISOString();
+            
             await this.storeRedditTokens(newTokens);
+            console.log('New tokens stored successfully');
             return newTokens;
         } catch (error) {
             console.error('Error refreshing Reddit token:', error);
@@ -800,9 +814,6 @@ class PostSparkSupabase {
             console.log('Post ID:', postId);
             console.log('Comment text:', commentText.substring(0, 50) + '...');
             
-            // First test the Reddit connection
-            await this.testRedditConnection();
-            
             let tokens = await this.getRedditTokens();
             if (!tokens || !tokens.reddit_access_token) {
                 throw new Error('Reddit account not connected');
@@ -818,6 +829,26 @@ class PostSparkSupabase {
             if (tokens.reddit_token_expires && new Date(tokens.reddit_token_expires) <= new Date()) {
                 console.log('Reddit token expired, refreshing...');
                 tokens = await this.refreshRedditToken();
+            }
+
+            // Test the connection with the current token first
+            try {
+                await this.testRedditConnection();
+            } catch (error) {
+                console.log('Token test failed, attempting refresh:', error.message);
+                // If test fails, try to refresh the token
+                if (tokens.reddit_refresh_token) {
+                    try {
+                        tokens = await this.refreshRedditToken();
+                        console.log('Token refreshed successfully, testing again...');
+                        await this.testRedditConnection();
+                    } catch (refreshError) {
+                        console.error('Token refresh failed:', refreshError);
+                        throw new Error('Reddit token refresh failed. Please reconnect your Reddit account.');
+                    }
+                } else {
+                    throw new Error('Reddit token is invalid and no refresh token available. Please reconnect your Reddit account.');
+                }
             }
 
             // Ensure postId has correct format (should start with t3_)

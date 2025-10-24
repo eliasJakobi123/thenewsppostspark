@@ -887,7 +887,20 @@ function setupCommentPopupListeners() {
             
         } catch (error) {
             console.error('Error posting comment:', error);
-            showNotification('Error posting comment: ' + error.message, 'error');
+            
+            // Provide more specific error messages
+            let errorMessage = 'Error posting comment: ';
+            if (error.message.includes('Reddit account not connected')) {
+                errorMessage = 'Please connect your Reddit account first.';
+            } else if (error.message.includes('token') || error.message.includes('403')) {
+                errorMessage = 'Reddit authentication failed. Please reconnect your Reddit account.';
+            } else if (error.message.includes('Reddit API error')) {
+                errorMessage = 'Reddit API error. Please try again or reconnect your account.';
+            } else {
+                errorMessage += error.message;
+            }
+            
+            showNotification(errorMessage, 'error');
         } finally {
             // Reset button state
             sendBtn.innerHTML = originalText;
@@ -993,6 +1006,28 @@ function setupCommentPopupListeners() {
     if (connectRedditBtn) {
         connectRedditBtn.addEventListener('click', function() {
             connectRedditAccount();
+        });
+    }
+
+    // Test Reddit connection button (if exists)
+    const testRedditBtn = document.getElementById('test-reddit-btn');
+    if (testRedditBtn) {
+        testRedditBtn.addEventListener('click', async function() {
+            try {
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+                btn.disabled = true;
+                
+                await postSparkDB.testRedditConnection();
+                showNotification('Reddit connection is working!', 'success');
+            } catch (error) {
+                console.error('Reddit connection test failed:', error);
+                showNotification('Reddit connection failed. Please reconnect your account.', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
     }
     
