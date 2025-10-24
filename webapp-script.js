@@ -1149,7 +1149,8 @@ function setupCommentPopupListeners() {
                 // Don't show error to user as comment was successful
             }
             
-            showNotification('Comment posted to Reddit successfully!', 'success');
+            // Show enhanced success message
+            showCommentSuccessMessage();
             closeCommentPopup();
             
         } catch (error) {
@@ -2726,20 +2727,39 @@ async function markAsContacted(postId) {
     }
 }
 
-// Load dashboard data
+// Load dashboard data with performance optimization
 async function loadDashboardData() {
     try {
+        console.log('🚀 Loading dashboard data...');
+        const startTime = performance.now();
+        
+        // Show loading state immediately
+        showDashboardLoadingState();
+        
         // Load campaigns to get real data
         const campaigns = await postSparkDB.getCampaigns();
         
-        // Calculate real stats from campaigns
+        if (campaigns.length === 0) {
+            // No campaigns, show empty state
+            updateDashboardStats({ total_posts: 0, contacted_posts: 0, high_potential: 0 });
+            await loadDashboardHighPotentialPosts([]);
+            hideDashboardLoadingState();
+            return;
+        }
+        
+        // Calculate real stats from campaigns with parallel loading
         let totalPosts = 0;
         let contactedPosts = 0;
         let highPotential = 0;
         let allHighPotentialPosts = [];
         
-        for (const campaign of campaigns) {
-            const posts = await postSparkDB.getPosts(campaign.id);
+        // Load all posts in parallel instead of sequentially
+        const postsPromises = campaigns.map(campaign => postSparkDB.getPosts(campaign.id));
+        const allPostsResults = await Promise.all(postsPromises);
+        
+        // Process results
+        allPostsResults.forEach((posts, index) => {
+            const campaign = campaigns[index];
             totalPosts += posts.length;
             contactedPosts += posts.filter(post => post.is_contacted).length;
             const campaignHighPotential = posts.filter(post => post.score >= 85);
@@ -2753,7 +2773,7 @@ async function loadDashboardData() {
                     campaignId: campaign.id
                 });
             });
-        }
+        });
         
         // Update dashboard stats with real data
         console.log('Dashboard data:', { totalPosts, contactedPosts, highPotential });
@@ -2766,8 +2786,15 @@ async function loadDashboardData() {
         // Load high potential posts for dashboard
         await loadDashboardHighPotentialPosts(allHighPotentialPosts);
         
+        // Hide loading state
+        hideDashboardLoadingState();
+        
+        const endTime = performance.now();
+        console.log(`✅ Dashboard loaded in ${(endTime - startTime).toFixed(2)}ms`);
+        
     } catch (error) {
         console.error('Error loading dashboard data:', error);
+        hideDashboardLoadingState();
         // Show empty state if no data
         updateDashboardStats({
             total_posts: 0,
@@ -2873,6 +2900,64 @@ function createDashboardPostCard(post) {
     `;
     
     return card;
+}
+
+// Show dashboard loading state
+function showDashboardLoadingState() {
+    const postsGrid = document.getElementById('dashboard-high-potential-posts');
+    if (postsGrid) {
+        postsGrid.innerHTML = `
+            <div class="dashboard-loading-state">
+                <div class="loading-spinner"></div>
+                <h3>Loading your high potential posts...</h3>
+                <p>Analyzing campaigns and finding the best leads</p>
+            </div>
+        `;
+    }
+}
+
+// Hide dashboard loading state
+function hideDashboardLoadingState() {
+    // Loading state will be replaced by actual content
+    console.log('Dashboard loading state hidden');
+}
+
+// Show enhanced comment success message
+function showCommentSuccessMessage() {
+    // Create success notification with enhanced styling
+    const notification = document.createElement('div');
+    notification.className = 'notification success enhanced';
+    notification.innerHTML = `
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="success-text">
+                <h4>Comment sent successfully!</h4>
+                <p>Your comment has been posted to Reddit and the post has been marked as contacted.</p>
+            </div>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(notification);
+    
+    // Show with animation
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+    
+    console.log('✅ Comment success message shown');
 }
 
 // Update contacted stats across the app
