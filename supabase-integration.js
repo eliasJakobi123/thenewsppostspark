@@ -756,16 +756,35 @@ class PostSparkSupabase {
 
     async postRedditComment(postId, commentText) {
         try {
+            console.log('=== POSTING REDDIT COMMENT ===');
+            console.log('Post ID:', postId);
+            console.log('Comment text:', commentText.substring(0, 50) + '...');
+            
             let tokens = await this.getRedditTokens();
             if (!tokens || !tokens.reddit_access_token) {
                 throw new Error('Reddit account not connected');
             }
+
+            console.log('Reddit tokens found:', {
+                hasAccessToken: !!tokens.reddit_access_token,
+                hasRefreshToken: !!tokens.reddit_refresh_token,
+                expiresAt: tokens.reddit_token_expires
+            });
 
             // Check if token is expired and refresh if needed
             if (tokens.reddit_token_expires && new Date(tokens.reddit_token_expires) <= new Date()) {
                 console.log('Reddit token expired, refreshing...');
                 tokens = await this.refreshRedditToken();
             }
+
+            // Ensure postId has correct format (should start with t3_)
+            if (!postId.startsWith('t3_')) {
+                console.log('Converting post ID format from', postId, 'to t3_ format');
+                postId = `t3_${postId}`;
+            }
+
+            console.log('Final post ID:', postId);
+            console.log('Making request to:', `${REDDIT_CONFIG.API_BASE}/api/comment`);
 
             const response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/comment`, {
                 method: 'POST',
@@ -779,12 +798,27 @@ class PostSparkSupabase {
                 })
             });
 
+            console.log('Reddit API response status:', response.status);
+            console.log('Reddit API response headers:', Object.fromEntries(response.headers.entries()));
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to post comment');
+                const errorText = await response.text();
+                console.error('Reddit API error response:', errorText);
+                
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    // Use the text response as error message
+                    errorMessage = errorText || errorMessage;
+                }
+                
+                throw new Error(errorMessage);
             }
 
             const result = await response.json();
+            console.log('Reddit comment posted successfully:', result);
             return result;
         } catch (error) {
             console.error('Error posting Reddit comment:', error);
