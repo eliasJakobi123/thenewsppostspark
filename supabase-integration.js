@@ -754,11 +754,47 @@ class PostSparkSupabase {
         }
     }
 
+    async testRedditConnection() {
+        try {
+            console.log('=== TESTING REDDIT CONNECTION ===');
+            let tokens = await this.getRedditTokens();
+            if (!tokens || !tokens.reddit_access_token) {
+                throw new Error('Reddit account not connected');
+            }
+
+            // Test with a simple API call to verify token works
+            const response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${tokens.reddit_access_token}`
+                }
+            });
+
+            console.log('Reddit user info response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Reddit user info error:', errorText);
+                throw new Error(`Reddit token invalid: ${response.status}`);
+            }
+
+            const userInfo = await response.json();
+            console.log('Reddit user info:', userInfo);
+            return userInfo;
+        } catch (error) {
+            console.error('Error testing Reddit connection:', error);
+            throw error;
+        }
+    }
+
     async postRedditComment(postId, commentText) {
         try {
             console.log('=== POSTING REDDIT COMMENT ===');
             console.log('Post ID:', postId);
             console.log('Comment text:', commentText.substring(0, 50) + '...');
+            
+            // First test the Reddit connection
+            await this.testRedditConnection();
             
             let tokens = await this.getRedditTokens();
             if (!tokens || !tokens.reddit_access_token) {
