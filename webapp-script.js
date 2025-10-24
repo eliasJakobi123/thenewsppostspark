@@ -48,12 +48,16 @@ async function processStoredRedditCode() {
         hasCode: !!code, 
         hasState: !!state, 
         hasPostSparkDB: !!postSparkDB, 
-        hasUser: !!(postSparkDB && postSparkDB.user) 
+        hasUser: !!(postSparkDB && postSparkDB.user),
+        userId: postSparkDB?.user?.id
     });
     
     if (code && state && postSparkDB && postSparkDB.user) {
         try {
             console.log('Processing stored Reddit OAuth code...');
+            console.log('Code:', code.substring(0, 10) + '...');
+            console.log('State:', state);
+            
             const result = await postSparkDB.handleRedditCallback(code, state);
             
             console.log('Reddit callback result:', result);
@@ -64,6 +68,12 @@ async function processStoredRedditCode() {
                 // Clear stored data
                 sessionStorage.removeItem('reddit_auth_code');
                 sessionStorage.removeItem('reddit_auth_state');
+                
+                // Refresh the connection status
+                setTimeout(async () => {
+                    console.log('Refreshing Reddit connection status...');
+                    await updateRedditConnectionStatus();
+                }, 1000);
                 
                 // Navigate to return URL if available
                 if (result.returnUrl) {
@@ -83,7 +93,54 @@ async function processStoredRedditCode() {
             showNotification('Error connecting Reddit account: ' + error.message, 'error');
         }
     } else {
-        console.log('No stored Reddit code or user not ready');
+        console.log('No stored Reddit code or user not ready:', {
+            hasCode: !!code,
+            hasState: !!state,
+            hasPostSparkDB: !!postSparkDB,
+            hasUser: !!(postSparkDB && postSparkDB.user)
+        });
+    }
+}
+
+// Update Reddit connection status in the UI
+async function updateRedditConnectionStatus() {
+    try {
+        console.log('Updating Reddit connection status...');
+        const isConnected = await postSparkDB.isRedditConnected();
+        console.log('Reddit connection status update result:', isConnected);
+        
+        // Update UI elements - try both ID and class selectors
+        const statusElement = document.getElementById('reddit-status-text') || document.querySelector('.reddit-status');
+        const connectBtn = document.getElementById('connect-reddit-btn') || document.querySelector('.reddit-connect-btn');
+        const sendBtn = document.getElementById('send-comment') || document.querySelector('.send-comment-btn');
+        const connectionInfo = document.querySelector('.connection-info');
+        
+        console.log('UI elements found:', {
+            statusElement: !!statusElement,
+            connectBtn: !!connectBtn,
+            sendBtn: !!sendBtn,
+            connectionInfo: !!connectionInfo
+        });
+        
+        if (statusElement && connectBtn && sendBtn && connectionInfo) {
+            if (isConnected) {
+                statusElement.textContent = 'Reddit account connected';
+                connectionInfo.classList.add('connected');
+                connectionInfo.classList.remove('error');
+                connectBtn.style.display = 'none';
+                sendBtn.disabled = false;
+            } else {
+                statusElement.textContent = 'Reddit account not connected';
+                connectionInfo.classList.add('error');
+                connectionInfo.classList.remove('connected');
+                connectBtn.style.display = 'block';
+                sendBtn.disabled = true;
+            }
+        } else {
+            console.warn('Some UI elements not found for Reddit connection status update');
+        }
+    } catch (error) {
+        console.error('Error updating Reddit connection status:', error);
     }
 }
 
@@ -2574,36 +2631,24 @@ async function logout() {
 
 // Check Reddit connection status
 async function checkRedditConnection() {
-    const statusElement = document.getElementById('reddit-status-text');
-    const connectBtn = document.getElementById('connect-reddit-btn');
-    const sendBtn = document.getElementById('send-comment');
-    const connectionInfo = document.querySelector('.connection-info');
-    
     try {
         console.log('Checking Reddit connection...');
-        const isConnected = await postSparkDB.isRedditConnected();
-        console.log('Reddit connection result:', isConnected);
+        await updateRedditConnectionStatus();
+    } catch (error) {
+        console.error('Error checking Reddit connection:', error);
+        // Fallback to manual status update
+        const statusElement = document.getElementById('reddit-status-text');
+        const connectBtn = document.getElementById('connect-reddit-btn');
+        const sendBtn = document.getElementById('send-comment');
+        const connectionInfo = document.querySelector('.connection-info');
         
-        if (isConnected) {
-            statusElement.textContent = 'Reddit account connected';
-            connectionInfo.classList.add('connected');
-            connectionInfo.classList.remove('error');
-            connectBtn.style.display = 'none';
-            sendBtn.disabled = false;
-        } else {
-            statusElement.textContent = 'Reddit account not connected';
+        if (statusElement && connectBtn && sendBtn && connectionInfo) {
+            statusElement.textContent = 'Error checking connection';
             connectionInfo.classList.add('error');
             connectionInfo.classList.remove('connected');
             connectBtn.style.display = 'block';
             sendBtn.disabled = true;
         }
-    } catch (error) {
-        console.error('Error checking Reddit connection:', error);
-        statusElement.textContent = 'Error checking connection';
-        connectionInfo.classList.add('error');
-        connectionInfo.classList.remove('connected');
-        connectBtn.style.display = 'block';
-        sendBtn.disabled = true;
     }
 }
 

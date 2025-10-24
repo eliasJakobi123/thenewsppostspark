@@ -612,6 +612,10 @@ class PostSparkSupabase {
                 expiresIn: tokens.expires_in 
             });
             
+            if (!this.user || !this.user.id) {
+                throw new Error('No user found for storing Reddit tokens');
+            }
+            
             const updateData = {
                 reddit_access_token: tokens.access_token,
                 reddit_refresh_token: tokens.refresh_token,
@@ -632,6 +636,16 @@ class PostSparkSupabase {
             }
             
             console.log('Reddit tokens stored successfully:', data);
+            
+            // Verify the tokens were actually stored
+            const verification = await this.getRedditTokens();
+            console.log('Token verification after storage:', {
+                hasTokens: !!verification,
+                hasAccessToken: !!(verification && verification.reddit_access_token),
+                hasRefreshToken: !!(verification && verification.reddit_refresh_token)
+            });
+            
+            return data;
         } catch (error) {
             console.error('Error storing Reddit tokens:', error);
             throw error;
@@ -679,18 +693,28 @@ class PostSparkSupabase {
     async isRedditConnected() {
         try {
             console.log('Checking Reddit connection for user:', this.user?.id);
+            
+            if (!this.user || !this.user.id) {
+                console.log('No user found for Reddit connection check');
+                return false;
+            }
+            
             const tokens = await this.getRedditTokens();
             const isConnected = tokens && tokens.reddit_access_token;
+            
             console.log('Reddit connection check result:', { 
                 hasTokens: !!tokens, 
                 hasAccessToken: !!(tokens && tokens.reddit_access_token),
                 isConnected,
+                userId: this.user.id,
                 tokens: tokens ? {
                     hasAccessToken: !!tokens.reddit_access_token,
                     hasRefreshToken: !!tokens.reddit_refresh_token,
-                    hasExpires: !!tokens.reddit_token_expires
+                    hasExpires: !!tokens.reddit_token_expires,
+                    expiresAt: tokens.reddit_token_expires
                 } : null
             });
+            
             return isConnected;
         } catch (error) {
             console.error('Error checking Reddit connection:', error);
