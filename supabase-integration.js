@@ -177,7 +177,7 @@ class PostSparkSupabase {
         if (!this.user) throw new Error('User not authenticated');
 
         try {
-            // Check if post already exists to avoid duplicates
+            // Check if post already exists in this specific campaign
             const { data: existingPost } = await supabaseClient
                 .from(TABLES.POSTS)
                 .select('id')
@@ -186,8 +186,21 @@ class PostSparkSupabase {
                 .single();
 
             if (existingPost) {
-                console.log(`Post ${postData.reddit_id} already exists, skipping`);
+                console.log(`Post ${postData.reddit_id} already exists in this campaign, skipping`);
                 return existingPost;
+            }
+
+            // Check if post exists in database but in a different campaign
+            const { data: existingPostInDB } = await supabaseClient
+                .from(TABLES.POSTS)
+                .select('id, campaign_id')
+                .eq('reddit_id', postData.reddit_id)
+                .neq('campaign_id', campaignId)
+                .single();
+
+            if (existingPostInDB) {
+                console.log(`Post ${postData.reddit_id} exists in another campaign, creating new entry for this campaign`);
+                // We'll create a new entry for this campaign with the same post data
             }
 
             const { data, error } = await supabaseClient

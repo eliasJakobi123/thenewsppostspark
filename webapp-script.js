@@ -789,70 +789,22 @@ async function refreshCampaignPosts(campaignId) {
         console.log('📊 Found posts from findRedditLeads:', newPosts.length);
         
         if (newPosts.length > 0) {
-            // Get existing posts to avoid duplicates
-            const existingPosts = await postSparkDB.getPosts(campaignId);
-            const existingIds = new Set(existingPosts.map(p => p.reddit_post_id || p.reddit_id));
+            console.log(`📝 Found ${newPosts.length} new posts for campaign ${campaignId}`);
             
-            // Filter out duplicates
-            const uniqueNewPosts = newPosts.filter(post => {
-                const postId = post.reddit_post_id || post.reddit_id;
-                return !existingIds.has(postId);
-            });
+            // The findRedditLeads method already handles duplicate checking
+            // So we can directly reload the campaign posts to show the new ones
+            console.log('🔄 Reloading campaign posts to show new ones...');
+            await showCampaignPosts(campaignId);
             
-            if (uniqueNewPosts.length > 0) {
-                // Add new posts to the campaign using direct Supabase insertion
-                try {
-                    console.log(`📝 Adding ${uniqueNewPosts.length} new posts to campaign ${campaignId}...`);
-                    
-                    // Insert all posts in a single batch operation for better performance
-                    const postsToInsert = uniqueNewPosts.map(post => ({
-                        campaign_id: campaignId,
-                        title: post.title,
-                        content: post.content,
-                        subreddit: post.subreddit,
-                        reddit_id: post.reddit_id,
-                        reddit_post_id: post.reddit_post_id,
-                        url: post.url,
-                        score: post.score || 0,
-                        created_at: post.created_at || new Date().toISOString(),
-                        is_contacted: false
-                    }));
-                    
-                    console.log('📦 Batch inserting posts:', postsToInsert.length, 'posts');
-                    
-                    const { error } = await postSparkDB.supabase
-                        .from('posts')
-                        .insert(postsToInsert);
-                    
-                    if (error) {
-                        console.error('❌ Error batch inserting posts:', error);
-                        throw error;
-                    } else {
-                        console.log('✅ Successfully batch inserted all posts to campaign');
-                    }
-                    
-                    // Force reload the campaign posts to show new ones at the top
-                    console.log('🔄 Reloading campaign posts after adding new ones...');
-                    await showCampaignPosts(campaignId);
-                    
-                    // Update campaign stats
-                    await loadCampaigns();
-                    
-                    showNotification(`Found ${uniqueNewPosts.length} new posts!`, 'success');
-                } catch (error) {
-                    console.error('Error adding posts to campaign:', error);
-                    showNotification('Error adding posts to campaign: ' + error.message, 'error');
-                    // Reload current posts on error
-                    await showCampaignPosts(campaignId);
-                }
-            } else {
-                showNotification('No new posts found. Try different keywords or subreddits.', 'info');
-                // Reload current posts
-                await showCampaignPosts(campaignId);
-            }
+            // Update campaign stats
+            await loadCampaigns();
+            
+            showNotification(`Found ${newPosts.length} new posts!`, 'success');
         } else {
-            showNotification('No new posts found. Try different keywords or subreddits.', 'info');
-            // Reload current posts
+            console.log('No new posts found');
+            showNotification('No new posts found', 'info');
+            
+            // Still reload to show current posts
             await showCampaignPosts(campaignId);
         }
         
