@@ -2641,6 +2641,7 @@ async function openCommentForPost(postId) {
     
     // Use the actual Reddit post ID instead of database ID
     if (actualRedditPostId) {
+        console.log('Using Reddit post ID for commenting:', actualRedditPostId);
         await writeComment(actualRedditPostId, postData.subreddit, postData.title, postData.content, postData.created_at, actualRedditPostId);
     } else {
         console.error('No Reddit post ID found for commenting');

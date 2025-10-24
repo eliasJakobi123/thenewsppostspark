@@ -244,10 +244,19 @@ class PostSparkSupabase {
             if (error) throw error;
             
             // Ensure each post has a reddit_post_id for commenting
-            const posts = (data || []).map(post => ({
-                ...post,
-                reddit_post_id: post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : null)
-            }));
+            const posts = (data || []).map(post => {
+                const redditPostId = post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : null);
+                console.log('Post Reddit ID mapping:', {
+                    id: post.id,
+                    reddit_id: post.reddit_id,
+                    reddit_post_id: redditPostId,
+                    title: post.title?.substring(0, 50) + '...'
+                });
+                return {
+                    ...post,
+                    reddit_post_id: redditPostId
+                };
+            });
             
             return posts;
         } catch (error) {
