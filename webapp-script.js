@@ -944,7 +944,7 @@ function addPostActionListeners() {
 }
 
 // Show comment popup
-function showCommentPopup(postCard) {
+async function showCommentPopup(postCard) {
     const popup = document.getElementById('comment-popup');
     const postPreview = document.getElementById('post-preview');
     
