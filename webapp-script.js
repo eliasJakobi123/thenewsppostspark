@@ -286,11 +286,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Initialize the application
 async function initializeApp() {
     try {
+        console.log('🚀 Initializing PostSpark application...');
+        
         // Load campaigns from Supabase
         await loadCampaigns();
         
-        // Load dashboard data
-        await loadDashboardData();
+        // Preload dashboard data immediately after login
+        await preloadDashboardData();
         
         // Update user info in sidebar
         updateUserInfo();
@@ -304,6 +306,8 @@ async function initializeApp() {
         initializeSettings();
         initializeAnimations();
         initializeRippleEffects();
+        
+        console.log('✅ PostSpark application initialized successfully');
         
     } catch (error) {
         console.error('Error initializing app:', error);
@@ -2756,13 +2760,114 @@ async function markAsContacted(postId) {
     }
 }
 
-// Load dashboard data with performance optimization
+// Preload dashboard data immediately after login
+async function preloadDashboardData() {
+    try {
+        console.log('🔄 Preloading dashboard data...');
+        const startTime = performance.now();
+        
+        // Load campaigns to get real data
+        const campaigns = await postSparkDB.getCampaigns();
+        
+        if (campaigns.length === 0) {
+            // No campaigns, cache empty state
+            window.dashboardCache = {
+                totalPosts: 0,
+                contactedPosts: 0,
+                highPotential: 0,
+                highPotentialPosts: [],
+                lastUpdated: new Date().toISOString()
+            };
+            console.log('📊 Dashboard cache initialized (empty)');
+            return;
+        }
+        
+        // Calculate real stats from campaigns with parallel loading
+        let totalPosts = 0;
+        let contactedPosts = 0;
+        let highPotential = 0;
+        let allHighPotentialPosts = [];
+        
+        // Load all posts in parallel instead of sequentially
+        const postsPromises = campaigns.map(campaign => postSparkDB.getPosts(campaign.id));
+        const allPostsResults = await Promise.all(postsPromises);
+        
+        // Process results
+        allPostsResults.forEach((posts, index) => {
+            const campaign = campaigns[index];
+            totalPosts += posts.length;
+            contactedPosts += posts.filter(post => post.is_contacted).length;
+            const campaignHighPotential = posts.filter(post => post.score >= 85);
+            highPotential += campaignHighPotential.length;
+            
+            // Add campaign info to high potential posts
+            campaignHighPotential.forEach(post => {
+                allHighPotentialPosts.push({
+                    ...post,
+                    campaignName: campaign.name,
+                    campaignId: campaign.id
+                });
+            });
+        });
+        
+        // Cache dashboard data
+        window.dashboardCache = {
+            totalPosts,
+            contactedPosts,
+            highPotential,
+            highPotentialPosts: allHighPotentialPosts.sort((a, b) => b.score - a.score).slice(0, 6),
+            lastUpdated: new Date().toISOString()
+        };
+        
+        const endTime = performance.now();
+        console.log(`✅ Dashboard data preloaded in ${(endTime - startTime).toFixed(2)}ms`);
+        console.log('📊 Cached data:', window.dashboardCache);
+        
+    } catch (error) {
+        console.error('Error preloading dashboard data:', error);
+        // Initialize empty cache on error
+        window.dashboardCache = {
+            totalPosts: 0,
+            contactedPosts: 0,
+            highPotential: 0,
+            highPotentialPosts: [],
+            lastUpdated: new Date().toISOString()
+        };
+    }
+}
+
+// Load dashboard data with cache optimization
 async function loadDashboardData() {
     try {
         console.log('🚀 Loading dashboard data...');
         const startTime = performance.now();
         
-        // Show loading state immediately
+        // Check if we have cached data
+        if (window.dashboardCache && window.dashboardCache.lastUpdated) {
+            const cacheAge = Date.now() - new Date(window.dashboardCache.lastUpdated).getTime();
+            const maxCacheAge = 5 * 60 * 1000; // 5 minutes
+            
+            if (cacheAge < maxCacheAge) {
+                console.log('📊 Using cached dashboard data (age:', Math.round(cacheAge / 1000), 'seconds)');
+                
+                // Use cached data
+                updateDashboardStats({
+                    total_posts: window.dashboardCache.totalPosts,
+                    contacted_posts: window.dashboardCache.contactedPosts,
+                    high_potential: window.dashboardCache.highPotential
+                });
+                
+                await loadDashboardHighPotentialPosts(window.dashboardCache.highPotentialPosts);
+                
+                const endTime = performance.now();
+                console.log(`✅ Dashboard loaded from cache in ${(endTime - startTime).toFixed(2)}ms`);
+                return;
+            } else {
+                console.log('📊 Cache expired, refreshing data...');
+            }
+        }
+        
+        // Show loading state for fresh data
         showDashboardLoadingState();
         
         // Load campaigns to get real data
@@ -2803,6 +2908,15 @@ async function loadDashboardData() {
                 });
             });
         });
+        
+        // Update cache
+        window.dashboardCache = {
+            totalPosts,
+            contactedPosts,
+            highPotential,
+            highPotentialPosts: allHighPotentialPosts.sort((a, b) => b.score - a.score).slice(0, 6),
+            lastUpdated: new Date().toISOString()
+        };
         
         // Update dashboard stats with real data
         console.log('Dashboard data:', { totalPosts, contactedPosts, highPotential });
@@ -2993,6 +3107,12 @@ function showCommentSuccessMessage() {
 async function updateContactedStats() {
     try {
         console.log('Updating contacted stats...');
+        
+        // Invalidate dashboard cache when stats change
+        if (window.dashboardCache) {
+            window.dashboardCache.lastUpdated = null;
+            console.log('📊 Dashboard cache invalidated due to stats change');
+        }
         
         // Get all campaigns and calculate stats
         const campaigns = await postSparkDB.getCampaigns();
