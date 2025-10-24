@@ -892,12 +892,25 @@ function setupCommentPopupListeners() {
                 } else if (post && post.reddit_id) {
                     redditPostId = `t3_${post.reddit_id}`;
                     console.log('Constructed Reddit post ID from reddit_id:', redditPostId);
+                } else if (post && post.url) {
+                    // Try to extract Reddit post ID from URL
+                    const url = post.url;
+                    const match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
+                    if (match) {
+                        redditPostId = `t3_${match[1]}`;
+                        console.log('Extracted Reddit post ID from URL:', redditPostId);
+                    } else {
+                        // Try to extract from title or other fields
+                        console.log('Post data:', post);
+                        throw new Error('No Reddit post ID found for this post. Please ensure the post has a valid Reddit URL or reddit_id.');
+                    }
                 } else {
-                    throw new Error('No Reddit post ID found for this post');
+                    console.log('Post data:', post);
+                    throw new Error('No Reddit post ID found for this post. Please ensure the post has a valid Reddit URL or reddit_id.');
                 }
             } catch (error) {
                 console.error('Error getting Reddit post ID:', error);
-                showNotification('Error: Could not find Reddit post ID. Please try again.', 'error');
+                showNotification('Error: Could not find Reddit post ID. Please ensure the post has a valid Reddit URL.', 'error');
                 return;
             }
 
