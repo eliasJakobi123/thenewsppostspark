@@ -1093,6 +1093,13 @@ function setupCommentPopupListeners() {
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             
+            // Ensure close button remains clickable during loading
+            const closeBtn = document.getElementById('popup-close');
+            if (closeBtn) {
+                closeBtn.disabled = false;
+                closeBtn.style.pointerEvents = 'auto';
+            }
+            
             // Extract Reddit post ID from multiple sources with comprehensive fallbacks
             let redditPostId = null;
             try {
@@ -1182,9 +1189,14 @@ function setupCommentPopupListeners() {
                 // Don't show error to user as comment was successful
             }
             
-            // Show enhanced success message
-            showCommentSuccessMessage();
-            closeCommentPopup();
+                    // Show enhanced success message
+                    showCommentSuccessMessage();
+                    
+                    // Reset button state
+                    sendBtn.innerHTML = originalText;
+                    sendBtn.disabled = false;
+                    
+                    closeCommentPopup();
             
         } catch (error) {
             console.error('Error posting comment:', error);
@@ -3028,14 +3040,11 @@ function createDashboardPostCard(post) {
         <div class="post-content">
             <p>${post.content || 'No content available'}</p>
         </div>
-        <div class="post-actions">
-            <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit || 'unknown'}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}', '${post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : '')}')">
-                <i class="fas fa-comment"></i> Comment
-            </button>
-            <button class="btn btn-secondary" onclick="showCampaignPosts('${post.campaignId}')">
-                <i class="fas fa-eye"></i> Show in Campaign
-            </button>
-        </div>
+                <div class="post-actions">
+                    <button class="btn btn-secondary" onclick="showCampaignPosts('${post.campaignId}')">
+                        <i class="fas fa-eye"></i> Show in Campaign
+                    </button>
+                </div>
         <div class="post-footer">
             <span class="campaign-info">From: ${post.campaignName || 'Unknown Campaign'}</span>
             <span class="post-time">${timeAgo}</span>
@@ -3730,12 +3739,15 @@ async function updateRedditSettingsStatus() {
         const connectionDate = document.getElementById('reddit-connection-date');
         const permissions = document.getElementById('reddit-permissions');
         
-        // Check if Reddit is connected
+        // Check if Reddit is connected - use proper API check
+        const isConnected = await postSparkDB.isRedditConnected();
         const redditToken = localStorage.getItem('reddit_access_token');
         const redditUser = localStorage.getItem('reddit_user_info');
         const connectionDateStored = localStorage.getItem('reddit_connection_date');
         
-        if (redditToken && redditUser) {
+        console.log('Settings Reddit status check:', { isConnected, redditToken: !!redditToken, redditUser: !!redditUser });
+        
+        if (isConnected && redditToken && redditUser) {
             // Connected state
             statusDot.className = 'status-dot connected';
             statusText.textContent = 'Reddit account connected';
@@ -4581,7 +4593,6 @@ async function generateAIResponseWithLoading() {
     
     try {
         // Add loading state
-        generateBtn.classList.add('btn-ai-generate', 'loading');
         generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
         generateBtn.disabled = true;
         
@@ -4593,7 +4604,6 @@ async function generateAIResponseWithLoading() {
         showNotification('Error generating response: ' + error.message, 'error');
     } finally {
         // Remove loading state
-        generateBtn.classList.remove('btn-ai-generate', 'loading');
         generateBtn.innerHTML = originalText;
         generateBtn.disabled = false;
     }

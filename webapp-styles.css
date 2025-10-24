@@ -724,17 +724,24 @@ body {
 
 /* Reddit Connection Status in Comment Popup */
 .reddit-connection-status {
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 69, 0, 0.05));
-    border: 1px solid rgba(255, 107, 53, 0.2);
-    border-radius: 16px;
-    padding: 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(255, 69, 0, 0.03));
+    border: 1px solid rgba(255, 107, 53, 0.15);
+    border-radius: 12px;
+    padding: 1rem;
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.1);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 12px rgba(255, 107, 53, 0.08);
+    transition: all 0.3s ease;
+}
+
+.reddit-connection-status:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.12), rgba(255, 69, 0, 0.06));
+    border-color: rgba(255, 107, 53, 0.25);
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.12);
 }
 
 .reddit-connection-info {
@@ -749,12 +756,19 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 69, 0, 0.1));
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 69, 0, 0.08));
     border-radius: 50%;
-    border: 2px solid rgba(255, 107, 53, 0.3);
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.1);
+    transition: all 0.3s ease;
+}
+
+.reddit-status-indicator:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 69, 0, 0.12));
+    border-color: rgba(255, 107, 53, 0.3);
+    box-shadow: 0 3px 12px rgba(255, 107, 53, 0.15);
 }
 
 .reddit-status-indicator .status-dot {
@@ -780,8 +794,14 @@ body {
 }
 
 .reddit-status-indicator i {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     color: #ff6b35;
+    text-shadow: 0 1px 2px rgba(255, 107, 53, 0.2);
+    transition: all 0.3s ease;
+}
+
+.reddit-status-indicator:hover i {
+    color: #ff8c42;
     text-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
 }
 
