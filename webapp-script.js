@@ -795,7 +795,11 @@ async function refreshCampaignPosts(campaignId) {
             if (uniqueNewPosts.length > 0) {
                 // Add new posts to the campaign using direct Supabase insertion
                 try {
+                    console.log(`📝 Adding ${uniqueNewPosts.length} new posts to campaign ${campaignId}...`);
+                    
                     for (const post of uniqueNewPosts) {
+                        console.log('Adding post:', post.title);
+                        
                         const { error } = await postSparkDB.supabase
                             .from('posts')
                             .insert({
@@ -813,11 +817,19 @@ async function refreshCampaignPosts(campaignId) {
                         
                         if (error) {
                             console.error('Error adding post to campaign:', error);
+                        } else {
+                            console.log('✅ Successfully added post to campaign');
                         }
                     }
                     
-                    // Reload the campaign posts to show new ones at the top
+                    console.log('✅ All posts added to campaign successfully');
+                    
+                    // Force reload the campaign posts to show new ones at the top
+                    console.log('🔄 Reloading campaign posts after adding new ones...');
                     await showCampaignPosts(campaignId);
+                    
+                    // Update campaign stats
+                    await loadCampaigns();
                     
                     showNotification(`Found ${uniqueNewPosts.length} new posts!`, 'success');
                 } catch (error) {
@@ -867,6 +879,9 @@ async function showCampaignPosts(campaignId) {
         console.log('Loading posts for campaign:', campaignId);
         const posts = await postSparkDB.getPosts(campaignId);
         console.log('Loaded posts:', posts.length, posts);
+        
+        // Sort posts by creation date (newest first)
+        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         // Calculate stats
         const totalPosts = posts.length;
