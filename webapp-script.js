@@ -1246,6 +1246,11 @@ function setupCommentPopupListeners() {
             return;
         }
         
+        // Show loading state
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        sendBtn.disabled = true;
+        sendBtn.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
+        
         // Store original button text outside try-catch
         const originalText = sendBtn.innerHTML;
         
@@ -1374,6 +1379,9 @@ function setupCommentPopupListeners() {
             sendBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
             sendBtn.style.color = '#ffffff';
             
+            // Show success notification
+            showNotification('Comment posted successfully!', 'success');
+            
             // Auto-mark post as contacted after successful comment
             try {
                 let postId = null;
@@ -1423,6 +1431,12 @@ function setupCommentPopupListeners() {
             
         } catch (error) {
             console.error('Error posting comment:', error);
+            
+            // Reset button state on error
+            sendBtn.innerHTML = originalText;
+            sendBtn.disabled = false;
+            sendBtn.style.background = '';
+            sendBtn.style.color = '';
             
             // Provide more specific error messages
             let errorMessage = 'Error posting comment: ';
