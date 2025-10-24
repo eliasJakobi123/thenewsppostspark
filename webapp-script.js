@@ -903,9 +903,14 @@ function setupCommentPopupListeners() {
             const postPreview = document.getElementById('post-preview');
             console.log('Post preview element:', postPreview);
             
-            // Try to get Reddit post ID from currentPostData first
+            // Try to get Reddit post ID from multiple sources
             let postId = null;
-            if (currentPostData && currentPostData.reddit_post_id) {
+            
+            // First, try to get from the actualRedditPostId parameter passed to writeComment
+            if (window.currentRedditPostId) {
+                postId = window.currentRedditPostId;
+                console.log('Found Reddit post ID from window.currentRedditPostId:', postId);
+            } else if (currentPostData && currentPostData.reddit_post_id) {
                 postId = currentPostData.reddit_post_id;
                 console.log('Found Reddit post ID in currentPostData:', postId);
             } else if (currentPostData && currentPostData.reddit_id) {
@@ -918,7 +923,7 @@ function setupCommentPopupListeners() {
             }
             
             if (!postId) {
-                console.error('No Reddit post ID found in currentPostData or element attribute');
+                console.error('No Reddit post ID found in any source');
                 showNotification('Post ID not found - please try again', 'error');
                 return;
             }
@@ -2906,6 +2911,9 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         // Store Reddit post ID for commenting
         if (redditPostId) {
             postPreview.setAttribute('data-reddit-id', redditPostId);
+            // Also store in window for easy access
+            window.currentRedditPostId = redditPostId;
+            console.log('Stored Reddit post ID in window.currentRedditPostId:', redditPostId);
         }
         
         // Show popup
