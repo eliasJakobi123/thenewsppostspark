@@ -108,7 +108,9 @@ class PostSparkSupabase {
 
         try {
             // Use Edge Function instead of direct Supabase call
-            const response = await fetch(`${SUPABASE_URL}/functions/v1/campaigns`, {
+            const edgeFunctionUrl = `${SUPABASE_URL}/functions/v1/campaigns`;
+            console.log('Calling Edge Function:', edgeFunctionUrl);
+            const response = await fetch(edgeFunctionUrl, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${this.user.access_token}`,
@@ -243,7 +245,9 @@ class PostSparkSupabase {
 
         try {
             // Use Edge Function instead of direct Supabase call
-            const response = await fetch(`${SUPABASE_URL}/functions/v1/posts?campaign_id=${campaignId}`, {
+            const edgeFunctionUrl = `${SUPABASE_URL}/functions/v1/posts?campaign_id=${campaignId}`;
+            console.log('Calling Edge Function:', edgeFunctionUrl);
+            const response = await fetch(edgeFunctionUrl, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${this.user.access_token}`,
