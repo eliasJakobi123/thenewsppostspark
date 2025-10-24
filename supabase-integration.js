@@ -107,25 +107,24 @@ class PostSparkSupabase {
         if (!this.user) throw new Error('User not authenticated');
 
         try {
-            const { data, error } = await supabaseClient
-                .from(TABLES.CAMPAIGNS)
-                .select('*')
-                .eq('user_id', this.user.id)
-                .order('created_at', { ascending: false });
+            // Use Edge Function instead of direct Supabase call
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/campaigns`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.user.access_token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-            if (error) throw error;
-            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
             this.campaigns = data || [];
             return this.campaigns;
         } catch (error) {
             console.error('Error fetching campaigns:', error);
-            
-            // Check for CORS error
-            if (error.message && error.message.includes('Access-Control-Allow-Origin')) {
-                console.error('CORS Error: Supabase origin not allowed. Please add your domain to Supabase CORS settings.');
-                throw new Error('CORS Error: Please add your domain to Supabase CORS settings in the dashboard.');
-            }
-            
             throw error;
         }
     }
@@ -242,30 +241,21 @@ class PostSparkSupabase {
         if (!this.user) throw new Error('User not authenticated');
 
         try {
-            const { data, error } = await supabaseClient
-                .from(TABLES.POSTS)
-                .select('*')
-                .eq('campaign_id', campaignId)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            
-            // Ensure each post has a reddit_post_id for commenting
-            const posts = (data || []).map(post => {
-                const redditPostId = post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : null);
-                console.log('Post Reddit ID mapping:', {
-                    id: post.id,
-                    reddit_id: post.reddit_id,
-                    reddit_post_id: redditPostId,
-                    title: post.title?.substring(0, 50) + '...'
-                });
-                return {
-                    ...post,
-                    reddit_post_id: redditPostId
-                };
+            // Use Edge Function instead of direct Supabase call
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/posts?campaign_id=${campaignId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.user.access_token}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            
-            return posts;
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data || [];
         } catch (error) {
             console.error('Error fetching posts:', error);
             throw error;
