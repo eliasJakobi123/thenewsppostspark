@@ -879,8 +879,30 @@ function setupCommentPopupListeners() {
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             
-            // Post comment to Reddit
-            await postSparkDB.postRedditComment(postId, comment);
+            // Get the actual Reddit post ID from the database
+            let redditPostId = null;
+            try {
+                // First try to get the post data from the database
+                const posts = await postSparkDB.getPosts(window.currentCampaignId);
+                const post = posts.find(p => p.id === postId);
+                
+                if (post && post.reddit_post_id) {
+                    redditPostId = post.reddit_post_id;
+                    console.log('Found Reddit post ID in database:', redditPostId);
+                } else if (post && post.reddit_id) {
+                    redditPostId = `t3_${post.reddit_id}`;
+                    console.log('Constructed Reddit post ID from reddit_id:', redditPostId);
+                } else {
+                    throw new Error('No Reddit post ID found for this post');
+                }
+            } catch (error) {
+                console.error('Error getting Reddit post ID:', error);
+                showNotification('Error: Could not find Reddit post ID. Please try again.', 'error');
+                return;
+            }
+
+            // Post comment to Reddit using the correct Reddit post ID
+            await postSparkDB.postRedditComment(redditPostId, comment);
             
             showNotification('Comment posted to Reddit successfully!', 'success');
             closeCommentPopup();
