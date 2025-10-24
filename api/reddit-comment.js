@@ -33,7 +33,8 @@ export default async function handler(req, res) {
         const testResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${accessToken}`
+                'Authorization': `Bearer ${accessToken}`,
+                'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
             }
         });
 
@@ -81,7 +82,8 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
             },
             body: new URLSearchParams({
                 thing_id: postId,

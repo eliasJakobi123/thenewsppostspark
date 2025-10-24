@@ -741,7 +741,8 @@ class PostSparkSupabase {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': 'Basic ' + btoa(`${REDDIT_CONFIG.CLIENT_ID}:${REDDIT_CONFIG.CLIENT_SECRET}`)
+                    'Authorization': 'Basic ' + btoa(`${REDDIT_CONFIG.CLIENT_ID}:${REDDIT_CONFIG.CLIENT_SECRET}`),
+                    'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
                 },
                 body: new URLSearchParams({
                     grant_type: 'refresh_token',
@@ -786,7 +787,8 @@ class PostSparkSupabase {
             const response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/me`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${tokens.reddit_access_token}`
+                    'Authorization': `Bearer ${tokens.reddit_access_token}`,
+                    'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
                 }
             });
 
@@ -857,7 +859,8 @@ class PostSparkSupabase {
                 const scopeTestResponse = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/me`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${tokens.reddit_access_token}`
+                        'Authorization': `Bearer ${tokens.reddit_access_token}`,
+                        'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
                     }
                 });
                 
