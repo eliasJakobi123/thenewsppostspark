@@ -850,8 +850,27 @@ class PostSparkSupabase {
                 }
             }
 
-            // Skip scope validation for now to avoid CORS issues
-            console.log('Skipping scope validation due to CORS restrictions...');
+            // Check if token has required scopes by testing a comment-related endpoint
+            console.log('Checking if token has required scopes for commenting...');
+            try {
+                // Test if we can access comment-related functionality
+                const scopeTestResponse = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${tokens.reddit_access_token}`
+                    }
+                });
+                
+                if (!scopeTestResponse.ok) {
+                    throw new Error('Token scope test failed');
+                }
+                
+                const userData = await scopeTestResponse.json();
+                console.log('Token scope test passed, user data:', userData.name);
+            } catch (scopeError) {
+                console.error('Scope validation failed:', scopeError);
+                throw new Error('Reddit token scope validation failed. Please reconnect your Reddit account to grant comment permissions.');
+            }
 
             // Ensure postId has correct format (should start with t3_)
             if (!postId.startsWith('t3_')) {

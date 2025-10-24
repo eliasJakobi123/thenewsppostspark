@@ -893,14 +893,16 @@ function setupCommentPopupListeners() {
             if (error.message.includes('Reddit account not connected')) {
                 errorMessage = 'Please connect your Reddit account first.';
             } else if (error.message.includes('token') || error.message.includes('403') || error.message.includes('permissions') || error.message.includes('Insufficient permissions')) {
-                errorMessage = 'Reddit permissions issue. Please reconnect your Reddit account to grant comment permissions.';
-                // Automatically trigger reconnect after showing error message
+                errorMessage = 'Reddit permissions issue. Your account is connected but lacks comment permissions.';
+                // Show error message without automatic reconnect prompt
                 showNotification(errorMessage, 'error');
+                
+                // Add a button to manually reconnect if needed
                 setTimeout(() => {
-                    if (confirm('Your Reddit account needs to be reconnected to grant comment permissions. Would you like to reconnect now?')) {
+                    if (confirm('Your Reddit account is connected but needs comment permissions. Would you like to reconnect to grant these permissions?\n\nThis will redirect you to Reddit to authorize comment posting.')) {
                         postSparkDB.connectRedditAccount();
                     }
-                }, 1500);
+                }, 2000);
                 return;
             } else if (error.message.includes('Reddit API error')) {
                 errorMessage = 'Reddit API error. Please try again or reconnect your account.';
