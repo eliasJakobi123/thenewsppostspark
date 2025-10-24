@@ -789,6 +789,29 @@ function togglePostExpansion(button) {
     }
 }
 
+// Extract Reddit post ID from URL (robust function)
+function extractRedditPostId(url) {
+    if (!url) return null;
+
+    // 1️⃣ Normale Reddit-URL mit /comments/<id>/
+    const matchComments = url.match(/comments\/([a-z0-9]+)\//i);
+    if (matchComments) return `t3_${matchComments[1]}`;
+
+    // 2️⃣ Kurzlink-Format redd.it/<id>
+    const matchShort = url.match(/redd\.it\/([a-z0-9]+)/i);
+    if (matchShort) return `t3_${matchShort[1]}`;
+
+    // 3️⃣ Alternative Pattern für Reddit URLs
+    const matchAlt = url.match(/\/r\/\w+\/comments\/([a-z0-9]+)\//i);
+    if (matchAlt) return `t3_${matchAlt[1]}`;
+
+    // 4️⃣ Direkte Post ID am Ende der URL
+    const matchEnd = url.match(/\/([a-z0-9]+)\/?$/i);
+    if (matchEnd) return `t3_${matchEnd[1]}`;
+
+    return null;
+}
+
 // Format time ago
 function formatTimeAgo(date) {
     if (!date || isNaN(new Date(date).getTime())) {
@@ -942,36 +965,26 @@ function setupCommentPopupListeners() {
                     if (post) {
                         console.log('Post data found:', post);
                         
-                        // Try multiple approaches to get Reddit post ID
-                        if (post.reddit_post_id) {
-                            redditPostId = post.reddit_post_id;
-                            console.log('✅ Found reddit_post_id:', redditPostId);
-                        } else if (post.reddit_id) {
-                            redditPostId = `t3_${post.reddit_id}`;
-                            console.log('✅ Constructed from reddit_id:', redditPostId);
-                        } else if (post.url) {
-                            // Extract Reddit post ID from URL
-                            const url = post.url;
-                            console.log('Extracting Reddit post ID from URL:', url);
-                            
-                            // Try different URL patterns
-                            let match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
-                            if (!match) {
-                                match = url.match(/\/r\/\w+\/comments\/([a-zA-Z0-9]+)\//);
-                            }
-                            if (!match) {
-                                match = url.match(/\/([a-zA-Z0-9]+)\/$/);
-                            }
-                            
-                            if (match) {
-                                redditPostId = `t3_${match[1]}`;
-                                console.log('✅ Extracted from URL:', redditPostId);
-                            }
-                        } else if (post.id && !post.id.includes('-')) {
-                            // If post.id looks like a Reddit ID (no dashes), use it directly
-                            redditPostId = `t3_${post.id}`;
-                            console.log('✅ Using post.id as Reddit ID:', redditPostId);
-                        }
+        // Try multiple approaches to get Reddit post ID
+        if (post.reddit_post_id) {
+            redditPostId = post.reddit_post_id;
+            console.log('✅ Found reddit_post_id:', redditPostId);
+        } else if (post.reddit_id) {
+            redditPostId = `t3_${post.reddit_id}`;
+            console.log('✅ Constructed from reddit_id:', redditPostId);
+        } else if (post.url) {
+            // Extract Reddit post ID from URL using robust function
+            redditPostId = extractRedditPostId(post.url);
+            if (redditPostId) {
+                console.log('✅ Extracted from URL:', redditPostId);
+            } else {
+                console.log('❌ Could not extract Reddit post ID from URL:', post.url);
+            }
+        } else if (post.id && !post.id.includes('-')) {
+            // If post.id looks like a Reddit ID (no dashes), use it directly
+            redditPostId = `t3_${post.id}`;
+            console.log('✅ Using post.id as Reddit ID:', redditPostId);
+        }
                         
                         if (!redditPostId) {
                             console.error('Could not determine Reddit post ID for post:', post);
@@ -2876,12 +2889,11 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
             
             // Look for Reddit post ID in the post data
             if (currentPostData && currentPostData.url) {
-                const url = currentPostData.url;
-                // Extract Reddit post ID from URL like: https://reddit.com/r/subreddit/comments/abc123/title/
-                const match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
-                if (match) {
-                    redditPostId = `t3_${match[1]}`;
-                    console.log('Extracted Reddit post ID from URL:', redditPostId);
+                redditPostId = extractRedditPostId(currentPostData.url);
+                if (redditPostId) {
+                    console.log('Extracted Reddit post ID from currentPostData URL:', redditPostId);
+                } else {
+                    console.log('Could not extract Reddit post ID from URL:', currentPostData.url);
                 }
             }
             
