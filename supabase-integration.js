@@ -820,63 +820,32 @@ class PostSparkSupabase {
             }
 
             console.log('Final post ID:', postId);
-            console.log('Making request to:', `${REDDIT_CONFIG.API_BASE}/api/comment`);
+            console.log('Making request to Vercel API proxy...');
 
-            // Try the standard Reddit API endpoint first
-            let response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/comment`, {
+            // Use Vercel API route as proxy to avoid CORS issues
+            const response = await fetch('/api/reddit-comment', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${tokens.reddit_access_token}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': 'PostSpark/1.0'
+                    'Content-Type': 'application/json'
                 },
-                body: new URLSearchParams({
-                    thing_id: postId,
-                    text: commentText,
-                    api_type: 'json'
+                body: JSON.stringify({
+                    accessToken: tokens.reddit_access_token,
+                    postId: postId,
+                    commentText: commentText
                 })
             });
 
-            // If that fails with 403, try the alternative endpoint
-            if (!response.ok && response.status === 403) {
-                console.log('Standard endpoint failed, trying alternative Reddit API endpoint...');
-                response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/comment`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${tokens.reddit_access_token}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'User-Agent': 'PostSpark/1.0'
-                    },
-                    body: new URLSearchParams({
-                        thing_id: postId,
-                        text: commentText,
-                        api_type: 'json'
-                    })
-                });
-            }
-
-            console.log('Reddit API response status:', response.status);
-            console.log('Reddit API response headers:', Object.fromEntries(response.headers.entries()));
+            console.log('Vercel API response status:', response.status);
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Reddit API error response:', errorText);
-                
-                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-                try {
-                    const errorData = JSON.parse(errorText);
-                    errorMessage = errorData.message || errorData.error || errorMessage;
-                } catch (e) {
-                    // Use the text response as error message
-                    errorMessage = errorText || errorMessage;
-                }
-                
-                throw new Error(errorMessage);
+                const errorData = await response.json();
+                console.error('Vercel API error response:', errorData);
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
-            console.log('Reddit comment posted successfully:', result);
-            return result;
+            console.log('Reddit comment posted successfully via proxy:', result);
+            return result.data;
         } catch (error) {
             console.error('Error posting Reddit comment:', error);
             throw error;
