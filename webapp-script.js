@@ -544,9 +544,13 @@ function initializeNavigation() {
     // Back to campaigns functionality
     const backToCampaignsBtn = document.querySelector('.back-to-campaigns-btn');
     if (backToCampaignsBtn) {
+        console.log('Back to campaigns button found, adding event listener');
         backToCampaignsBtn.addEventListener('click', function() {
+            console.log('Back to campaigns button clicked');
             showCampaigns();
         });
+    } else {
+        console.error('Back to campaigns button not found!');
     }
     
     // Campaign creation flow
@@ -592,12 +596,16 @@ async function showCampaignPosts(campaignId) {
         }
         
         // Get posts for this campaign
+        console.log('Loading posts for campaign:', campaignId);
         const posts = await postSparkDB.getPosts(campaignId);
+        console.log('Loaded posts:', posts.length, posts);
         
         // Calculate stats
         const totalPosts = posts.length;
         const highPotential = posts.filter(post => post.score >= 85).length;
         const contacted = posts.filter(post => post.is_contacted).length;
+        
+        console.log('Campaign stats:', { totalPosts, highPotential, contacted });
         
         // Hide all pages
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
@@ -626,10 +634,18 @@ async function showCampaignPosts(campaignId) {
 
 // Render campaign posts
 function renderCampaignPosts(posts) {
+    console.log('Rendering campaign posts:', posts.length, posts);
     const postsGrid = document.getElementById('campaign-posts-grid');
+    
+    if (!postsGrid) {
+        console.error('Campaign posts grid element not found!');
+        return;
+    }
+    
     postsGrid.innerHTML = '';
     
     if (posts.length === 0) {
+        console.log('No posts to render, showing empty state');
         postsGrid.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-search"></i>
@@ -639,6 +655,8 @@ function renderCampaignPosts(posts) {
         `;
         return;
     }
+    
+    console.log('Rendering', posts.length, 'posts');
     
     posts.forEach(post => {
         const postCard = document.createElement('div');
@@ -2617,7 +2635,9 @@ async function writeComment(postId, subreddit, title, content, created_at) {
             title: title,
             content: content,
             subreddit: subreddit,
-            url: `https://reddit.com/r/${subreddit}/comments/${postId}/` // Construct Reddit URL
+            url: `https://reddit.com/r/${subreddit}/comments/${postId}/`, // Construct Reddit URL
+            reddit_id: postId, // Store the Reddit ID for commenting
+            reddit_post_id: `t3_${postId}` // Store the Reddit post ID for commenting
         };
         console.log('Post data stored for AI in writeComment:', currentPostData); // Debug log
         
