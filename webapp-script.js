@@ -911,6 +911,16 @@ function showCommentPopup(postCard) {
         </div>
     `;
     
+    // Always initialize currentPostData to ensure it's never null
+    currentPostData = {
+        id: postCard.getAttribute('data-post-id'),
+        title: title,
+        content: content,
+        subreddit: postCard.getAttribute('data-subreddit') || 'unknown',
+        created_at: postCard.getAttribute('data-created-at') || new Date().toISOString()
+    };
+    console.log('✅ Initialized currentPostData:', currentPostData);
+    
     // Set Reddit post ID for commenting
     if (redditPostId) {
         postPreview.setAttribute('data-reddit-id', redditPostId);
@@ -918,12 +928,10 @@ function showCommentPopup(postCard) {
         console.log('✅ Set Reddit post ID for commenting:', redditPostId);
         
         // Update currentPostData with Reddit post ID for commenting
-        if (currentPostData) {
-            currentPostData.reddit_post_id = redditPostId;
-            currentPostData.reddit_id = redditPostId.replace('t3_', '');
-            currentPostData.url = `https://reddit.com/r/${currentPostData.subreddit || 'unknown'}/comments/${redditPostId.replace('t3_', '')}/`;
-            console.log('✅ Updated currentPostData with Reddit ID:', currentPostData);
-        }
+        currentPostData.reddit_post_id = redditPostId;
+        currentPostData.reddit_id = redditPostId.replace('t3_', '');
+        currentPostData.url = `https://reddit.com/r/${currentPostData.subreddit || 'unknown'}/comments/${redditPostId.replace('t3_', '')}/`;
+        console.log('✅ Updated currentPostData with Reddit ID:', currentPostData);
     } else {
         console.warn('⚠️ No Reddit post ID found for commenting');
     }
@@ -1018,6 +1026,12 @@ function setupCommentPopupListeners() {
                 try {
                     console.log('🔍 Extracting Reddit post ID from currentPostData:', currentPostData);
                     
+                    // Check if currentPostData exists
+                    if (!currentPostData) {
+                        console.error('currentPostData is null or undefined');
+                        throw new Error('Post data not available. Please try again.');
+                    }
+                    
                     // Try multiple approaches to get Reddit post ID from currentPostData
                     if (currentPostData.reddit_post_id) {
                         redditPostId = currentPostData.reddit_post_id;
@@ -1041,7 +1055,7 @@ function setupCommentPopupListeners() {
                     
                     if (!redditPostId) {
                         console.error('Could not determine Reddit post ID from currentPostData:', currentPostData);
-                        throw new Error('Could not determine Reddit post ID. Please ensure the post has valid Reddit data.');
+                        throw new Error('Could not determine Reddit post ID. Please ensure the post has valid Reddit data. Try refreshing the page and clicking the comment button again.');
                     }
                 } catch (error) {
                     console.error('Error getting Reddit post ID:', error);
@@ -1054,14 +1068,16 @@ function setupCommentPopupListeners() {
             
             // Auto-mark post as contacted after successful comment
             try {
-                const postId = currentPostData.id;
-                if (postId) {
+                if (currentPostData && currentPostData.id) {
+                    const postId = currentPostData.id;
                     await postSparkDB.markPostAsContacted(postId);
                     console.log('✅ Post automatically marked as contacted:', postId);
                     
                     // Update UI elements
                     await updateContactedStats();
                     await refreshPostCards();
+                } else {
+                    console.warn('Cannot auto-mark as contacted: currentPostData or postId not available');
                 }
             } catch (contactError) {
                 console.warn('Could not auto-mark post as contacted:', contactError);
