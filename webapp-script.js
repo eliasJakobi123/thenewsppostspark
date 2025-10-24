@@ -1136,7 +1136,7 @@ async function showCommentPopup(postCard) {
     const title = postCard.querySelector('.post-content h3').textContent;
     const content = postCard.querySelector('.post-content p').textContent;
     const platform = postCard.querySelector('.platform').textContent;
-    const time = postCard.querySelector('.time').textContent;
+    const time = 'Recent'; // Time display removed, use fallback
     const score = postCard.querySelector('.post-score span').textContent;
     
     // Get Reddit post ID from the post card
