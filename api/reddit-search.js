@@ -235,12 +235,39 @@ export default async function handler(req, res) {
             'CareerGuidance', 'MoneyTalks', 'Philosophy', 'SelfReliance', 'LifeLessons'
         ];
 
+        // Randomly shuffle subreddits to get different results each time
+        const shuffledSubreddits = subreddits.sort(() => Math.random() - 0.5);
+        
         // Search in each subreddit with higher limits
-        for (const subreddit of subreddits) {
+        for (const subreddit of shuffledSubreddits) {
             try {
                 // Create search query focusing on exact keyword matches
-                const searchQuery = searchKeywords.join(' OR ');
-                const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(searchQuery)}&sort=relevance&limit=50&t=all`;
+                // Add keyword variations to find different posts
+                const keywordVariations = [
+                    ...searchKeywords,
+                    ...searchKeywords.map(k => k + ' help'),
+                    ...searchKeywords.map(k => k + ' advice'),
+                    ...searchKeywords.map(k => k + ' tips'),
+                    ...searchKeywords.map(k => k + ' guide'),
+                    ...searchKeywords.map(k => k + ' recommendations')
+                ];
+                
+                // Randomly select a subset of keywords for this search
+                const selectedKeywords = keywordVariations
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, Math.min(3, keywordVariations.length));
+                
+                const searchQuery = selectedKeywords.join(' OR ');
+                
+                // Add time variation to get different results
+                const timeVariations = ['all', 'year', 'month', 'week', 'day'];
+                const timeVariation = timeVariations[Math.floor(Math.random() * timeVariations.length)];
+                
+                // Add sort variation to get different results
+                const sortVariations = ['relevance', 'hot', 'new', 'top'];
+                const sortVariation = sortVariations[Math.floor(Math.random() * sortVariations.length)];
+                
+                const searchUrl = `https://oauth.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(searchQuery)}&sort=${sortVariation}&limit=50&t=${timeVariation}`;
 
                 console.log(`Searching r/${subreddit} for: ${searchQuery} (limit: 50)`);
 
