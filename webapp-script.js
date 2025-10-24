@@ -222,7 +222,7 @@ async function updateCommentPopupRedditStatus() {
                 statusText.textContent = 'Reddit account connected';
             }
             if (statusSubtitle) {
-                statusSubtitle.textContent = 'Ready to post comments';
+                statusSubtitle.textContent = 'Ready to post comments on Reddit';
             }
             if (connectBtn) {
                 connectBtn.style.display = 'none';
@@ -239,7 +239,7 @@ async function updateCommentPopupRedditStatus() {
                 statusText.textContent = 'Reddit account not connected';
             }
             if (statusSubtitle) {
-                statusSubtitle.textContent = 'Connect to post comments on Reddit';
+                statusSubtitle.textContent = 'Connect your Reddit account to post comments';
             }
             if (connectBtn) {
                 connectBtn.style.display = 'inline-flex';
@@ -3585,7 +3585,14 @@ async function checkRedditConnection() {
 async function initializeRedditIntegration() {
     try {
         console.log('Initializing Reddit integration settings...');
+        
+        // Check Reddit connection status first
+        const isConnected = await postSparkDB.isRedditConnected();
+        console.log('Reddit connection status:', isConnected);
+        
+        // Update settings status with current connection state
         await updateRedditSettingsStatus();
+        
     } catch (error) {
         console.error('Error initializing Reddit integration:', error);
     }

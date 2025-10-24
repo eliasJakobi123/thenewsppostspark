@@ -724,15 +724,17 @@ body {
 
 /* Reddit Connection Status in Comment Popup */
 .reddit-connection-status {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 1rem;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 69, 0, 0.05));
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    border-radius: 16px;
+    padding: 1.25rem;
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.1);
 }
 
 .reddit-connection-info {
@@ -747,11 +749,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 69, 0, 0.1));
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 107, 53, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
 }
 
 .reddit-status-indicator .status-dot {
@@ -777,8 +780,9 @@ body {
 }
 
 .reddit-status-indicator i {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     color: #ff6b35;
+    text-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
 }
 
 .reddit-status-details {
@@ -2117,25 +2121,69 @@ input:checked + .toggle-slider:before {
     border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: 12px;
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .danger-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.danger-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.danger-info {
+    flex: 1;
+    margin-right: 1rem;
 }
 
 .danger-info h4 {
     color: #ef4444;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
 }
 
 .danger-info p {
     color: #cccccc;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     margin: 0;
+    line-height: 1.4;
+}
+
+.danger-item .modern-btn {
+    flex-shrink: 0;
+    min-width: 140px;
+}
+
+/* Responsive Danger Zone */
+@media (max-width: 768px) {
+    .danger-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .danger-info {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .danger-item .modern-btn {
+        width: 100%;
+        justify-content: center;
+        min-width: auto;
+    }
 }
 
 .modern-btn.danger {
