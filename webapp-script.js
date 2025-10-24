@@ -2,10 +2,22 @@
 
 // Handle Reddit OAuth callback
 async function handleRedditCallback() {
+    console.log('=== REDDIT CALLBACK HANDLER STARTED ===');
+    console.log('Current URL:', window.location.href);
+    console.log('URL search params:', window.location.search);
+    
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const state = urlParams.get('state');
     const error = urlParams.get('error');
+    
+    console.log('URL parameters found:', { 
+        hasCode: !!code, 
+        hasState: !!state, 
+        hasError: !!error,
+        codeLength: code ? code.length : 0,
+        stateLength: state ? state.length : 0
+    });
     
     if (error) {
         console.error('Reddit OAuth error:', error);
@@ -15,18 +27,33 @@ async function handleRedditCallback() {
     
     if (code && state) {
         try {
+            console.log('=== PROCESSING REDDIT CALLBACK ===');
+            console.log('Code received:', code.substring(0, 20) + '...');
+            console.log('State received:', state);
+            
             // Parse state data
             const stateData = JSON.parse(state);
-            console.log('Reddit OAuth callback received:', { code, stateData });
+            console.log('Reddit OAuth callback received:', { 
+                code: code.substring(0, 20) + '...', 
+                stateData,
+                userId: stateData.userId
+            });
             
             // Store the code for later use - we'll process it after login
             sessionStorage.setItem('reddit_auth_code', code);
             sessionStorage.setItem('reddit_auth_state', state);
             
+            console.log('Reddit OAuth code stored in sessionStorage');
+            console.log('SessionStorage check:', {
+                hasCode: !!sessionStorage.getItem('reddit_auth_code'),
+                hasState: !!sessionStorage.getItem('reddit_auth_state')
+            });
+            
             // Clean up URL immediately
             const newUrl = window.location.origin + window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
             
+            console.log('URL cleaned up, new URL:', newUrl);
             console.log('Reddit OAuth code stored, will process after login');
             
             // Show notification that we received the code
@@ -36,11 +63,17 @@ async function handleRedditCallback() {
             console.error('Error handling Reddit callback:', error);
             showNotification('Error processing Reddit authorization', 'error');
         }
+    } else {
+        console.log('No Reddit callback parameters found in URL');
     }
+    
+    console.log('=== REDDIT CALLBACK HANDLER FINISHED ===');
 }
 
 // Process stored Reddit OAuth code after login
 async function processStoredRedditCode() {
+    console.log('=== PROCESSING STORED REDDIT CODE ===');
+    
     const code = sessionStorage.getItem('reddit_auth_code');
     const state = sessionStorage.getItem('reddit_auth_state');
     
@@ -54,6 +87,7 @@ async function processStoredRedditCode() {
     
     if (code && state && postSparkDB && postSparkDB.user) {
         try {
+            console.log('=== FOUND STORED REDDIT CODE - PROCESSING ===');
             console.log('Processing stored Reddit OAuth code...');
             console.log('Code:', code.substring(0, 10) + '...');
             console.log('State:', state);
@@ -63,11 +97,13 @@ async function processStoredRedditCode() {
             console.log('Reddit callback result:', result);
             
             if (result.success) {
+                console.log('=== REDDIT CONNECTION SUCCESSFUL ===');
                 showNotification('Reddit account connected successfully!', 'success');
                 
                 // Clear stored data
                 sessionStorage.removeItem('reddit_auth_code');
                 sessionStorage.removeItem('reddit_auth_state');
+                console.log('Cleared stored Reddit data from sessionStorage');
                 
                 // Refresh the connection status
                 setTimeout(async () => {
@@ -100,6 +136,8 @@ async function processStoredRedditCode() {
             hasUser: !!(postSparkDB && postSparkDB.user)
         });
     }
+    
+    console.log('=== FINISHED PROCESSING STORED REDDIT CODE ===');
 }
 
 // Update Reddit connection status in the UI
