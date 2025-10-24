@@ -20,7 +20,7 @@ const TABLES = {
 const REDDIT_CONFIG = {
     CLIENT_ID: window.VITE_REDDIT_CLIENT_ID || 'xnfBBEUETLqctZnhAka0DA',
     CLIENT_SECRET: window.VITE_REDDIT_CLIENT_SECRET || 'uLXMyoHsE8uQyZGhYW3ZMpbJ65BdHA',
-    REDIRECT_URI: window.VITE_REDDIT_REDIRECT_URI || 'http://localhost:8080',
+    REDIRECT_URI: window.VITE_REDDIT_REDIRECT_URI || 'https://thenewsppostspark.vercel.app/',
     AUTH_URL: 'https://www.reddit.com/api/v1/authorize',
     TOKEN_URL: 'https://www.reddit.com/api/v1/access_token',
     API_BASE: 'https://oauth.reddit.com',
