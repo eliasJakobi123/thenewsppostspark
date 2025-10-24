@@ -932,7 +932,11 @@ function setupCommentPopupListeners() {
             console.log('🔍 Debugging Reddit post ID sources:');
             console.log('window.currentRedditPostId:', window.currentRedditPostId);
             console.log('currentPostData:', currentPostData);
+            console.log('currentPostData.reddit_post_id:', currentPostData?.reddit_post_id);
+            console.log('currentPostData.reddit_id:', currentPostData?.reddit_id);
+            console.log('currentPostData.url:', currentPostData?.url);
             console.log('postPreview:', postPreview);
+            console.log('postPreview dataset:', postPreview?.dataset);
             
             // First, try to get from the actualRedditPostId parameter passed to writeComment
             if (window.currentRedditPostId) {
@@ -2855,6 +2859,8 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
             reddit_id: postId, // Store the Reddit ID for commenting
             reddit_post_id: `t3_${postId}` // Store the Reddit post ID for commenting
         };
+        
+        console.log('🔍 Updated currentPostData:', currentPostData);
         console.log('Post data stored for AI in writeComment:', currentPostData); // Debug log
         
         // Show comment popup
@@ -2889,30 +2895,34 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         // Use the actual Reddit post ID if provided
         if (actualRedditPostId && actualRedditPostId !== '') {
             redditPostId = actualRedditPostId;
-            console.log('Using provided Reddit post ID:', redditPostId);
+            console.log('✅ Using provided Reddit post ID:', redditPostId);
         } else if (postId && postId.startsWith('t3_') && !postId.includes('-')) {
             // If postId is already a Reddit post ID (not a UUID), use it directly
             redditPostId = postId;
-            console.log('Using postId as Reddit post ID:', redditPostId);
+            console.log('✅ Using postId as Reddit post ID:', redditPostId);
         } else if (currentPostData && currentPostData.reddit_post_id) {
             redditPostId = currentPostData.reddit_post_id;
-            console.log('Found Reddit post ID in currentPostData:', redditPostId);
+            console.log('✅ Found Reddit post ID in currentPostData:', redditPostId);
         } else if (currentPostData && currentPostData.reddit_id) {
             redditPostId = `t3_${currentPostData.reddit_id}`;
-            console.log('Constructed Reddit post ID from reddit_id:', redditPostId);
+            console.log('✅ Constructed Reddit post ID from reddit_id:', redditPostId);
+        } else if (currentPostData && currentPostData.url) {
+            // Try to extract Reddit post ID from URL using robust function
+            redditPostId = extractRedditPostId(currentPostData.url);
+            if (redditPostId) {
+                console.log('✅ Extracted Reddit post ID from currentPostData URL:', redditPostId);
+            } else {
+                console.log('❌ Could not extract Reddit post ID from URL:', currentPostData.url);
+            }
         } else {
             // Try to extract Reddit post ID from the post URL or title
-            console.log('No Reddit post ID found, trying to extract from post data...');
-            
-            // Look for Reddit post ID in the post data
-            if (currentPostData && currentPostData.url) {
-                redditPostId = extractRedditPostId(currentPostData.url);
-                if (redditPostId) {
-                    console.log('Extracted Reddit post ID from currentPostData URL:', redditPostId);
-                } else {
-                    console.log('Could not extract Reddit post ID from URL:', currentPostData.url);
-                }
-            }
+            console.log('❌ No Reddit post ID found, trying to extract from post data...');
+            console.log('Available data for debugging:', {
+                actualRedditPostId: actualRedditPostId,
+                postId: postId,
+                currentPostData: currentPostData
+            });
+        }
             
             // If we still don't have a Reddit ID, try to use the postId as Reddit ID
             if (!redditPostId && postId && postId.length > 5) {
