@@ -373,7 +373,12 @@ async function initializeApp() {
         // Hide loading overlay after a short delay
         setTimeout(() => {
             hideLoadingOverlay();
-        }, 1000);
+        }, 3000); // Increased to 3 seconds to ensure loading is complete
+        
+        // Fallback: Force hide loading overlay after 10 seconds
+        setTimeout(() => {
+            hideLoadingOverlay();
+        }, 10000);
         
         console.log('✅ PostSpark application initialized successfully');
         
@@ -779,7 +784,9 @@ async function refreshCampaignPosts(campaignId) {
         }
         
         // Find new Reddit leads using the same keywords and offer
+        console.log('🔍 Finding Reddit leads for campaign:', campaignId);
         const newPosts = await postSparkDB.findRedditLeads(campaignId);
+        console.log('📊 Found posts from findRedditLeads:', newPosts.length);
         
         if (newPosts.length > 0) {
             // Get existing posts to avoid duplicates
@@ -797,32 +804,32 @@ async function refreshCampaignPosts(campaignId) {
                 try {
                     console.log(`📝 Adding ${uniqueNewPosts.length} new posts to campaign ${campaignId}...`);
                     
-                    for (const post of uniqueNewPosts) {
-                        console.log('Adding post:', post.title);
-                        
-                        const { error } = await postSparkDB.supabase
-                            .from('posts')
-                            .insert({
-                                campaign_id: campaignId,
-                                title: post.title,
-                                content: post.content,
-                                subreddit: post.subreddit,
-                                reddit_id: post.reddit_id,
-                                reddit_post_id: post.reddit_post_id,
-                                url: post.url,
-                                score: post.score || 0,
-                                created_at: post.created_at || new Date().toISOString(),
-                                is_contacted: false
-                            });
-                        
-                        if (error) {
-                            console.error('Error adding post to campaign:', error);
-                        } else {
-                            console.log('✅ Successfully added post to campaign');
-                        }
-                    }
+                    // Insert all posts in a single batch operation for better performance
+                    const postsToInsert = uniqueNewPosts.map(post => ({
+                        campaign_id: campaignId,
+                        title: post.title,
+                        content: post.content,
+                        subreddit: post.subreddit,
+                        reddit_id: post.reddit_id,
+                        reddit_post_id: post.reddit_post_id,
+                        url: post.url,
+                        score: post.score || 0,
+                        created_at: post.created_at || new Date().toISOString(),
+                        is_contacted: false
+                    }));
                     
-                    console.log('✅ All posts added to campaign successfully');
+                    console.log('📦 Batch inserting posts:', postsToInsert.length, 'posts');
+                    
+                    const { error } = await postSparkDB.supabase
+                        .from('posts')
+                        .insert(postsToInsert);
+                    
+                    if (error) {
+                        console.error('❌ Error batch inserting posts:', error);
+                        throw error;
+                    } else {
+                        console.log('✅ Successfully batch inserted all posts to campaign');
+                    }
                     
                     // Force reload the campaign posts to show new ones at the top
                     console.log('🔄 Reloading campaign posts after adding new ones...');
