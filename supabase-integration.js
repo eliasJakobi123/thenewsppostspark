@@ -119,6 +119,13 @@ class PostSparkSupabase {
             return this.campaigns;
         } catch (error) {
             console.error('Error fetching campaigns:', error);
+            
+            // Check for CORS error
+            if (error.message && error.message.includes('Access-Control-Allow-Origin')) {
+                console.error('CORS Error: Supabase origin not allowed. Please add your domain to Supabase CORS settings.');
+                throw new Error('CORS Error: Please add your domain to Supabase CORS settings in the dashboard.');
+            }
+            
             throw error;
         }
     }
