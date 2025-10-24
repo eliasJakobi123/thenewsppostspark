@@ -676,11 +676,13 @@ function renderCampaignPosts(posts) {
             postCard.setAttribute('data-created-at', post.created_at || new Date().toISOString());
         
         // Add Reddit post ID for commenting
+        let redditPostId = null;
         if (post.reddit_post_id) {
-            postCard.setAttribute('data-reddit-post-id', post.reddit_post_id);
-            console.log('Added Reddit post ID to card:', post.reddit_post_id);
+            redditPostId = post.reddit_post_id;
+            postCard.setAttribute('data-reddit-post-id', redditPostId);
+            console.log('Added Reddit post ID to card:', redditPostId);
         } else if (post.reddit_id) {
-            const redditPostId = `t3_${post.reddit_id}`;
+            redditPostId = `t3_${post.reddit_id}`;
             postCard.setAttribute('data-reddit-post-id', redditPostId);
             console.log('Constructed Reddit post ID for card:', redditPostId);
         } else {
