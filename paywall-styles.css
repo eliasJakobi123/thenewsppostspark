@@ -1,0 +1,419 @@
+/* PostSpark Paywall Styles */
+
+.paywall-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: paywallFadeIn 0.3s ease-out;
+}
+
+@keyframes paywallFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.paywall-content {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    max-width: 1000px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: paywallSlideIn 0.4s ease-out;
+}
+
+@keyframes paywallSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.paywall-header {
+    text-align: center;
+    padding: 40px 40px 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.paywall-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.paywall-header h2 i {
+    color: #ff6b35;
+    font-size: 2.2rem;
+}
+
+.paywall-header p {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.paywall-plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 40px;
+}
+
+.plan-card {
+    background: #fff;
+    border: 2px solid #f0f0f0;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    border-color: #ff6b35;
+}
+
+.plan-card.featured {
+    border-color: #ff6b35;
+    background: linear-gradient(135deg, #fff 0%, #fff8f5 100%);
+    transform: scale(1.05);
+}
+
+.plan-card.featured:hover {
+    transform: scale(1.05) translateY(-5px);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 0 0 10px 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.plan-header {
+    margin-bottom: 25px;
+}
+
+.plan-header h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 15px;
+}
+
+.plan-price {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.plan-price .currency {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.plan-price .amount {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ff6b35;
+    line-height: 1;
+}
+
+.plan-price .period {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.plan-features {
+    margin-bottom: 30px;
+}
+
+.plan-features ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.plan-features li i {
+    color: #4CAF50;
+    font-size: 1rem;
+    width: 16px;
+    text-align: center;
+}
+
+.plan-button {
+    width: 100%;
+    padding: 15px 25px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f8f9fa;
+    color: #666;
+    border: 2px solid #e9ecef;
+}
+
+.plan-button:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.plan-button.primary {
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    color: white;
+    border-color: #ff6b35;
+}
+
+.plan-button.primary:hover {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+}
+
+.paywall-footer {
+    padding: 20px 40px 40px;
+    text-align: center;
+    border-top: 1px solid #f0f0f0;
+}
+
+.paywall-close {
+    background: none;
+    border: 2px solid #e9ecef;
+    color: #666;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.paywall-close:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+    color: #495057;
+}
+
+.dev-skip-btn {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    border: 2px solid #6c757d;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.dev-skip-btn:hover {
+    background: linear-gradient(135deg, #495057, #343a40);
+    border-color: #495057;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .paywall-overlay {
+        padding: 10px;
+    }
+    
+    .paywall-content {
+        border-radius: 15px;
+    }
+    
+    .paywall-header {
+        padding: 30px 20px 15px;
+    }
+    
+    .paywall-header h2 {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .paywall-plans {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 30px 20px;
+    }
+    
+    .plan-card {
+        padding: 25px 20px;
+    }
+    
+    .plan-card.featured {
+        transform: none;
+    }
+    
+    .plan-card.featured:hover {
+        transform: translateY(-5px);
+    }
+    
+    .plan-price .amount {
+        font-size: 2.5rem;
+    }
+    
+    .paywall-footer {
+        padding: 15px 20px 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .paywall-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .paywall-header p {
+        font-size: 1rem;
+    }
+    
+    .plan-price .amount {
+        font-size: 2.2rem;
+    }
+    
+    .plan-features li {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation for plan cards */
+.plan-card {
+    animation: planCardFadeIn 0.6s ease-out;
+}
+
+.plan-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.plan-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.plan-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes planCardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading state for buttons */
+.plan-button.loading {
+    position: relative;
+    color: transparent;
+}
+
+.plan-button.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: buttonSpin 1s linear infinite;
+}
+
+@keyframes buttonSpin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Success state */
+.plan-card.selected {
+    border-color: #4CAF50;
+    background: linear-gradient(135deg, #fff 0%, #f8fff8 100%);
+}
+
+.plan-card.selected .plan-button {
+    background: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+/* Error state */
+.plan-card.error {
+    border-color: #f44336;
+    background: linear-gradient(135deg, #fff 0%, #fff8f8 100%);
+}
+
+.plan-card.error .plan-button {
+    background: #f44336;
+    color: white;
+    border-color: #f44336;
+}

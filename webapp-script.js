@@ -792,6 +792,15 @@ async function refreshCampaignPosts(campaignId) {
     try {
         console.log('🔄 Refreshing campaign posts for:', campaignId);
         
+        // Check subscription limits before refreshing campaign
+        if (window.subscriptionManager) {
+            const canRefresh = await window.subscriptionManager.checkAndEnforceLimits('refresh_campaign', campaignId);
+            if (!canRefresh) {
+                console.log('Campaign refresh blocked by subscription limits');
+                return;
+            }
+        }
+        
         // Get campaign data
         const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
         if (!campaign) {
@@ -836,6 +845,11 @@ async function refreshCampaignPosts(campaignId) {
             
             // Still reload to show current posts
             await showCampaignPosts(campaignId);
+        }
+        
+        // Track usage
+        if (window.subscriptionManager) {
+            await window.subscriptionManager.trackUsage('refreshes', 1);
         }
         
     } catch (error) {
@@ -2912,7 +2926,22 @@ function showLoginForm() {
 // Campaign Management Functions
 async function createCampaign(campaignData) {
     try {
+        // Check subscription limits before creating campaign
+        if (window.subscriptionManager) {
+            const canCreate = await window.subscriptionManager.checkAndEnforceLimits('create_campaign');
+            if (!canCreate) {
+                console.log('Campaign creation blocked by subscription limits');
+                return null;
+            }
+        }
+        
         const campaign = await postSparkDB.createCampaign(campaignData);
+        
+        // Track usage
+        if (window.subscriptionManager) {
+            await window.subscriptionManager.trackUsage('campaigns', 1);
+        }
+        
         // Campaign created successfully (no notification needed)
         await loadCampaigns(); // Reload campaigns
         return campaign;
@@ -5184,3 +5213,110 @@ function hideAIStyleInfo() {
         aiStyleInfo.style.display = "none";
     }
 }
+
+// Subscription Management Functions
+function initializeSubscriptionManagement() {
+    console.log('Initializing subscription management...');
+    
+    // Add event listeners for subscription buttons
+    const upgradeBtn = document.getElementById('upgrade-plan-btn');
+    const manageBtn = document.getElementById('manage-subscription-btn');
+    
+    if (upgradeBtn) {
+        upgradeBtn.addEventListener('click', handleUpgradePlan);
+    }
+    
+    if (manageBtn) {
+        manageBtn.addEventListener('click', handleManageSubscription);
+    }
+    
+    // Update subscription UI when settings page loads
+    if (window.subscriptionManager) {
+        window.subscriptionManager.updateSettingsPage();
+        updateSubscriptionButtons();
+    }
+}
+
+function updateSubscriptionButtons() {
+    const upgradeBtn = document.getElementById('upgrade-plan-btn');
+    const manageBtn = document.getElementById('manage-subscription-btn');
+    
+    if (!window.subscriptionManager) return;
+    
+    const hasSubscription = window.subscriptionManager.hasActiveSubscription();
+    const currentPlan = window.subscriptionManager.getSubscriptionPlan();
+    
+    if (hasSubscription) {
+        // User has subscription - show manage button
+        if (upgradeBtn) upgradeBtn.style.display = 'none';
+        if (manageBtn) manageBtn.style.display = 'inline-flex';
+        
+        // Update button text based on plan
+        if (upgradeBtn && currentPlan !== 'enterprise') {
+            upgradeBtn.style.display = 'inline-flex';
+            upgradeBtn.innerHTML = '<i class="fas fa-arrow-up"></i> Upgrade Plan';
+        }
+    } else {
+        // No subscription - show upgrade button
+        if (upgradeBtn) upgradeBtn.style.display = 'inline-flex';
+        if (manageBtn) manageBtn.style.display = 'none';
+    }
+}
+
+function handleUpgradePlan() {
+    if (!window.subscriptionManager) {
+        showNotification('Subscription manager not available', 'error');
+        return;
+    }
+    
+    const currentPlan = window.subscriptionManager.getSubscriptionPlan();
+    const upgradeUrl = window.subscriptionManager.getUpgradeUrl(currentPlan);
+    
+    if (upgradeUrl) {
+        window.open(upgradeUrl, '_blank');
+    } else {
+        showNotification('Upgrade URL not available', 'error');
+    }
+}
+
+function handleManageSubscription() {
+    if (!window.subscriptionManager) {
+        showNotification('Subscription manager not available', 'error');
+        return;
+    }
+    
+    const currentPlan = window.subscriptionManager.getSubscriptionPlan();
+    const upgradeUrl = window.subscriptionManager.getUpgradeUrl(currentPlan);
+    
+    if (upgradeUrl) {
+        // For now, redirect to upgrade page
+        // In a full implementation, this would go to a subscription management page
+        window.open(upgradeUrl, '_blank');
+    } else {
+        showNotification('Subscription management not available', 'error');
+    }
+}
+
+// Check subscription status and show paywall if needed
+async function checkSubscriptionAndShowPaywall() {
+    if (!window.subscriptionManager) {
+        console.log('Subscription manager not available');
+        return;
+    }
+    
+    await window.subscriptionManager.initialize();
+    
+    if (!window.subscriptionManager.hasActiveSubscription()) {
+        console.log('No active subscription found, showing paywall');
+        window.subscriptionManager.showPaywall('no_subscription');
+    }
+}
+
+// Initialize subscription management when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize subscription management after a short delay to ensure other scripts are loaded
+    setTimeout(() => {
+        initializeSubscriptionManagement();
+        checkSubscriptionAndShowPaywall();
+    }, 1000);
+});

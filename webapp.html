@@ -6,6 +6,8 @@
     <title>PostSpark - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="webapp-styles.css">
+    <link rel="stylesheet" href="paywall-styles.css">
+    <link rel="stylesheet" href="subscription-limits-styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="router.js"></script>
 </head>
@@ -74,7 +76,41 @@
                     </div>
                     <div class="user-details">
                         <span class="user-name">John Doe</span>
-                        <span class="user-role">Pro Plan</span>
+                        <span class="user-role" id="sidebar-plan-name">Pro Plan</span>
+                    </div>
+                </div>
+                
+                <!-- Subscription Limits Section -->
+                <div class="subscription-limits" id="subscription-limits" style="display: none;">
+                    <div class="limits-header">
+                        <h4><i class="fas fa-chart-bar"></i> Usage</h4>
+                    </div>
+                    
+                    <div class="limit-item">
+                        <div class="limit-label">
+                            <span>Campaigns</span>
+                            <span class="limit-count" id="campaigns-usage">0/5</span>
+                        </div>
+                        <div class="limit-bar">
+                            <div class="limit-progress" id="campaigns-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="limit-item">
+                        <div class="limit-label">
+                            <span>Refreshes</span>
+                            <span class="limit-count" id="refreshes-usage">0/50</span>
+                        </div>
+                        <div class="limit-bar">
+                            <div class="limit-progress" id="refreshes-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="limits-footer">
+                        <button class="upgrade-btn" id="sidebar-upgrade-btn" style="display: none;">
+                            <i class="fas fa-arrow-up"></i>
+                            Upgrade
+                        </button>
                     </div>
                 </div>
             </div>
@@ -520,10 +556,49 @@
                                 </div>
                                 
                                 
+                                <!-- Usage Limits Display -->
+                                <div class="usage-limits" id="usage-limits" style="display: none;">
+                                    <div class="limits-header">
+                                        <h4><i class="fas fa-chart-bar"></i> Current Usage</h4>
+                                    </div>
+                                    
+                                    <div class="limits-grid">
+                                        <div class="limit-card">
+                                            <div class="limit-icon">
+                                                <i class="fas fa-rocket"></i>
+                                            </div>
+                                            <div class="limit-content">
+                                                <div class="limit-label">Campaigns</div>
+                                                <div class="limit-value" id="settings-campaigns-usage">0/5</div>
+                                                <div class="limit-bar">
+                                                    <div class="limit-progress" id="settings-campaigns-progress"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="limit-card">
+                                            <div class="limit-icon">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </div>
+                                            <div class="limit-content">
+                                                <div class="limit-label">Refreshes</div>
+                                                <div class="limit-value" id="settings-refreshes-usage">0/50</div>
+                                                <div class="limit-bar">
+                                                    <div class="limit-progress" id="settings-refreshes-progress"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="plan-actions">
-                                    <button class="modern-btn primary">
+                                    <button class="modern-btn primary" id="upgrade-plan-btn">
                                         <i class="fas fa-arrow-up"></i>
                                         Upgrade Plan
+                                    </button>
+                                    <button class="modern-btn secondary" id="manage-subscription-btn" style="display: none;">
+                                        <i class="fas fa-cog"></i>
+                                        Manage Subscription
                                     </button>
                                 </div>
                             </div>
@@ -869,6 +944,7 @@
 
     <script src="supabase-config.js"></script>
     <script src="supabase-integration.js"></script>
+    <script src="subscription-manager.js"></script>
     <script src="setup-ai-styles.js"></script>
     <script src="webapp-script.js"></script>
 </body>

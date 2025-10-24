@@ -1,0 +1,338 @@
+/* Subscription Limits Styles */
+
+.subscription-limits {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.limits-header {
+    margin-bottom: 15px;
+}
+
+.limits-header h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.limits-header h4 i {
+    color: #ff6b35;
+    font-size: 0.8rem;
+}
+
+.limit-item {
+    margin-bottom: 12px;
+}
+
+.limit-item:last-child {
+    margin-bottom: 0;
+}
+
+.limit-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+}
+
+.limit-label span:first-child {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.limit-count {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.limit-bar {
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.limit-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.limit-progress.warning {
+    background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%);
+}
+
+.limit-progress.danger {
+    background: linear-gradient(90deg, #f44336 0%, #e91e63 100%);
+}
+
+.limit-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.limits-footer {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.upgrade-btn {
+    width: 100%;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.upgrade-btn:hover {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.upgrade-btn i {
+    font-size: 0.7rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .subscription-limits {
+        margin-top: 15px;
+        padding: 12px;
+    }
+    
+    .limits-header h4 {
+        font-size: 0.85rem;
+    }
+    
+    .limit-label {
+        font-size: 0.75rem;
+    }
+    
+    .limit-count {
+        font-size: 0.7rem;
+    }
+    
+    .upgrade-btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}
+
+/* Animation for limits loading */
+.subscription-limits.loading .limit-progress {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Success state for limits */
+.subscription-limits.success .limit-progress {
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+}
+
+/* Warning state for limits */
+.subscription-limits.warning .limit-progress {
+    background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%);
+}
+
+/* Danger state for limits */
+.subscription-limits.danger .limit-progress {
+    background: linear-gradient(90deg, #f44336 0%, #e91e63 100%);
+}
+
+/* Settings Usage Limits Styles */
+.usage-limits {
+    margin: 20px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.usage-limits .limits-header {
+    margin-bottom: 20px;
+}
+
+.usage-limits .limits-header h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.usage-limits .limits-header h4 i {
+    color: #ff6b35;
+    font-size: 1rem;
+}
+
+.limits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.limit-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.limit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #ff6b35;
+}
+
+.limit-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.limit-content {
+    flex: 1;
+}
+
+.limit-content .limit-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.limit-content .limit-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.limit-content .limit-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.limit-content .limit-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.limit-content .limit-progress.warning {
+    background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%);
+}
+
+.limit-content .limit-progress.danger {
+    background: linear-gradient(90deg, #f44336 0%, #e91e63 100%);
+}
+
+.limit-content .limit-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+/* Responsive Design for Settings */
+@media (max-width: 768px) {
+    .usage-limits {
+        margin: 15px 0;
+        padding: 15px;
+    }
+    
+    .limits-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .limit-card {
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    .limit-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    
+    .limit-content .limit-label {
+        font-size: 0.85rem;
+    }
+    
+    .limit-content .limit-value {
+        font-size: 1rem;
+    }
+}
