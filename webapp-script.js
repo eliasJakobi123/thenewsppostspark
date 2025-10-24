@@ -706,6 +706,73 @@ function initializeNavigation() {
     handleRedditCallback();
 }
 
+// Refresh campaign posts with new leads
+async function refreshCampaignPosts(campaignId) {
+    try {
+        console.log('🔄 Refreshing campaign posts for:', campaignId);
+        
+        // Get campaign data
+        const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
+        if (!campaign) {
+            showNotification('Campaign not found', 'error');
+            return;
+        }
+        
+        // Show loading state
+        const postsGrid = document.getElementById('campaign-posts-grid');
+        if (postsGrid) {
+            postsGrid.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <h3>Finding new posts...</h3>
+                    <p>Searching for fresh leads with your keywords</p>
+                </div>
+            `;
+        }
+        
+        // Find new Reddit leads using the same keywords and offer
+        const newPosts = await postSparkDB.findRedditLeads(campaignId);
+        
+        if (newPosts.length > 0) {
+            // Get existing posts to avoid duplicates
+            const existingPosts = await postSparkDB.getPosts(campaignId);
+            const existingIds = new Set(existingPosts.map(p => p.reddit_post_id || p.reddit_id));
+            
+            // Filter out duplicates
+            const uniqueNewPosts = newPosts.filter(post => {
+                const postId = post.reddit_post_id || post.reddit_id;
+                return !existingIds.has(postId);
+            });
+            
+            if (uniqueNewPosts.length > 0) {
+                // Add new posts to the campaign
+                for (const post of uniqueNewPosts) {
+                    await postSparkDB.addPostToCampaign(campaignId, post);
+                }
+                
+                // Reload the campaign posts to show new ones at the top
+                await showCampaignPosts(campaignId);
+                
+                showNotification(`Found ${uniqueNewPosts.length} new posts!`, 'success');
+            } else {
+                showNotification('No new posts found. Try different keywords or subreddits.', 'info');
+                // Reload current posts
+                await showCampaignPosts(campaignId);
+            }
+        } else {
+            showNotification('No new posts found. Try different keywords or subreddits.', 'info');
+            // Reload current posts
+            await showCampaignPosts(campaignId);
+        }
+        
+    } catch (error) {
+        console.error('Error refreshing campaign posts:', error);
+        showNotification('Error refreshing posts: ' + error.message, 'error');
+        // Reload current posts on error
+        await showCampaignPosts(campaignId);
+    }
+}
+
 // Show campaign posts function
 async function showCampaignPosts(campaignId) {
     try {
@@ -749,6 +816,12 @@ async function showCampaignPosts(campaignId) {
         document.getElementById('total-posts').textContent = totalPosts;
         document.getElementById('high-potential-posts').textContent = highPotential;
         document.getElementById('contacted-posts').textContent = contacted;
+        
+        // Add refresh button functionality
+        const refreshBtn = document.getElementById('refresh-campaign-posts');
+        if (refreshBtn) {
+            refreshBtn.onclick = () => refreshCampaignPosts(campaignId);
+        }
         
         // Render posts
         renderCampaignPosts(posts);
@@ -837,7 +910,6 @@ function renderCampaignPosts(posts) {
             <div class="post-header">
                 <div class="post-meta">
                     <span class="platform">r/${safeSubreddit}</span>
-                    <span class="time">${timeAgo}</span>
                     ${contactedBadge}
                 </div>
                 <div class="post-score">
