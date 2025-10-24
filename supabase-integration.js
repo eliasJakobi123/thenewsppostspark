@@ -959,13 +959,20 @@ class PostSparkSupabase {
         try {
             console.log('Using Reddit API to search for real posts...');
             
+            // Add timestamp to make search unique and find newer posts
+            const searchData = {
+                ...campaignData,
+                timestamp: Date.now(),
+                searchVariation: Math.random().toString(36).substring(7)
+            };
+            
             // Use Reddit API to find real posts
             const response = await fetch('/api/reddit-search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ campaignData })
+                body: JSON.stringify({ campaignData: searchData })
             });
 
             if (!response.ok) {
@@ -1160,11 +1167,31 @@ Find posts that show:
             // Generate Reddit posts using OpenAI
             const redditPosts = await this.generateRedditPosts(campaign);
             
+            // Get existing posts to avoid duplicates
+            const existingPosts = await this.getPosts(campaignId);
+            const existingIds = new Set(existingPosts.map(p => p.reddit_id));
+            
+            console.log(`📊 Found ${redditPosts.length} new posts from Reddit API`);
+            console.log(`📊 Campaign already has ${existingPosts.length} posts`);
+            console.log(`📊 Existing post IDs:`, Array.from(existingIds).slice(0, 5), '...');
+            
+            // Filter out duplicates
+            const uniqueNewPosts = redditPosts.filter(post => {
+                const postId = post.reddit_id;
+                const isNew = !existingIds.has(postId);
+                if (!isNew) {
+                    console.log(`⏭️ Skipping duplicate: ${postId}`);
+                }
+                return isNew;
+            });
+            
+            console.log(`📊 Found ${uniqueNewPosts.length} unique new posts (${redditPosts.length - uniqueNewPosts.length} duplicates filtered out)`);
+            
             // Save posts to database
             const savedPosts = [];
-            console.log(`Attempting to save ${redditPosts.length} posts to database...`);
+            console.log(`Attempting to save ${uniqueNewPosts.length} unique posts to database...`);
             
-            for (const postData of redditPosts) {
+            for (const postData of uniqueNewPosts) {
                 try {
                     console.log(`Saving post: ${postData.title.substring(0, 50)}...`);
                     console.log(`Campaign ID for this post: ${campaignId}`);
