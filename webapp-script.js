@@ -886,40 +886,45 @@ function setupCommentPopupListeners() {
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             
-            // Get the actual Reddit post ID from the database
-            let redditPostId = null;
-            try {
-                // First try to get the post data from the database
-                const posts = await postSparkDB.getPosts(window.currentCampaignId);
-                const post = posts.find(p => p.id === postId);
-                
-                if (post && post.reddit_post_id) {
-                    redditPostId = post.reddit_post_id;
-                    console.log('Found Reddit post ID in database:', redditPostId);
-                } else if (post && post.reddit_id) {
-                    redditPostId = `t3_${post.reddit_id}`;
-                    console.log('Constructed Reddit post ID from reddit_id:', redditPostId);
-                } else if (post && post.url) {
-                    // Try to extract Reddit post ID from URL
-                    const url = post.url;
-                    const match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
-                    if (match) {
-                        redditPostId = `t3_${match[1]}`;
-                        console.log('Extracted Reddit post ID from URL:', redditPostId);
+                // Extract Reddit post ID from URL (much simpler approach!)
+                let redditPostId = null;
+                try {
+                    // Get the post data from the database
+                    const posts = await postSparkDB.getPosts(window.currentCampaignId);
+                    const post = posts.find(p => p.id === postId);
+                    
+                    if (post && post.url) {
+                        // Extract Reddit post ID from URL - this is the simplest approach!
+                        const url = post.url;
+                        console.log('Extracting Reddit post ID from URL:', url);
+                        
+                        // Try different URL patterns
+                        let match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
+                        if (!match) {
+                            // Try alternative pattern
+                            match = url.match(/\/r\/\w+\/comments\/([a-zA-Z0-9]+)\//);
+                        }
+                        if (!match) {
+                            // Try direct post ID pattern
+                            match = url.match(/\/([a-zA-Z0-9]+)\/$/);
+                        }
+                        
+                        if (match) {
+                            redditPostId = `t3_${match[1]}`;
+                            console.log('✅ Successfully extracted Reddit post ID from URL:', redditPostId);
+                        } else {
+                            console.error('Could not extract Reddit post ID from URL:', url);
+                            throw new Error('Could not extract Reddit post ID from URL. Please check if the post has a valid Reddit URL.');
+                        }
                     } else {
-                        // Try to extract from title or other fields
-                        console.log('Post data:', post);
-                        throw new Error('No Reddit post ID found for this post. Please ensure the post has a valid Reddit URL or reddit_id.');
+                        console.error('No URL found for post:', post);
+                        throw new Error('No Reddit URL found for this post.');
                     }
-                } else {
-                    console.log('Post data:', post);
-                    throw new Error('No Reddit post ID found for this post. Please ensure the post has a valid Reddit URL or reddit_id.');
+                } catch (error) {
+                    console.error('Error getting Reddit post ID:', error);
+                    showNotification('Error: Could not extract Reddit post ID from URL. Please ensure the post has a valid Reddit URL.', 'error');
+                    return;
                 }
-            } catch (error) {
-                console.error('Error getting Reddit post ID:', error);
-                showNotification('Error: Could not find Reddit post ID. Please ensure the post has a valid Reddit URL.', 'error');
-                return;
-            }
 
             // Post comment to Reddit using the correct Reddit post ID
             await postSparkDB.postRedditComment(redditPostId, comment);

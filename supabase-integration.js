@@ -245,25 +245,8 @@ class PostSparkSupabase {
             
             // Ensure each post has a reddit_post_id for commenting
             const posts = (data || []).map(post => {
-                let reddit_post_id = post.reddit_post_id;
-                
-                // If no reddit_post_id, try to construct from reddit_id
-                if (!reddit_post_id && post.reddit_id) {
-                    reddit_post_id = `t3_${post.reddit_id}`;
-                }
-                
-                // If still no reddit_post_id, try to extract from URL
-                if (!reddit_post_id && post.url) {
-                    const match = post.url.match(/\/comments\/([a-zA-Z0-9]+)\//);
-                    if (match) {
-                        reddit_post_id = `t3_${match[1]}`;
-                    }
-                }
-                
-                return {
-                    ...post,
-                    reddit_post_id: reddit_post_id
-                };
+                // We'll extract reddit_post_id from URL when needed (simpler approach)
+                return post;
             });
             
             return posts;
