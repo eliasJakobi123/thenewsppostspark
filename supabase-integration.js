@@ -737,16 +737,13 @@ class PostSparkSupabase {
             }
 
             console.log('Refreshing Reddit token...');
-            const response = await fetch(REDDIT_CONFIG.TOKEN_URL, {
+            const response = await fetch('/api/reddit-refresh', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': 'Basic ' + btoa(`${REDDIT_CONFIG.CLIENT_ID}:${REDDIT_CONFIG.CLIENT_SECRET}`),
-                    'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
+                    'Content-Type': 'application/json'
                 },
-                body: new URLSearchParams({
-                    grant_type: 'refresh_token',
-                    refresh_token: tokens.reddit_refresh_token
+                body: JSON.stringify({
+                    refreshToken: tokens.reddit_refresh_token
                 })
             });
 
@@ -783,13 +780,15 @@ class PostSparkSupabase {
                 throw new Error('Reddit account not connected');
             }
 
-            // Test with a simple API call to verify token works
-            const response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/me`, {
-                method: 'GET',
+            // Test with a simple API call to verify token works - use server proxy
+            const response = await fetch('/api/reddit-test', {
+                method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${tokens.reddit_access_token}`,
-                    'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    accessToken: tokens.reddit_access_token
+                })
             });
 
             console.log('Reddit user info response status:', response.status);
@@ -856,12 +855,14 @@ class PostSparkSupabase {
             console.log('Checking if token has required scopes for commenting...');
             try {
                 // Test if we can access comment-related functionality
-                const scopeTestResponse = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/me`, {
-                    method: 'GET',
+                const scopeTestResponse = await fetch('/api/reddit-test', {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${tokens.reddit_access_token}`,
-                        'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
-                    }
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        accessToken: tokens.reddit_access_token
+                    })
                 });
                 
                 if (!scopeTestResponse.ok) {
