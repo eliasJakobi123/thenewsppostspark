@@ -2610,11 +2610,17 @@ async function checkRedditConnection() {
 // Connect Reddit account
 async function connectRedditAccount() {
     try {
+        console.log('=== CONNECT REDDIT BUTTON CLICKED ===');
+        console.log('User ID:', postSparkDB?.user?.id);
+        console.log('PostSparkDB available:', !!postSparkDB);
+        
         // Get current URL as return URL
         const currentUrl = window.location.pathname;
         console.log('Connecting Reddit with return URL:', currentUrl);
         
+        console.log('Calling postSparkDB.connectRedditAccount...');
         await postSparkDB.connectRedditAccount(currentUrl);
+        console.log('postSparkDB.connectRedditAccount completed');
     } catch (error) {
         console.error('Error connecting Reddit account:', error);
         showNotification('Error connecting Reddit account', 'error');

@@ -470,7 +470,14 @@ class PostSparkSupabase {
     // Reddit API Methods
     async connectRedditAccount(returnUrl = null) {
         try {
+            console.log('=== POSTSPARKDB.CONNECTREDDITACCOUNT CALLED ===');
+            console.log('Return URL:', returnUrl);
+            console.log('User ID:', this.user?.id);
+            
             const authUrl = this.buildRedditAuthUrl(returnUrl);
+            console.log('Generated auth URL:', authUrl);
+            console.log('Redirecting to Reddit...');
+            
             window.location.href = authUrl;
         } catch (error) {
             console.error('Error connecting Reddit account:', error);
@@ -479,6 +486,10 @@ class PostSparkSupabase {
     }
 
     buildRedditAuthUrl(returnUrl = null) {
+        console.log('=== BUILDING REDDIT AUTH URL ===');
+        console.log('Return URL:', returnUrl);
+        console.log('User ID:', this.user?.id);
+        
         // Get current campaign ID if available
         const currentCampaignId = window.currentCampaignId || returnUrl;
         
@@ -487,6 +498,13 @@ class PostSparkSupabase {
             userId: this.user.id,
             returnUrl: returnUrl || (currentCampaignId ? `/campaigns/${currentCampaignId}` : '/campaigns')
         };
+        
+        console.log('State data:', stateData);
+        console.log('Reddit config:', {
+            CLIENT_ID: REDDIT_CONFIG.CLIENT_ID,
+            REDIRECT_URI: REDDIT_CONFIG.REDIRECT_URI,
+            SCOPES: REDDIT_CONFIG.SCOPES
+        });
         
         const params = new URLSearchParams({
             client_id: REDDIT_CONFIG.CLIENT_ID,
@@ -498,8 +516,8 @@ class PostSparkSupabase {
         });
         
         const authUrl = `${REDDIT_CONFIG.AUTH_URL}?${params.toString()}`;
-        console.log('Reddit Auth URL:', authUrl); // Debug log
-        console.log('Return URL:', stateData.returnUrl); // Debug log
+        console.log('Generated Reddit Auth URL:', authUrl);
+        console.log('Return URL:', stateData.returnUrl);
         return authUrl;
     }
 
