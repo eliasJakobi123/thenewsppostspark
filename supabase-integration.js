@@ -195,6 +195,7 @@ class PostSparkSupabase {
                 .insert({
                     campaign_id: campaignId,
                     reddit_id: postData.reddit_id,
+                    reddit_post_id: postData.reddit_id ? `t3_${postData.reddit_id}` : null, // Add Reddit post ID for commenting
                     title: postData.title,
                     content: postData.content,
                     author: postData.author,

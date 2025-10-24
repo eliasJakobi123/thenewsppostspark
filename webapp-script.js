@@ -833,10 +833,15 @@ function setupCommentPopupListeners() {
         try {
             // Get the post ID from the current post
             const postPreview = document.getElementById('post-preview');
-            const postId = postPreview.getAttribute('data-reddit-id');
+            console.log('Post preview element:', postPreview);
+            console.log('Post preview attributes:', postPreview ? Object.fromEntries(Array.from(postPreview.attributes).map(attr => [attr.name, attr.value])) : 'No element found');
+            
+            const postId = postPreview ? postPreview.getAttribute('data-reddit-id') : null;
+            console.log('Reddit post ID from element:', postId);
             
             if (!postId) {
-                showNotification('Post ID not found', 'error');
+                console.error('No Reddit post ID found in data-reddit-id attribute');
+                showNotification('Post ID not found - please try again', 'error');
                 return;
             }
             
@@ -2645,9 +2650,13 @@ async function writeComment(postId, subreddit, title, content, created_at) {
         // The postId parameter is the database ID, we need to find the actual Reddit post
         let redditPostId = null;
         
-        // Try to find the Reddit post ID from currentPostData or search for it
-        if (currentPostData && currentPostData.reddit_id) {
-            redditPostId = currentPostData.reddit_id;
+        // Try to get Reddit post ID from currentPostData first
+        if (currentPostData && currentPostData.reddit_post_id) {
+            redditPostId = currentPostData.reddit_post_id;
+            console.log('Found Reddit post ID in currentPostData:', redditPostId);
+        } else if (currentPostData && currentPostData.reddit_id) {
+            redditPostId = `t3_${currentPostData.reddit_id}`;
+            console.log('Constructed Reddit post ID from reddit_id:', redditPostId);
         } else {
             // Try to extract Reddit post ID from the post URL or title
             console.log('No Reddit post ID found, trying to extract from post data...');
