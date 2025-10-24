@@ -527,25 +527,10 @@ body {
 }
 
 .campaign-status.active:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    border-color: rgba(239, 68, 68, 0.3);
-}
-
-.campaign-status.active:hover::after {
-    content: 'Deactivate';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    font-weight: 600;
-    font-size: 0.75rem;
+    background: rgba(74, 222, 128, 0.3);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.4);
+    transform: scale(1.05);
 }
 
 .campaign-status.inactive {
@@ -2034,6 +2019,17 @@ input:checked + .toggle-slider:before {
     box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
 }
 
+.modern-btn.secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+.modern-btn.secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+}
+
 /* Reddit Integration Section */
 .reddit-integration {
     background: linear-gradient(135deg, rgba(255, 69, 0, 0.05), rgba(255, 107, 53, 0.05));
@@ -2203,6 +2199,40 @@ input:checked + .toggle-slider:before {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.25rem;
+    }
+}
+
+/* Dashboard Post Cards */
+.post-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.8rem;
+    color: #cccccc;
+}
+
+.campaign-info {
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+.post-time {
+    color: #999999;
+}
+
+/* Dashboard High Potential Posts Grid */
+#dashboard-high-potential-posts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    #dashboard-high-potential-posts {
+        grid-template-columns: 1fr;
     }
 }
 

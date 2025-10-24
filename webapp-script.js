@@ -2630,12 +2630,23 @@ async function loadDashboardData() {
         let totalPosts = 0;
         let contactedPosts = 0;
         let highPotential = 0;
+        let allHighPotentialPosts = [];
         
         for (const campaign of campaigns) {
             const posts = await postSparkDB.getPosts(campaign.id);
             totalPosts += posts.length;
             contactedPosts += posts.filter(post => post.is_contacted).length;
-            highPotential += posts.filter(post => post.score >= 85).length;
+            const campaignHighPotential = posts.filter(post => post.score >= 85);
+            highPotential += campaignHighPotential.length;
+            
+            // Add campaign info to high potential posts
+            campaignHighPotential.forEach(post => {
+                allHighPotentialPosts.push({
+                    ...post,
+                    campaignName: campaign.name,
+                    campaignId: campaign.id
+                });
+            });
         }
         
         // Update dashboard stats with real data
@@ -2646,6 +2657,9 @@ async function loadDashboardData() {
             high_potential: highPotential
         });
         
+        // Load high potential posts for dashboard
+        await loadDashboardHighPotentialPosts(allHighPotentialPosts);
+        
     } catch (error) {
         console.error('Error loading dashboard data:', error);
         // Show empty state if no data
@@ -2655,6 +2669,106 @@ async function loadDashboardData() {
             high_potential: 0
         });
     }
+}
+
+// Load high potential posts for dashboard
+async function loadDashboardHighPotentialPosts(highPotentialPosts) {
+    try {
+        const postsGrid = document.getElementById('dashboard-high-potential-posts');
+        if (!postsGrid) {
+            console.error('Dashboard high potential posts grid not found');
+            return;
+        }
+        
+        if (highPotentialPosts.length === 0) {
+            postsGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>No high potential posts found</h3>
+                    <p>Create your first campaign to start finding leads on Reddit</p>
+                    <button class="btn btn-primary" onclick="showCreateCampaign()">Create Campaign</button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Sort by score (highest first) and take top 6
+        const sortedPosts = highPotentialPosts
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6);
+        
+        // Clear existing content
+        postsGrid.innerHTML = '';
+        
+        // Render high potential posts
+        sortedPosts.forEach(post => {
+            const postCard = createDashboardPostCard(post);
+            postsGrid.appendChild(postCard);
+        });
+        
+        console.log(`Loaded ${sortedPosts.length} high potential posts for dashboard`);
+        
+    } catch (error) {
+        console.error('Error loading dashboard high potential posts:', error);
+    }
+}
+
+// Create dashboard post card
+function createDashboardPostCard(post) {
+    const card = document.createElement('div');
+    card.className = `post-card ${post.score >= 85 ? 'high-potential' : post.score >= 70 ? 'medium-potential' : 'low-potential'}`;
+    card.setAttribute('data-post-id', post.id);
+    card.setAttribute('data-campaign-id', post.campaignId);
+    
+    // Set Reddit post ID for commenting
+    if (post.reddit_post_id) {
+        card.setAttribute('data-reddit-id', post.reddit_post_id);
+    } else if (post.reddit_id) {
+        const redditPostId = `t3_${post.reddit_id}`;
+        card.setAttribute('data-reddit-id', redditPostId);
+    }
+    
+    const contactedClass = post.is_contacted ? 'contacted' : '';
+    const contactedBadge = post.is_contacted ? '<span class="contacted-badge">Contacted</span>' : '';
+    
+    // Format time
+    let timeAgo = 'Unknown time';
+    try {
+        timeAgo = formatTimeAgo(new Date(post.created_at));
+    } catch (e) {
+        console.warn('Error formatting time for post:', post.id);
+    }
+    
+    card.innerHTML = `
+        <div class="post-header">
+            <h3>${post.title || 'No title'}</h3>
+            ${contactedBadge}
+        </div>
+        <div class="post-meta">
+            <span class="post-author">u/${post.author || 'unknown'}</span>
+            <span class="post-subreddit">r/${post.subreddit || 'unknown'}</span>
+            <span class="post-score">${post.score || 0} points</span>
+        </div>
+        <div class="post-content">
+            <p>${post.content || 'No content available'}</p>
+        </div>
+        <div class="post-actions">
+            <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit || 'unknown'}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}', '${post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : '')}')">
+                <i class="fas fa-comment"></i> Write Comment
+            </button>
+            ${!post.is_contacted ? `
+                <button class="btn btn-secondary" onclick="markAsContacted('${post.id}')">
+                    <i class="fas fa-check"></i> Mark as Contacted
+                </button>
+            ` : ''}
+        </div>
+        <div class="post-footer">
+            <span class="campaign-info">From: ${post.campaignName || 'Unknown Campaign'}</span>
+            <span class="post-time">${timeAgo}</span>
+        </div>
+    `;
+    
+    return card;
 }
 
 function updateDashboardStats(data) {
@@ -2716,6 +2830,22 @@ function initializeSettings() {
     if (disconnectRedditBtn) {
         disconnectRedditBtn.addEventListener('click', function() {
             disconnectRedditAccount();
+        });
+    }
+    
+    // Bind danger zone buttons
+    const exportDataBtn = document.getElementById('export-data-btn');
+    const deleteAccountBtn = document.getElementById('delete-account-btn');
+    
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', function() {
+            exportUserData();
+        });
+    }
+    
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', function() {
+            deleteUserAccount();
         });
     }
 }
@@ -3172,6 +3302,112 @@ async function disconnectRedditAccount() {
     } catch (error) {
         console.error('Error disconnecting Reddit account:', error);
         showNotification('Error disconnecting Reddit account: ' + error.message, 'error');
+    }
+}
+
+// Export user data
+async function exportUserData() {
+    try {
+        console.log('Exporting user data...');
+        showNotification('Preparing data export...', 'info');
+        
+        // Get all user data
+        const userData = {
+            profile: postSparkDB.userData,
+            campaigns: [],
+            posts: [],
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        // Get campaigns
+        const campaigns = await postSparkDB.getCampaigns();
+        userData.campaigns = campaigns;
+        
+        // Get posts for each campaign
+        for (const campaign of campaigns) {
+            try {
+                const posts = await postSparkDB.getPosts(campaign.id);
+                userData.posts.push({
+                    campaignId: campaign.id,
+                    campaignName: campaign.name,
+                    posts: posts
+                });
+            } catch (error) {
+                console.error(`Error loading posts for campaign ${campaign.id}:`, error);
+            }
+        }
+        
+        // Create and download JSON file
+        const dataStr = JSON.stringify(userData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `postspark-data-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showNotification('Data exported successfully!', 'success');
+        console.log('User data exported successfully');
+        
+    } catch (error) {
+        console.error('Error exporting user data:', error);
+        showNotification('Error exporting data: ' + error.message, 'error');
+    }
+}
+
+// Delete user account
+async function deleteUserAccount() {
+    try {
+        // Show confirmation dialog
+        const confirmed = confirm('Are you sure you want to delete your account? This action is irreversible and will delete all your data including campaigns, posts, and settings.');
+        
+        if (!confirmed) {
+            return;
+        }
+        
+        // Show second confirmation
+        const doubleConfirmed = confirm('This will permanently delete your account and all data. Type "DELETE" to confirm (this is case-sensitive).');
+        
+        if (!doubleConfirmed) {
+            return;
+        }
+        
+        // Ask for confirmation text
+        const confirmationText = prompt('Please type "DELETE" to confirm account deletion:');
+        
+        if (confirmationText !== 'DELETE') {
+            showNotification('Account deletion cancelled. Confirmation text did not match.', 'warning');
+            return;
+        }
+        
+        console.log('Deleting user account...');
+        showNotification('Deleting account...', 'info');
+        
+        // Delete account from Supabase
+        await postSparkDB.deleteAccount();
+        
+        // Clear all local data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Show success message
+        showNotification('Account deleted successfully', 'success');
+        
+        // Redirect to login page
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
+        
+        console.log('User account deleted successfully');
+        
+    } catch (error) {
+        console.error('Error deleting user account:', error);
+        showNotification('Error deleting account: ' + error.message, 'error');
     }
 }
 

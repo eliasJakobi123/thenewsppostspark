@@ -109,7 +109,7 @@
                         </div>
                     </div>
                     
-                    <div class="posts-grid">
+                    <div class="posts-grid" id="dashboard-high-potential-posts">
                         <div class="empty-state">
                             <i class="fas fa-search"></i>
                             <h3>No posts found yet</h3>
@@ -586,10 +586,21 @@
                         <div class="danger-actions">
                             <div class="danger-item">
                                 <div class="danger-info">
+                                    <h4>Export Data</h4>
+                                    <p>Download all your data from PostSpark</p>
+                                </div>
+                                <button class="modern-btn secondary" id="export-data-btn">
+                                    <i class="fas fa-download"></i>
+                                    Export Data
+                                </button>
+                            </div>
+                            
+                            <div class="danger-item">
+                                <div class="danger-info">
                                     <h4>Delete Account</h4>
                                     <p>Permanently delete your account and all data</p>
                                 </div>
-                                <button class="modern-btn danger">
+                                <button class="modern-btn danger" id="delete-account-btn">
                                     <i class="fas fa-trash"></i>
                                     Delete Account
                                 </button>

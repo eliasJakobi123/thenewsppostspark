@@ -1334,6 +1334,54 @@ Find posts that show:
             return false;
         }
     }
+
+    // Delete user account and all associated data
+    async deleteAccount() {
+        try {
+            if (!this.user) {
+                throw new Error('No user logged in');
+            }
+
+            console.log('Deleting user account and all associated data...');
+
+            // Delete all user data from all tables
+            const tablesToClean = [
+                'campaigns',
+                'posts', 
+                'ai_response_styles',
+                'users'
+            ];
+
+            for (const table of tablesToClean) {
+                try {
+                    const { error } = await supabaseClient
+                        .from(table)
+                        .delete()
+                        .eq('user_id', this.user.id);
+
+                    if (error && error.code !== '42P01') {
+                        console.warn(`Error deleting from ${table}:`, error.message);
+                    }
+                } catch (error) {
+                    console.warn(`Table ${table} not accessible, skipping:`, error.message);
+                }
+            }
+
+            // Delete the user account from Supabase Auth
+            const { error: authError } = await supabaseClient.auth.admin.deleteUser(this.user.id);
+            
+            if (authError) {
+                console.warn('Error deleting user from auth:', authError.message);
+            }
+
+            console.log('User account and all data deleted successfully');
+            return true;
+
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            throw error;
+        }
+    }
 }
 
 // Initialize global instance
