@@ -822,17 +822,38 @@ class PostSparkSupabase {
             console.log('Final post ID:', postId);
             console.log('Making request to:', `${REDDIT_CONFIG.API_BASE}/api/comment`);
 
-            const response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/comment`, {
+            // Try the standard Reddit API endpoint first
+            let response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/comment`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${tokens.reddit_access_token}`,
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'PostSpark/1.0'
                 },
                 body: new URLSearchParams({
                     thing_id: postId,
-                    text: commentText
+                    text: commentText,
+                    api_type: 'json'
                 })
             });
+
+            // If that fails with 403, try the alternative endpoint
+            if (!response.ok && response.status === 403) {
+                console.log('Standard endpoint failed, trying alternative Reddit API endpoint...');
+                response = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/comment`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${tokens.reddit_access_token}`,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'User-Agent': 'PostSpark/1.0'
+                    },
+                    body: new URLSearchParams({
+                        thing_id: postId,
+                        text: commentText,
+                        api_type: 'json'
+                    })
+                });
+            }
 
             console.log('Reddit API response status:', response.status);
             console.log('Reddit API response headers:', Object.fromEntries(response.headers.entries()));
