@@ -979,9 +979,12 @@ function showCommentPopup(postCard) {
         title: title,
         content: content,
         subreddit: postCard.getAttribute('data-subreddit') || 'unknown',
-        created_at: postCard.getAttribute('data-created-at') || new Date().toISOString()
+        created_at: postCard.getAttribute('data-created-at') || new Date().toISOString(),
+        reddit_post_id: redditPostId || null,
+        reddit_id: redditPostId ? redditPostId.replace('t3_', '') : null,
+        url: redditPostId ? `https://reddit.com/r/${postCard.getAttribute('data-subreddit') || 'unknown'}/comments/${redditPostId.replace('t3_', '')}/` : null
     };
-    console.log('✅ Initialized currentPostData:', currentPostData);
+    console.log('✅ Initialized currentPostData with all fields:', currentPostData);
     
     // Set Reddit post ID for commenting
     if (redditPostId) {
@@ -1086,42 +1089,53 @@ function setupCommentPopupListeners() {
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             
-                // Extract Reddit post ID from currentPostData (no database check needed!)
-                let redditPostId = null;
-                try {
-                    console.log('🔍 Extracting Reddit post ID from currentPostData:', currentPostData);
-                    
-                    // Check if currentPostData exists
-                    if (!currentPostData) {
-                        console.error('currentPostData is null or undefined');
-                        throw new Error('Post data not available. Please try again.');
-                    }
-                    
-                    // Try multiple approaches to get Reddit post ID from currentPostData
-                    if (currentPostData.reddit_post_id) {
-                        redditPostId = currentPostData.reddit_post_id;
-                        console.log('✅ Found reddit_post_id in currentPostData:', redditPostId);
-                    } else if (currentPostData.reddit_id) {
-                        redditPostId = `t3_${currentPostData.reddit_id}`;
-                        console.log('✅ Constructed from reddit_id in currentPostData:', redditPostId);
-                    } else if (currentPostData.url) {
-                        // Extract Reddit post ID from URL using robust function
-                        redditPostId = extractRedditPostId(currentPostData.url);
-                        if (redditPostId) {
-                            console.log('✅ Extracted from URL in currentPostData:', redditPostId);
-                        } else {
-                            console.log('❌ Could not extract Reddit post ID from URL:', currentPostData.url);
+            // Extract Reddit post ID from multiple sources with comprehensive fallbacks
+            let redditPostId = null;
+            try {
+                console.log('🔍 Extracting Reddit post ID from multiple sources:');
+                console.log('currentPostData:', currentPostData);
+                console.log('window.currentRedditPostId:', window.currentRedditPostId);
+                
+                // Try multiple approaches to get Reddit post ID
+                if (currentPostData && currentPostData.reddit_post_id) {
+                    redditPostId = currentPostData.reddit_post_id;
+                    console.log('✅ Found reddit_post_id in currentPostData:', redditPostId);
+                } else if (currentPostData && currentPostData.reddit_id) {
+                    redditPostId = `t3_${currentPostData.reddit_id}`;
+                    console.log('✅ Constructed from reddit_id in currentPostData:', redditPostId);
+                } else if (window.currentRedditPostId) {
+                    redditPostId = window.currentRedditPostId;
+                    console.log('✅ Using window.currentRedditPostId:', redditPostId);
+                } else {
+                    // Try to get from post preview element
+                    const postPreview = document.getElementById('post-preview');
+                    if (postPreview) {
+                        const dataRedditId = postPreview.getAttribute('data-reddit-id');
+                        if (dataRedditId) {
+                            redditPostId = dataRedditId;
+                            console.log('✅ Found data-reddit-id from post preview:', redditPostId);
                         }
-                    } else if (currentPostData.id && !currentPostData.id.includes('-')) {
-                        // If currentPostData.id looks like a Reddit ID (no dashes), use it directly
-                        redditPostId = `t3_${currentPostData.id}`;
-                        console.log('✅ Using currentPostData.id as Reddit ID:', redditPostId);
                     }
-                    
-                    if (!redditPostId) {
-                        console.error('Could not determine Reddit post ID from currentPostData:', currentPostData);
-                        throw new Error('Could not determine Reddit post ID. Please ensure the post has valid Reddit data. Try refreshing the page and clicking the comment button again.');
+                }
+                
+                // If still no Reddit post ID, try to extract from currentPostData URL
+                if (!redditPostId && currentPostData && currentPostData.url) {
+                    redditPostId = extractRedditPostId(currentPostData.url);
+                    if (redditPostId) {
+                        console.log('✅ Extracted from URL in currentPostData:', redditPostId);
                     }
+                }
+                
+                // Last resort: try to use currentPostData.id if it looks like a Reddit ID
+                if (!redditPostId && currentPostData && currentPostData.id && !currentPostData.id.includes('-')) {
+                    redditPostId = `t3_${currentPostData.id}`;
+                    console.log('✅ Using currentPostData.id as Reddit ID:', redditPostId);
+                }
+                
+                if (!redditPostId) {
+                    console.error('Could not determine Reddit post ID from any source');
+                    throw new Error('Could not determine Reddit post ID. Please ensure the post has valid Reddit data. Try refreshing the page and clicking the comment button again.');
+                }
                 } catch (error) {
                     console.error('Error getting Reddit post ID:', error);
                     showNotification('Error: Could not determine Reddit post ID. Please ensure the post has valid Reddit data.', 'error');
@@ -1133,8 +1147,23 @@ function setupCommentPopupListeners() {
             
             // Auto-mark post as contacted after successful comment
             try {
+                let postId = null;
+                
+                // Try to get post ID from multiple sources
                 if (currentPostData && currentPostData.id) {
-                    const postId = currentPostData.id;
+                    postId = currentPostData.id;
+                } else {
+                    // Try to get from post preview element
+                    const postPreview = document.getElementById('post-preview');
+                    if (postPreview) {
+                        const dataPostId = postPreview.getAttribute('data-post-id');
+                        if (dataPostId) {
+                            postId = dataPostId;
+                        }
+                    }
+                }
+                
+                if (postId) {
                     await postSparkDB.markPostAsContacted(postId);
                     console.log('✅ Post automatically marked as contacted:', postId);
                     
@@ -1142,7 +1171,7 @@ function setupCommentPopupListeners() {
                     await updateContactedStats();
                     await refreshPostCards();
                 } else {
-                    console.warn('Cannot auto-mark as contacted: currentPostData or postId not available');
+                    console.warn('Cannot auto-mark as contacted: postId not available from any source');
                 }
             } catch (contactError) {
                 console.warn('Could not auto-mark post as contacted:', contactError);
@@ -3394,6 +3423,20 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         // Show comment popup
         const popup = document.getElementById('comment-popup');
         const postPreview = document.getElementById('post-preview');
+        
+        // Ensure currentPostData is set before showing popup
+        if (!currentPostData) {
+            console.warn('currentPostData was null, re-initializing from parameters');
+            currentPostData = {
+                id: postId,
+                title: title,
+                content: content,
+                subreddit: subreddit,
+                url: actualRedditPostId ? `https://reddit.com/r/${subreddit}/comments/${actualRedditPostId.replace('t3_', '')}/` : `https://reddit.com/r/${subreddit}/comments/${postId}/`,
+                reddit_id: actualRedditPostId ? actualRedditPostId.replace('t3_', '') : postId,
+                reddit_post_id: actualRedditPostId || `t3_${postId}`
+            };
+        }
         
         // Create post preview HTML
         const safeTitle = (title || '').replace(/['"`]/g, '');
