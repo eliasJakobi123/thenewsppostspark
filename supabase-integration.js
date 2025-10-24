@@ -1167,6 +1167,8 @@ Find posts that show:
             for (const postData of redditPosts) {
                 try {
                     console.log(`Saving post: ${postData.title.substring(0, 50)}...`);
+                    console.log(`Campaign ID for this post: ${campaignId}`);
+                    
                     const post = await this.addPost(campaignId, {
                         reddit_id: postData.reddit_id,
                         title: postData.title,
@@ -1184,12 +1186,13 @@ Find posts that show:
                     // Only add to savedPosts if post was actually saved (not null)
                     if (post) {
                         savedPosts.push(post);
-                        console.log(`Successfully saved post: ${postData.title.substring(0, 30)}...`);
+                        console.log(`✅ Successfully saved post: ${postData.title.substring(0, 30)}...`);
+                        console.log(`✅ Post campaign_id: ${post.campaign_id}`);
                     } else {
-                        console.log(`Post skipped (already exists): ${postData.title.substring(0, 30)}...`);
+                        console.log(`⏭️ Post skipped (already exists): ${postData.title.substring(0, 30)}...`);
                     }
                 } catch (error) {
-                    console.error(`Error saving post "${postData.title.substring(0, 30)}...":`, error);
+                    console.error(`❌ Error saving post "${postData.title.substring(0, 30)}...":`, error);
                 }
             }
             

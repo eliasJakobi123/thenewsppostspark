@@ -791,8 +791,10 @@ async function refreshCampaignPosts(campaignId) {
         if (newPosts.length > 0) {
             console.log(`📝 Found ${newPosts.length} new posts for campaign ${campaignId}`);
             
-            // The findRedditLeads method already handles duplicate checking
-            // So we can directly reload the campaign posts to show the new ones
+            // Wait a moment for database to be updated
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Force reload the campaign posts to show new ones at the top
             console.log('🔄 Reloading campaign posts to show new ones...');
             await showCampaignPosts(campaignId);
             
@@ -835,9 +837,18 @@ async function showCampaignPosts(campaignId) {
         }
         
         // Get posts for this campaign
-        console.log('Loading posts for campaign:', campaignId);
+        console.log('🔄 Loading posts for campaign:', campaignId);
         const posts = await postSparkDB.getPosts(campaignId);
-        console.log('Loaded posts:', posts.length, posts);
+        console.log('📊 Loaded posts:', posts.length, posts);
+        
+        // Debug: Check if posts have correct campaign_id
+        if (posts.length > 0) {
+            console.log('🔍 First post campaign_id:', posts[0].campaign_id);
+            console.log('🔍 Expected campaign_id:', campaignId);
+            console.log('🔍 All posts campaign_ids:', posts.map(p => p.campaign_id));
+        } else {
+            console.log('⚠️ No posts found for campaign:', campaignId);
+        }
         
         // Sort posts by creation date (newest first)
         posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
