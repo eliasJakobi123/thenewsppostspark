@@ -898,7 +898,7 @@ function setupCommentPopupListeners() {
                 showNotification(errorMessage, 'error');
                 setTimeout(() => {
                     if (confirm('Would you like to reconnect your Reddit account now?')) {
-                        postSparkDB.connectReddit();
+                        postSparkDB.connectRedditAccount();
                     }
                 }, 2000);
                 return;
@@ -910,7 +910,7 @@ function setupCommentPopupListeners() {
                 showNotification(errorMessage, 'error');
                 setTimeout(() => {
                     if (confirm('Would you like to reconnect your Reddit account now?')) {
-                        postSparkDB.connectReddit();
+                        postSparkDB.connectRedditAccount();
                     }
                 }, 2000);
                 return;
