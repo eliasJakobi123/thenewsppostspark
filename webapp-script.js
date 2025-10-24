@@ -2640,8 +2640,29 @@ async function writeComment(postId, subreddit, title, content, created_at) {
             </div>
         `;
         
+        // Extract Reddit post ID from the post data
+        // The postId parameter is the database ID, we need to find the actual Reddit post
+        let redditPostId = null;
+        
+        // Try to find the Reddit post ID from currentPostData or search for it
+        if (currentPostData && currentPostData.reddit_id) {
+            redditPostId = currentPostData.reddit_id;
+        } else {
+            // If we don't have the Reddit ID, we need to search for it
+            console.log('No Reddit post ID found, searching for post...');
+            // For now, we'll use a placeholder - this needs to be fixed
+            redditPostId = 't3_placeholder';
+        }
+        
+        console.log('Reddit post ID for commenting:', redditPostId);
+        
+        // Show warning if we don't have a real Reddit post ID
+        if (redditPostId === 't3_placeholder') {
+            showNotification('Warning: No Reddit post ID found. Commenting may not work.', 'warning');
+        }
+        
         // Store Reddit post ID for commenting
-        postPreview.setAttribute('data-reddit-id', postId);
+        postPreview.setAttribute('data-reddit-id', redditPostId);
         
         // Show popup
         popup.classList.add('active');
