@@ -827,6 +827,9 @@ function setupCommentPopupListeners() {
             return;
         }
         
+        // Store original button text outside try-catch
+        const originalText = sendBtn.innerHTML;
+        
         try {
             // Get the post ID from the current post
             const postPreview = document.getElementById('post-preview');
@@ -836,9 +839,6 @@ function setupCommentPopupListeners() {
                 showNotification('Post ID not found', 'error');
                 return;
             }
-            
-            // Store original button text outside try-catch
-            const originalText = sendBtn.innerHTML;
             
             // Show loading state
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
