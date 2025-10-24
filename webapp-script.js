@@ -282,6 +282,34 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize PostSparkDB first
     postSparkDB = new PostSparkSupabase();
     
+    // Rate limiting for comments
+    const COMMENT_RATE_LIMIT = 10; // 10 comments per minute
+    const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
+    let commentTimestamps = [];
+    
+    // Rate limiting functions
+    function checkCommentRateLimit() {
+        const now = Date.now();
+        // Remove timestamps older than 1 minute
+        commentTimestamps = commentTimestamps.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
+        
+        // Check if user has exceeded the limit
+        if (commentTimestamps.length >= COMMENT_RATE_LIMIT) {
+            return false; // Rate limit exceeded
+        }
+        
+        // Add current timestamp
+        commentTimestamps.push(now);
+        return true; // Rate limit not exceeded
+    }
+    
+    function getRateLimitMessage() {
+        const now = Date.now();
+        const oldestTimestamp = Math.min(...commentTimestamps);
+        const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestTimestamp)) / 1000);
+        return `It seems like you're commenting a lot. Please wait ${timeRemaining} seconds before commenting again.`;
+    }
+    
     // Initialize authentication
     const isAuthenticated = await postSparkDB.initializeAuth();
     
@@ -1207,6 +1235,12 @@ function setupCommentPopupListeners() {
         const comment = textarea.value.trim();
         if (!comment) {
             showNotification('Please write a comment first', 'warning');
+            return;
+        }
+        
+        // Check rate limit
+        if (!checkCommentRateLimit()) {
+            showNotification(getRateLimitMessage(), 'warning');
             return;
         }
         
