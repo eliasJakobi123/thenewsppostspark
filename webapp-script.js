@@ -714,7 +714,7 @@ function renderCampaignPosts(posts) {
                 </div>
             </div>
             <div class="post-actions">
-                <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}')">
+                <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}', '${redditPostId || ''}')">
                     <i class="fas fa-comment"></i>
                     Comment
                 </button>
@@ -2796,7 +2796,7 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         let redditPostId = null;
         
         // Use the actual Reddit post ID if provided
-        if (actualRedditPostId) {
+        if (actualRedditPostId && actualRedditPostId !== '') {
             redditPostId = actualRedditPostId;
             console.log('Using provided Reddit post ID:', redditPostId);
         } else if (postId && postId.startsWith('t3_') && !postId.includes('-')) {
