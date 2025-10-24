@@ -2779,13 +2779,11 @@ function createDashboardPostCard(post) {
         </div>
         <div class="post-actions">
             <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit || 'unknown'}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}', '${post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : '')}')">
-                <i class="fas fa-comment"></i> Write Comment
+                <i class="fas fa-comment"></i> Comment
             </button>
-            ${!post.is_contacted ? `
-                <button class="btn btn-secondary" onclick="markAsContacted('${post.id}')">
-                    <i class="fas fa-check"></i> Mark as Contacted
-                </button>
-            ` : ''}
+            <button class="btn btn-secondary" onclick="showCampaignPosts('${post.campaignId}')">
+                <i class="fas fa-eye"></i> Show in Campaign
+            </button>
         </div>
         <div class="post-footer">
             <span class="campaign-info">From: ${post.campaignName || 'Unknown Campaign'}</span>

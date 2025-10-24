@@ -2243,13 +2243,174 @@ input:checked + .toggle-slider:before {
 /* Dashboard High Potential Posts Grid */
 #dashboard-high-potential-posts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Dashboard Post Cards - Uniform Sizing */
+#dashboard-high-potential-posts .post-card {
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+    padding: 1rem;
+    margin: 0;
+}
+
+#dashboard-high-potential-posts .post-header {
+    flex-shrink: 0;
+    margin-bottom: 0.75rem;
+}
+
+#dashboard-high-potential-posts .post-header h3 {
+    font-size: 1rem;
+    line-height: 1.3;
+    margin: 0 0 0.5rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 2.6rem; /* 2 lines * 1.3 line-height */
+}
+
+#dashboard-high-potential-posts .post-meta {
+    flex-shrink: 0;
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+#dashboard-high-potential-posts .post-meta span {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+}
+
+#dashboard-high-potential-posts .post-content {
+    flex: 1;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+#dashboard-high-potential-posts .post-content p {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 3.6rem; /* 3 lines * 1.4 line-height * 0.85 font-size */
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+#dashboard-high-potential-posts .post-actions {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+#dashboard-high-potential-posts .post-actions .btn {
+    flex: 1;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0; /* Allow buttons to shrink */
+}
+
+#dashboard-high-potential-posts .post-actions .btn i {
+    margin-right: 0.25rem;
+    font-size: 0.75rem;
+}
+
+#dashboard-high-potential-posts .post-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+#dashboard-high-potential-posts .campaign-info {
+    color: #ff6b35;
+    font-weight: 600;
+    flex: 1;
+    margin-right: 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#dashboard-high-potential-posts .post-time {
+    color: #999999;
+    flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
     #dashboard-high-potential-posts {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    #dashboard-high-potential-posts .post-card {
+        height: 320px; /* Slightly taller on mobile for better readability */
+    }
+    
+    #dashboard-high-potential-posts .post-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    #dashboard-high-potential-posts .post-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    #dashboard-high-potential-posts .post-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    #dashboard-high-potential-posts .campaign-info {
+        margin-right: 0;
+        margin-bottom: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #dashboard-high-potential-posts {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    #dashboard-high-potential-posts .post-card {
+        height: 300px;
+    }
+    
+    #dashboard-high-potential-posts .post-header h3 {
+        font-size: 0.9rem;
+        height: 2.34rem; /* 2 lines * 1.3 line-height * 0.9 font-size */
+    }
+    
+    #dashboard-high-potential-posts .post-content p {
+        font-size: 0.8rem;
+        height: 3.36rem; /* 3 lines * 1.4 line-height * 0.8 font-size */
     }
 }
 
