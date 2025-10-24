@@ -899,16 +899,26 @@ function setupCommentPopupListeners() {
         const originalText = sendBtn.innerHTML;
         
         try {
-            // Get the post ID from the current post
+            // Get the post ID from the current post data (more reliable approach)
             const postPreview = document.getElementById('post-preview');
             console.log('Post preview element:', postPreview);
-            console.log('Post preview attributes:', postPreview ? Object.fromEntries(Array.from(postPreview.attributes).map(attr => [attr.name, attr.value])) : 'No element found');
             
-            const postId = postPreview ? postPreview.getAttribute('data-reddit-id') : null;
-            console.log('Reddit post ID from element:', postId);
+            // Try to get Reddit post ID from currentPostData first
+            let postId = null;
+            if (currentPostData && currentPostData.reddit_post_id) {
+                postId = currentPostData.reddit_post_id;
+                console.log('Found Reddit post ID in currentPostData:', postId);
+            } else if (currentPostData && currentPostData.reddit_id) {
+                postId = `t3_${currentPostData.reddit_id}`;
+                console.log('Constructed Reddit post ID from currentPostData:', postId);
+            } else if (postPreview) {
+                // Fallback to attribute
+                postId = postPreview.getAttribute('data-reddit-id');
+                console.log('Reddit post ID from element attribute:', postId);
+            }
             
             if (!postId) {
-                console.error('No Reddit post ID found in data-reddit-id attribute');
+                console.error('No Reddit post ID found in currentPostData or element attribute');
                 showNotification('Post ID not found - please try again', 'error');
                 return;
             }
@@ -2894,7 +2904,9 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         }
         
         // Store Reddit post ID for commenting
-        postPreview.setAttribute('data-reddit-id', redditPostId);
+        if (redditPostId) {
+            postPreview.setAttribute('data-reddit-id', redditPostId);
+        }
         
         // Show popup
         popup.classList.add('active');
