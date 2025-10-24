@@ -21,9 +21,63 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Missing required parameters' });
         }
 
-        console.log('Reddit comment request:', { postId, commentText: commentText.substring(0, 50) + '...' });
+        console.log('Reddit comment request:', { 
+            postId, 
+            commentText: commentText.substring(0, 50) + '...',
+            accessTokenLength: accessToken.length,
+            accessTokenPrefix: accessToken.substring(0, 10) + '...'
+        });
 
-        // Make request to Reddit API
+        // First, test the token with a simple API call
+        console.log('Testing Reddit token validity...');
+        const testResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'User-Agent': 'PostSpark/1.0'
+            }
+        });
+
+        console.log('Token test response status:', testResponse.status);
+        
+        if (!testResponse.ok) {
+            const testErrorText = await testResponse.text();
+            console.error('Token test failed:', testErrorText);
+            return res.status(401).json({ 
+                error: 'Invalid Reddit token', 
+                details: testErrorText,
+                suggestion: 'Please reconnect your Reddit account'
+            });
+        }
+
+        // Check if token has required scopes
+        const userInfo = await testResponse.json();
+        console.log('User info:', userInfo);
+        
+        // Check token scopes by making a request to get token info
+        console.log('Checking token scopes...');
+        const scopeResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'User-Agent': 'PostSpark/1.0'
+            }
+        });
+        
+        if (!scopeResponse.ok) {
+            console.error('Scope check failed');
+        }
+
+        console.log('Token is valid, proceeding with comment...');
+
+        // Make request to Reddit API - using correct endpoint
+        console.log('Making comment request to Reddit API...');
+        console.log('Request details:', {
+            url: 'https://oauth.reddit.com/api/comment',
+            postId: postId,
+            commentLength: commentText.length
+        });
+        
         const response = await fetch('https://oauth.reddit.com/api/comment', {
             method: 'POST',
             headers: {
@@ -45,7 +99,8 @@ export default async function handler(req, res) {
             console.error('Reddit API error:', errorText);
             return res.status(response.status).json({ 
                 error: 'Reddit API error', 
-                details: errorText 
+                details: errorText,
+                status: response.status
             });
         }
 
