@@ -324,6 +324,10 @@ function createCampaignCard(campaign) {
                 <span class="stat-number">${stats.highPotential}</span>
                 <span class="stat-label">High Potential</span>
             </div>
+            <div class="stat">
+                <span class="stat-number">${stats.contacted}</span>
+                <span class="stat-label">Contacted</span>
+            </div>
         </div>
         <div class="campaign-content">
             <p>${campaign.description || 'No description'}</p>
@@ -1047,6 +1051,22 @@ function setupCommentPopupListeners() {
 
             // Post comment to Reddit using the correct Reddit post ID
             await postSparkDB.postRedditComment(redditPostId, comment);
+            
+            // Auto-mark post as contacted after successful comment
+            try {
+                const postId = currentPostData.id;
+                if (postId) {
+                    await postSparkDB.markPostAsContacted(postId);
+                    console.log('✅ Post automatically marked as contacted:', postId);
+                    
+                    // Update UI elements
+                    await updateContactedStats();
+                    await refreshPostCards();
+                }
+            } catch (contactError) {
+                console.warn('Could not auto-mark post as contacted:', contactError);
+                // Don't show error to user as comment was successful
+            }
             
             showNotification('Comment posted to Reddit successfully!', 'success');
             closeCommentPopup();
@@ -2614,6 +2634,11 @@ async function markAsContacted(postId) {
                 </button>
             `;
         }
+        
+        // Update contacted stats
+        await updateContactedStats();
+        await refreshPostCards();
+        
     } catch (error) {
         console.error('Error marking post as contacted:', error);
         showNotification('Error marking post as contacted: ' + error.message, 'error');
@@ -2769,6 +2794,139 @@ function createDashboardPostCard(post) {
     `;
     
     return card;
+}
+
+// Update contacted stats across the app
+async function updateContactedStats() {
+    try {
+        console.log('Updating contacted stats...');
+        
+        // Get all campaigns and calculate stats
+        const campaigns = await postSparkDB.getCampaigns();
+        let totalContacted = 0;
+        let totalPosts = 0;
+        let highPotential = 0;
+        
+        for (const campaign of campaigns) {
+            const posts = await postSparkDB.getPosts(campaign.id);
+            totalPosts += posts.length;
+            totalContacted += posts.filter(post => post.is_contacted).length;
+            highPotential += posts.filter(post => post.score >= 85).length;
+        }
+        
+        // Update dashboard stats
+        updateDashboardStats({
+            total_posts: totalPosts,
+            contacted_posts: totalContacted,
+            high_potential: highPotential
+        });
+        
+        // Update campaign cards stats
+        await updateCampaignCardsStats();
+        
+        // Update campaign detail stats if on campaign page
+        const campaignPostsPage = document.getElementById('campaign-posts');
+        if (campaignPostsPage && campaignPostsPage.classList.contains('active')) {
+            const currentCampaignId = window.currentCampaignId;
+            if (currentCampaignId) {
+                const currentCampaignPosts = await postSparkDB.getPosts(currentCampaignId);
+                const currentContacted = currentCampaignPosts.filter(post => post.is_contacted).length;
+                const currentHighPotential = currentCampaignPosts.filter(post => post.score >= 85).length;
+                const currentTotal = currentCampaignPosts.length;
+                
+                // Update all campaign stats
+                const contactedElement = document.getElementById('contacted-posts');
+                const highPotentialElement = document.getElementById('high-potential-posts');
+                const totalElement = document.getElementById('total-posts');
+                
+                if (contactedElement) contactedElement.textContent = currentContacted;
+                if (highPotentialElement) highPotentialElement.textContent = currentHighPotential;
+                if (totalElement) totalElement.textContent = currentTotal;
+                
+                console.log('Updated campaign stats:', { currentContacted, currentHighPotential, currentTotal });
+            }
+        }
+        
+        console.log('Contacted stats updated:', { totalContacted, totalPosts, highPotential });
+        
+    } catch (error) {
+        console.error('Error updating contacted stats:', error);
+    }
+}
+
+// Refresh post cards after status change
+async function refreshPostCards() {
+    try {
+        console.log('Refreshing post cards...');
+        
+        // Refresh dashboard high potential posts
+        const dashboardPage = document.getElementById('dashboard');
+        if (dashboardPage && dashboardPage.classList.contains('active')) {
+            await loadDashboardData();
+        }
+        
+        // Refresh campaign posts if on campaign page
+        const campaignPostsPage = document.getElementById('campaign-posts');
+        if (campaignPostsPage && campaignPostsPage.classList.contains('active')) {
+            const currentCampaignId = window.currentCampaignId;
+            if (currentCampaignId) {
+                await showCampaignPosts(currentCampaignId);
+            }
+        }
+        
+        console.log('Post cards refreshed');
+        
+    } catch (error) {
+        console.error('Error refreshing post cards:', error);
+    }
+}
+
+// Update campaign cards stats
+async function updateCampaignCardsStats() {
+    try {
+        console.log('Updating campaign cards stats...');
+        
+        // Get all campaigns and update their stats
+        const campaigns = await postSparkDB.getCampaigns();
+        
+        for (const campaign of campaigns) {
+            try {
+                const posts = await postSparkDB.getPosts(campaign.id);
+                const totalPosts = posts.length;
+                const highPotential = posts.filter(post => post.score >= 85).length;
+                const contacted = posts.filter(post => post.is_contacted).length;
+                
+                // Update campaign card stats in the UI
+                const campaignCard = document.querySelector(`[data-campaign="${campaign.id}"]`);
+                if (campaignCard) {
+                    const statsContainer = campaignCard.querySelector('.campaign-stats');
+                    if (statsContainer) {
+                        statsContainer.innerHTML = `
+                            <div class="stat">
+                                <span class="stat-number">${totalPosts}</span>
+                                <span class="stat-label">Leads Found</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">${highPotential}</span>
+                                <span class="stat-label">High Potential</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">${contacted}</span>
+                                <span class="stat-label">Contacted</span>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error(`Error updating stats for campaign ${campaign.id}:`, error);
+            }
+        }
+        
+        console.log('Campaign cards stats updated');
+        
+    } catch (error) {
+        console.error('Error updating campaign cards stats:', error);
+    }
 }
 
 function updateDashboardStats(data) {

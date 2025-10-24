@@ -2214,6 +2214,23 @@ input:checked + .toggle-slider:before {
     color: #cccccc;
 }
 
+.contacted-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.post-card.contacted {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.05);
+}
+
 .campaign-info {
     color: #ff6b35;
     font-weight: 600;
