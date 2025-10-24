@@ -413,10 +413,23 @@ function createCampaignCard(campaign) {
 
 // Update user info in sidebar
 function updateUserInfo() {
-    if (!postSparkDB.userData) return;
+    if (!postSparkDB.userData) {
+        // Show loading state for user info
+        const userInfo = document.querySelector('.user-info');
+        if (userInfo) {
+            userInfo.classList.add('loading');
+        }
+        return;
+    }
     
     const userNameElement = document.querySelector('.user-name');
     const userRoleElement = document.querySelector('.user-role');
+    const userInfo = document.querySelector('.user-info');
+    
+    // Remove loading state
+    if (userInfo) {
+        userInfo.classList.remove('loading');
+    }
     
     if (userNameElement) {
         userNameElement.textContent = postSparkDB.userData.full_name || 'User';
@@ -451,20 +464,26 @@ function initializeNavigation() {
                 }
             });
             
-            // Show selected page
+            // Show selected page immediately
             const targetPage = this.getAttribute('data-page');
             const targetPageElement = document.getElementById(targetPage);
             if (targetPageElement) {
                 targetPageElement.classList.add('active');
                 
-                // Load page-specific data
-                if (targetPage === 'dashboard') {
-                    loadDashboardData();
-                } else if (targetPage === 'campaigns') {
-                    loadCampaigns();
-                } else if (targetPage === 'settings') {
-                    loadUserSettings();
-                }
+                // Load page-specific data asynchronously
+                setTimeout(async () => {
+                    try {
+                        if (targetPage === 'dashboard') {
+                            await loadDashboardData();
+                        } else if (targetPage === 'campaigns') {
+                            await loadCampaigns();
+                        } else if (targetPage === 'settings') {
+                            await loadUserSettings();
+                        }
+                    } catch (error) {
+                        console.error(`Error loading ${targetPage}:`, error);
+                    }
+                }, 100); // Small delay to ensure page is visible first
             }
         });
     });
@@ -3824,9 +3843,27 @@ async function updateRedditSettingsStatus() {
         const redditUser = localStorage.getItem('reddit_user_info');
         const connectionDateStored = localStorage.getItem('reddit_connection_date');
         
-        console.log('Settings Reddit status check:', { isConnected, redditToken: !!redditToken, redditUser: !!redditUser });
+        console.log('Settings Reddit status check:', { 
+            isConnected, 
+            redditToken: !!redditToken, 
+            redditUser: !!redditUser,
+            tokenLength: redditToken ? redditToken.length : 0,
+            userInfo: redditUser ? JSON.parse(redditUser) : null
+        });
         
-        if (isConnected && redditToken && redditUser) {
+        // Check if we have valid Reddit connection data
+        const hasValidToken = redditToken && redditToken.length > 10;
+        const hasValidUser = redditUser && redditUser.length > 10;
+        const isActuallyConnected = isConnected || (hasValidToken && hasValidUser);
+        
+        console.log('Connection validation:', {
+            isConnected,
+            hasValidToken,
+            hasValidUser,
+            isActuallyConnected
+        });
+        
+        if (isActuallyConnected) {
             // Connected state
             console.log('✅ Reddit account is connected');
             statusDot.className = 'status-dot connected';
