@@ -832,7 +832,7 @@ async function refreshCampaignPosts(campaignId) {
             showNotification(`Found ${newPosts.length} new posts!`, 'success');
         } else {
             console.log('No new posts found');
-            showNotification('No new posts found', 'info');
+            showNotification('No new posts found. Try different keywords or check back later.', 'info');
             
             // Still reload to show current posts
             await showCampaignPosts(campaignId);
@@ -869,17 +869,19 @@ async function showCampaignPosts(campaignId) {
         const posts = await postSparkDB.getPosts(campaignId);
         console.log('📊 Loaded posts:', posts.length, posts);
         
+        // Sort posts by created_at (newest first) to show new posts at the top
+        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        console.log('📊 Posts sorted by created_at (newest first)');
+        
         // Debug: Check if posts have correct campaign_id
         if (posts.length > 0) {
             console.log('🔍 First post campaign_id:', posts[0].campaign_id);
             console.log('🔍 Expected campaign_id:', campaignId);
             console.log('🔍 All posts campaign_ids:', posts.map(p => p.campaign_id));
+            console.log('🔍 Post creation dates:', posts.slice(0, 3).map(p => ({ title: p.title.substring(0, 30), created_at: p.created_at })));
         } else {
             console.log('⚠️ No posts found for campaign:', campaignId);
         }
-        
-        // Sort posts by creation date (newest first)
-        posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         // Calculate stats
         const totalPosts = posts.length;

@@ -963,7 +963,10 @@ class PostSparkSupabase {
             const searchData = {
                 ...campaignData,
                 timestamp: Date.now(),
-                searchVariation: Math.random().toString(36).substring(7)
+                searchVariation: Math.random().toString(36).substring(7),
+                // Force different search parameters to find new posts
+                searchTime: new Date().toISOString(),
+                randomSeed: Math.random().toString(36).substring(2, 15)
             };
             
             // Use Reddit API to find real posts
