@@ -630,14 +630,26 @@
             
             <div class="comment-form">
                 <div class="reddit-connection-status" id="reddit-status">
-                    <div class="connection-info">
-                        <i class="fas fa-reddit-alien"></i>
-                        <span id="reddit-status-text">Checking Reddit connection...</span>
+                    <div class="connection-info" id="reddit-connection-info">
+                        <div class="reddit-status-indicator">
+                            <div class="status-dot" id="reddit-status-dot"></div>
+                            <i class="fab fa-reddit-alien"></i>
+                        </div>
+                        <div class="reddit-status-details">
+                            <span class="reddit-status-text" id="reddit-status-text">Checking Reddit connection...</span>
+                            <span class="reddit-status-subtitle" id="reddit-status-subtitle"></span>
+                        </div>
                     </div>
-                    <button class="btn btn-small" id="connect-reddit-btn" style="display: none;">
-                        <i class="fas fa-link"></i>
-                        Connect Reddit
-                    </button>
+                    <div class="reddit-actions" id="reddit-actions">
+                        <button class="btn btn-small connect-btn" id="connect-reddit-btn" style="display: none;">
+                            <i class="fas fa-link"></i>
+                            Connect Reddit
+                        </button>
+                        <button class="btn btn-small disconnect-btn" id="disconnect-reddit-btn" style="display: none;">
+                            <i class="fas fa-unlink"></i>
+                            Disconnect
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="form-group">

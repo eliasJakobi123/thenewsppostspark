@@ -722,6 +722,136 @@ body {
     display: flex;
 }
 
+/* Reddit Connection Status in Comment Popup */
+.reddit-connection-status {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.reddit-connection-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.reddit-status-indicator {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.reddit-status-indicator .status-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #6b7280;
+    border: 2px solid rgba(0, 0, 0, 0.8);
+    transition: all 0.3s ease;
+}
+
+.reddit-status-indicator .status-dot.connected {
+    background: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.reddit-status-indicator .status-dot.disconnected {
+    background: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.reddit-status-indicator i {
+    font-size: 1.2rem;
+    color: #ff6b35;
+}
+
+.reddit-status-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.reddit-status-text {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+.reddit-status-subtitle {
+    font-size: 0.8rem;
+    color: #cccccc;
+    opacity: 0.8;
+}
+
+.reddit-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.reddit-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.reddit-actions .connect-btn {
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    color: #ffffff;
+    border: none;
+}
+
+.reddit-actions .connect-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.reddit-actions .disconnect-btn {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: #ffffff;
+    border: none;
+}
+
+.reddit-actions .disconnect-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(107, 114, 128, 0.4);
+}
+
+/* Responsive Reddit Status */
+@media (max-width: 768px) {
+    .reddit-connection-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .reddit-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .reddit-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
 .popup-overlay {
     position: absolute;
     top: 0;

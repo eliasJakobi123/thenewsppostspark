@@ -189,8 +189,70 @@ async function updateRedditConnectionStatus() {
         } else {
             console.warn('Some UI elements not found for Reddit connection status update');
         }
+        
+        // Update comment popup Reddit status if popup is open
+        await updateCommentPopupRedditStatus();
+        
     } catch (error) {
         console.error('Error updating Reddit connection status:', error);
+    }
+}
+
+// Update Reddit status in comment popup
+async function updateCommentPopupRedditStatus() {
+    try {
+        const popup = document.getElementById('comment-popup');
+        if (!popup || !popup.classList.contains('active')) {
+            return; // Popup not open
+        }
+        
+        const isConnected = await postSparkDB.isRedditConnected();
+        const statusDot = document.getElementById('reddit-status-dot');
+        const statusText = document.getElementById('reddit-status-text');
+        const statusSubtitle = document.getElementById('reddit-status-subtitle');
+        const connectBtn = document.getElementById('connect-reddit-btn');
+        const disconnectBtn = document.getElementById('disconnect-reddit-btn');
+        
+        if (isConnected) {
+            // Connected state
+            if (statusDot) {
+                statusDot.className = 'status-dot connected';
+            }
+            if (statusText) {
+                statusText.textContent = 'Reddit account connected';
+            }
+            if (statusSubtitle) {
+                statusSubtitle.textContent = 'Ready to post comments';
+            }
+            if (connectBtn) {
+                connectBtn.style.display = 'none';
+            }
+            if (disconnectBtn) {
+                disconnectBtn.style.display = 'inline-flex';
+            }
+        } else {
+            // Disconnected state
+            if (statusDot) {
+                statusDot.className = 'status-dot disconnected';
+            }
+            if (statusText) {
+                statusText.textContent = 'Reddit account not connected';
+            }
+            if (statusSubtitle) {
+                statusSubtitle.textContent = 'Connect to post comments on Reddit';
+            }
+            if (connectBtn) {
+                connectBtn.style.display = 'inline-flex';
+            }
+            if (disconnectBtn) {
+                disconnectBtn.style.display = 'none';
+            }
+        }
+        
+        console.log('Comment popup Reddit status updated:', isConnected);
+        
+    } catch (error) {
+        console.error('Error updating comment popup Reddit status:', error);
     }
 }
 
@@ -938,6 +1000,9 @@ function showCommentPopup(postCard) {
     
     // Show popup
     popup.classList.add('active');
+    
+    // Update Reddit status in popup
+    await updateCommentPopupRedditStatus();
     
     // Add event listeners
     setupCommentPopupListeners();
@@ -3018,6 +3083,22 @@ function initializeSettings() {
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', function() {
             deleteUserAccount();
+        });
+    }
+    
+    // Bind comment popup Reddit buttons
+    const commentPopupConnectBtn = document.getElementById('connect-reddit-btn');
+    const commentPopupDisconnectBtn = document.getElementById('disconnect-reddit-btn');
+    
+    if (commentPopupConnectBtn) {
+        commentPopupConnectBtn.addEventListener('click', function() {
+            connectRedditAccount();
+        });
+    }
+    
+    if (commentPopupDisconnectBtn) {
+        commentPopupDisconnectBtn.addEventListener('click', function() {
+            disconnectRedditAccount();
         });
     }
 }
