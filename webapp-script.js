@@ -43,6 +43,9 @@ async function handleRedditCallback() {
             sessionStorage.setItem('reddit_auth_code', code);
             sessionStorage.setItem('reddit_auth_state', state);
             
+            // Store connection date
+            localStorage.setItem('reddit_connection_date', new Date().toISOString());
+            
             console.log('Reddit OAuth code stored in sessionStorage');
             console.log('SessionStorage check:', {
                 hasCode: !!sessionStorage.getItem('reddit_auth_code'),
@@ -58,6 +61,11 @@ async function handleRedditCallback() {
             
             // Show notification that we received the code
             showNotification('Reddit authorization received! Processing...', 'info');
+            
+            // Update settings UI after successful connection
+            setTimeout(async () => {
+                await updateRedditSettingsStatus();
+            }, 1000);
             
         } catch (error) {
             console.error('Error handling Reddit callback:', error);
@@ -105,10 +113,14 @@ async function processStoredRedditCode() {
                 sessionStorage.removeItem('reddit_auth_state');
                 console.log('Cleared stored Reddit data from sessionStorage');
                 
+                // Store connection date
+                localStorage.setItem('reddit_connection_date', new Date().toISOString());
+                
                 // Refresh the connection status
                 setTimeout(async () => {
                     console.log('Refreshing Reddit connection status...');
                     await updateRedditConnectionStatus();
+                    await updateRedditSettingsStatus();
                 }, 1000);
                 
                 // Navigate to return URL if available
@@ -2687,6 +2699,25 @@ function initializeSettings() {
             saveProfile();
         });
     }
+    
+    // Initialize Reddit integration
+    initializeRedditIntegration();
+    
+    // Bind Reddit integration buttons
+    const connectRedditBtn = document.getElementById('connect-reddit-btn');
+    const disconnectRedditBtn = document.getElementById('disconnect-reddit-btn');
+    
+    if (connectRedditBtn) {
+        connectRedditBtn.addEventListener('click', function() {
+            connectRedditAccount();
+        });
+    }
+    
+    if (disconnectRedditBtn) {
+        disconnectRedditBtn.addEventListener('click', function() {
+            disconnectRedditAccount();
+        });
+    }
 }
 
 async function loadUserSettings() {
@@ -3039,6 +3070,111 @@ async function checkRedditConnection() {
     }
 }
 
+// Initialize Reddit integration settings
+async function initializeRedditIntegration() {
+    try {
+        console.log('Initializing Reddit integration settings...');
+        await updateRedditSettingsStatus();
+    } catch (error) {
+        console.error('Error initializing Reddit integration:', error);
+    }
+}
+
+// Update Reddit settings status
+async function updateRedditSettingsStatus() {
+    try {
+        const statusDot = document.getElementById('reddit-status-dot');
+        const statusText = document.getElementById('reddit-connection-text');
+        const connectionDetails = document.getElementById('reddit-connection-details');
+        const connectBtn = document.getElementById('connect-reddit-btn');
+        const disconnectBtn = document.getElementById('disconnect-reddit-btn');
+        const username = document.getElementById('reddit-username');
+        const connectionDate = document.getElementById('reddit-connection-date');
+        const permissions = document.getElementById('reddit-permissions');
+        
+        // Check if Reddit is connected
+        const redditToken = localStorage.getItem('reddit_access_token');
+        const redditUser = localStorage.getItem('reddit_user_info');
+        const connectionDateStored = localStorage.getItem('reddit_connection_date');
+        
+        if (redditToken && redditUser) {
+            // Connected state
+            statusDot.className = 'status-dot connected';
+            statusText.textContent = 'Reddit account connected';
+            connectionDetails.style.display = 'block';
+            connectBtn.style.display = 'none';
+            disconnectBtn.style.display = 'inline-flex';
+            
+            // Parse user info
+            try {
+                const userInfo = JSON.parse(redditUser);
+                username.textContent = userInfo.name || 'Unknown User';
+                
+                // Get connection date from localStorage or use current date
+                if (connectionDateStored) {
+                    connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
+                } else {
+                    connectionDate.textContent = new Date().toLocaleDateString();
+                    localStorage.setItem('reddit_connection_date', new Date().toISOString());
+                }
+                
+                permissions.textContent = 'Comment, Read';
+            } catch (e) {
+                username.textContent = 'Unknown User';
+                if (connectionDateStored) {
+                    connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
+                } else {
+                    connectionDate.textContent = 'Unknown';
+                }
+                permissions.textContent = 'Unknown';
+            }
+        } else {
+            // Disconnected state
+            statusDot.className = 'status-dot disconnected';
+            statusText.textContent = 'Reddit account not connected';
+            connectionDetails.style.display = 'none';
+            connectBtn.style.display = 'inline-flex';
+            disconnectBtn.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error updating Reddit settings status:', error);
+    }
+}
+
+// Disconnect Reddit account
+async function disconnectRedditAccount() {
+    try {
+        // Show confirmation dialog
+        const confirmed = confirm('Are you sure you want to disconnect your Reddit account? This will prevent you from commenting on Reddit posts through PostSpark.');
+        
+        if (!confirmed) {
+            return;
+        }
+        
+        console.log('Disconnecting Reddit account...');
+        
+        // Clear Reddit data from localStorage
+        localStorage.removeItem('reddit_access_token');
+        localStorage.removeItem('reddit_refresh_token');
+        localStorage.removeItem('reddit_user_info');
+        localStorage.removeItem('reddit_auth_code');
+        localStorage.removeItem('reddit_auth_state');
+        localStorage.removeItem('reddit_connection_date');
+        
+        // Update UI
+        await updateRedditSettingsStatus();
+        
+        // Show success message
+        showNotification('Reddit account disconnected successfully', 'success');
+        
+        console.log('Reddit account disconnected successfully');
+        
+    } catch (error) {
+        console.error('Error disconnecting Reddit account:', error);
+        showNotification('Error disconnecting Reddit account: ' + error.message, 'error');
+    }
+}
+
 // Connect Reddit account
 async function connectRedditAccount() {
     try {
@@ -3053,6 +3189,15 @@ async function connectRedditAccount() {
         console.log('Calling postSparkDB.connectRedditAccount...');
         await postSparkDB.connectRedditAccount(currentUrl);
         console.log('postSparkDB.connectRedditAccount completed');
+        
+        // Store connection date
+        localStorage.setItem('reddit_connection_date', new Date().toISOString());
+        
+        // Update settings UI after successful connection
+        setTimeout(async () => {
+            await updateRedditSettingsStatus();
+        }, 1000);
+        
     } catch (error) {
         console.error('Error connecting Reddit account:', error);
         showNotification('Error connecting Reddit account', 'error');

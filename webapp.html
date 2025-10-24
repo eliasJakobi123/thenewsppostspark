@@ -500,6 +500,76 @@
                         </div>
                     </div>
 
+                    <!-- Reddit Integration Section -->
+                    <div class="modern-settings-section reddit-integration">
+                        <div class="section-header">
+                            <div class="header-icon">
+                                <i class="fab fa-reddit-alien"></i>
+                            </div>
+                            <div class="header-content">
+                                <h2>Reddit Integration</h2>
+                                <p>Manage your Reddit account connection</p>
+                            </div>
+                        </div>
+                        
+                        <div class="reddit-connection-card">
+                            <div class="connection-status" id="reddit-connection-status">
+                                <div class="status-indicator">
+                                    <div class="status-dot" id="reddit-status-dot"></div>
+                                    <span class="status-text" id="reddit-connection-text">Checking connection...</span>
+                                </div>
+                                <div class="connection-details" id="reddit-connection-details" style="display: none;">
+                                    <div class="connection-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-user"></i>
+                                            <span>Connected as: <strong id="reddit-username">Loading...</strong></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>Connected since: <strong id="reddit-connection-date">Loading...</strong></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-shield-alt"></i>
+                                            <span>Permissions: <strong id="reddit-permissions">Loading...</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="connection-actions">
+                                <button class="modern-btn primary" id="connect-reddit-btn" style="display: none;">
+                                    <i class="fab fa-reddit-alien"></i>
+                                    Connect Reddit Account
+                                </button>
+                                
+                                <button class="modern-btn danger" id="disconnect-reddit-btn" style="display: none;">
+                                    <i class="fas fa-unlink"></i>
+                                    Disconnect Reddit Account
+                                </button>
+                            </div>
+                            
+                            <div class="reddit-info">
+                                <div class="info-card">
+                                    <div class="info-header">
+                                        <i class="fas fa-info-circle"></i>
+                                        <h4>About Reddit Integration</h4>
+                                    </div>
+                                    <div class="info-content">
+                                        <p>Your Reddit account is connected to enable commenting on posts. This integration allows you to:</p>
+                                        <ul>
+                                            <li>Comment on Reddit posts directly from PostSpark</li>
+                                            <li>Use AI-generated responses for your comments</li>
+                                            <li>Track your commenting activity</li>
+                                        </ul>
+                                        <p class="privacy-note">
+                                            <i class="fas fa-lock"></i>
+                                            We only access the permissions you grant and never store your Reddit password.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Danger Zone -->
                     <div class="modern-settings-section danger-zone">
