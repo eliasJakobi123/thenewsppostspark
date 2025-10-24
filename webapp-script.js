@@ -665,6 +665,18 @@ function renderCampaignPosts(posts) {
         postCard.setAttribute('data-subreddit', post.subreddit);
         postCard.setAttribute('data-created-at', post.created_at);
         
+        // Add Reddit post ID for commenting
+        if (post.reddit_post_id) {
+            postCard.setAttribute('data-reddit-post-id', post.reddit_post_id);
+            console.log('Added Reddit post ID to card:', post.reddit_post_id);
+        } else if (post.reddit_id) {
+            const redditPostId = `t3_${post.reddit_id}`;
+            postCard.setAttribute('data-reddit-post-id', redditPostId);
+            console.log('Constructed Reddit post ID for card:', redditPostId);
+        } else {
+            console.warn('No Reddit post ID found for post:', post.id);
+        }
+        
         // Format time
         const timeAgo = formatTimeAgo(new Date(post.created_at));
         console.log('Post time debug:', { 
@@ -2623,11 +2635,15 @@ async function openCommentForPost(postId) {
     console.log('Post data set for AI:', currentPostData); // Debug log
     
     // Call writeComment with the extracted data
-    await writeComment(postData.id, postData.subreddit, postData.title, postData.content, postData.created_at);
+    // We need to get the actual Reddit post ID from the database
+    const actualRedditPostId = postCard.getAttribute('data-reddit-post-id') || postCard.getAttribute('data-reddit-id');
+    console.log('Actual Reddit post ID from element:', actualRedditPostId);
+    
+    await writeComment(postData.id, postData.subreddit, postData.title, postData.content, postData.created_at, actualRedditPostId);
 }
 
 // Write comment function
-async function writeComment(postId, subreddit, title, content, created_at) {
+async function writeComment(postId, subreddit, title, content, created_at, actualRedditPostId = null) {
     try {
         // Always update current post data for AI generation
         currentPostData = {
@@ -2670,8 +2686,11 @@ async function writeComment(postId, subreddit, title, content, created_at) {
         // The postId parameter is the database ID, we need to find the actual Reddit post
         let redditPostId = null;
         
-        // Try to get Reddit post ID from currentPostData first
-        if (currentPostData && currentPostData.reddit_post_id) {
+        // Use the actual Reddit post ID if provided
+        if (actualRedditPostId) {
+            redditPostId = actualRedditPostId;
+            console.log('Using provided Reddit post ID:', redditPostId);
+        } else if (currentPostData && currentPostData.reddit_post_id) {
             redditPostId = currentPostData.reddit_post_id;
             console.log('Found Reddit post ID in currentPostData:', redditPostId);
         } else if (currentPostData && currentPostData.reddit_id) {
