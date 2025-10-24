@@ -1156,6 +1156,13 @@ function setupCommentPopupListeners() {
             // Post comment to Reddit using the correct Reddit post ID
             await postSparkDB.postRedditComment(redditPostId, comment);
             
+            console.log('✅ Comment posted successfully to Reddit');
+            
+            // Show success state on button immediately
+            sendBtn.innerHTML = '<i class="fas fa-check"></i> Comment Posted!';
+            sendBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            sendBtn.style.color = '#ffffff';
+            
             // Auto-mark post as contacted after successful comment
             try {
                 let postId = null;
@@ -1189,14 +1196,19 @@ function setupCommentPopupListeners() {
                 // Don't show error to user as comment was successful
             }
             
-                    // Show enhanced success message
-                    showCommentSuccessMessage();
-                    
-                    // Reset button state
-                    sendBtn.innerHTML = originalText;
-                    sendBtn.disabled = false;
-                    
-                    closeCommentPopup();
+            // Show enhanced success message
+            showCommentSuccessMessage();
+            
+            // Wait a moment to show success state, then close popup
+            setTimeout(() => {
+                // Reset button state before closing
+                sendBtn.innerHTML = originalText;
+                sendBtn.disabled = false;
+                sendBtn.style.background = '';
+                sendBtn.style.color = '';
+                
+                closeCommentPopup();
+            }, 2000); // Show success for 2 seconds
             
         } catch (error) {
             console.error('Error posting comment:', error);
@@ -1235,9 +1247,13 @@ function setupCommentPopupListeners() {
             
             showNotification(errorMessage, 'error');
         } finally {
-            // Reset button state
-            sendBtn.innerHTML = originalText;
-            sendBtn.disabled = false;
+            // Reset button state only if not in success state
+            if (!sendBtn.innerHTML.includes('Comment Posted!')) {
+                sendBtn.innerHTML = originalText;
+                sendBtn.disabled = false;
+                sendBtn.style.background = '';
+                sendBtn.style.color = '';
+            }
         }
     });
     
@@ -2778,8 +2794,21 @@ async function preloadDashboardData() {
         console.log('🔄 Preloading dashboard data...');
         const startTime = performance.now();
         
-        // Load campaigns to get real data
-        const campaigns = await postSparkDB.getCampaigns();
+        // Load campaigns to get real data with timeout
+        let campaigns;
+        try {
+            campaigns = await Promise.race([
+                postSparkDB.getCampaigns(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+            ]);
+        } catch (error) {
+            if (error.message === 'Timeout') {
+                console.log('⚠️ Dashboard preload timeout, using fallback');
+                campaigns = [];
+            } else {
+                throw error;
+            }
+        }
         
         if (campaigns.length === 0) {
             // No campaigns, cache empty state
@@ -2835,6 +2864,12 @@ async function preloadDashboardData() {
         console.log(`✅ Dashboard data preloaded in ${(endTime - startTime).toFixed(2)}ms`);
         console.log('📊 Cached data:', window.dashboardCache);
         
+        // Immediately show dashboard if we're on the dashboard page
+        if (document.getElementById('dashboard').classList.contains('active')) {
+            console.log('🚀 Dashboard is active, showing preloaded data immediately');
+            await showDashboardDataImmediately();
+        }
+        
     } catch (error) {
         console.error('Error preloading dashboard data:', error);
         // Initialize empty cache on error
@@ -2848,6 +2883,29 @@ async function preloadDashboardData() {
     }
 }
 
+// Show dashboard data immediately when available
+async function showDashboardDataImmediately() {
+    try {
+        if (window.dashboardCache) {
+            console.log('⚡ Showing dashboard data immediately');
+            
+            // Update stats immediately
+            updateDashboardStats({
+                total_posts: window.dashboardCache.totalPosts,
+                contacted_posts: window.dashboardCache.contactedPosts,
+                high_potential: window.dashboardCache.highPotential
+            });
+            
+            // Load high potential posts immediately
+            await loadDashboardHighPotentialPosts(window.dashboardCache.highPotentialPosts);
+            
+            console.log('✅ Dashboard data shown immediately');
+        }
+    } catch (error) {
+        console.error('Error showing dashboard data immediately:', error);
+    }
+}
+
 // Load dashboard data with cache optimization
 async function loadDashboardData() {
     try {
@@ -2857,7 +2915,7 @@ async function loadDashboardData() {
         // Check if we have cached data
         if (window.dashboardCache && window.dashboardCache.lastUpdated) {
             const cacheAge = Date.now() - new Date(window.dashboardCache.lastUpdated).getTime();
-            const maxCacheAge = 5 * 60 * 1000; // 5 minutes
+            const maxCacheAge = 2 * 60 * 1000; // 2 minutes (reduced for fresher data)
             
             if (cacheAge < maxCacheAge) {
                 console.log('📊 Using cached dashboard data (age:', Math.round(cacheAge / 1000), 'seconds)');
@@ -3349,6 +3407,9 @@ function initializeSettings() {
 async function loadUserSettings() {
     if (!postSparkDB.userData) return;
     
+    console.log('🔄 Loading user settings...');
+    const startTime = performance.now();
+    
     // Populate settings form with user data
     const nameInput = document.getElementById('profile-name');
     const emailInput = document.getElementById('profile-email');
@@ -3360,6 +3421,12 @@ async function loadUserSettings() {
     
     // Load subscription data
     loadSubscriptionData();
+    
+    // Load Reddit connection status automatically
+    await updateRedditSettingsStatus();
+    
+    const endTime = performance.now();
+    console.log(`✅ User settings loaded in ${(endTime - startTime).toFixed(2)}ms`);
 }
 
 function loadSubscriptionData() {
@@ -3730,6 +3797,9 @@ async function initializeRedditIntegration() {
 // Update Reddit settings status
 async function updateRedditSettingsStatus() {
     try {
+        console.log('🔄 Updating Reddit settings status...');
+        const startTime = performance.now();
+        
         const statusDot = document.getElementById('reddit-status-dot');
         const statusText = document.getElementById('reddit-connection-text');
         const connectionDetails = document.getElementById('reddit-connection-details');
@@ -3738,6 +3808,15 @@ async function updateRedditSettingsStatus() {
         const username = document.getElementById('reddit-username');
         const connectionDate = document.getElementById('reddit-connection-date');
         const permissions = document.getElementById('reddit-permissions');
+        
+        // Show loading state immediately
+        if (statusText) {
+            statusText.textContent = 'Checking connection...';
+            statusText.className = 'status-text loading';
+        }
+        if (statusDot) {
+            statusDot.className = 'status-dot loading';
+        }
         
         // Check if Reddit is connected - use proper API check
         const isConnected = await postSparkDB.isRedditConnected();
@@ -3749,8 +3828,10 @@ async function updateRedditSettingsStatus() {
         
         if (isConnected && redditToken && redditUser) {
             // Connected state
+            console.log('✅ Reddit account is connected');
             statusDot.className = 'status-dot connected';
             statusText.textContent = 'Reddit account connected';
+            statusText.className = 'status-text connected';
             connectionDetails.style.display = 'block';
             connectBtn.style.display = 'none';
             disconnectBtn.style.display = 'inline-flex';
@@ -3758,36 +3839,58 @@ async function updateRedditSettingsStatus() {
             // Parse user info
             try {
                 const userInfo = JSON.parse(redditUser);
-                username.textContent = userInfo.name || 'Unknown User';
+                if (username) username.textContent = userInfo.name || 'Unknown User';
                 
                 // Get connection date from localStorage or use current date
-                if (connectionDateStored) {
-                    connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
-                } else {
-                    connectionDate.textContent = new Date().toLocaleDateString();
-                    localStorage.setItem('reddit_connection_date', new Date().toISOString());
+                if (connectionDate) {
+                    if (connectionDateStored) {
+                        connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
+                    } else {
+                        connectionDate.textContent = new Date().toLocaleDateString();
+                        localStorage.setItem('reddit_connection_date', new Date().toISOString());
+                    }
                 }
                 
-                permissions.textContent = 'Comment, Read';
+                if (permissions) permissions.textContent = 'Comment, Read';
             } catch (e) {
-                username.textContent = 'Unknown User';
-                if (connectionDateStored) {
-                    connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
-                } else {
-                    connectionDate.textContent = 'Unknown';
+                if (username) username.textContent = 'Unknown User';
+                if (connectionDate) {
+                    if (connectionDateStored) {
+                        connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
+                    } else {
+                        connectionDate.textContent = 'Unknown';
+                    }
                 }
-                permissions.textContent = 'Unknown';
+                if (permissions) permissions.textContent = 'Unknown';
             }
         } else {
             // Disconnected state
+            console.log('❌ Reddit account is not connected');
             statusDot.className = 'status-dot disconnected';
             statusText.textContent = 'Reddit account not connected';
+            statusText.className = 'status-text disconnected';
             connectionDetails.style.display = 'none';
             connectBtn.style.display = 'inline-flex';
             disconnectBtn.style.display = 'none';
         }
+        
+        const endTime = performance.now();
+        console.log(`✅ Reddit settings status updated in ${(endTime - startTime).toFixed(2)}ms`);
     } catch (error) {
         console.error('Error updating Reddit settings status:', error);
+        // Show error state
+        const statusDot = document.getElementById('reddit-status-dot');
+        const statusText = document.getElementById('reddit-connection-text');
+        const connectBtn = document.getElementById('connect-reddit-btn');
+        const disconnectBtn = document.getElementById('disconnect-reddit-btn');
+        
+        if (statusDot) statusDot.className = 'status-dot error';
+        if (statusText) {
+            statusText.textContent = 'Error checking connection';
+            statusText.className = 'status-text error';
+        }
+        if (connectBtn) connectBtn.style.display = 'inline-flex';
+        if (disconnectBtn) disconnectBtn.style.display = 'none';
     }
 }
 
