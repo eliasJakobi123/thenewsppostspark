@@ -2611,7 +2611,8 @@ async function writeComment(postId, subreddit, title, content, created_at) {
             id: postId,
             title: title,
             content: content,
-            subreddit: subreddit
+            subreddit: subreddit,
+            url: `https://reddit.com/r/${subreddit}/comments/${postId}/` // Construct Reddit URL
         };
         console.log('Post data stored for AI in writeComment:', currentPostData); // Debug log
         
@@ -2648,10 +2649,34 @@ async function writeComment(postId, subreddit, title, content, created_at) {
         if (currentPostData && currentPostData.reddit_id) {
             redditPostId = currentPostData.reddit_id;
         } else {
-            // If we don't have the Reddit ID, we need to search for it
-            console.log('No Reddit post ID found, searching for post...');
-            // For now, we'll use a placeholder - this needs to be fixed
-            redditPostId = 't3_placeholder';
+            // Try to extract Reddit post ID from the post URL or title
+            console.log('No Reddit post ID found, trying to extract from post data...');
+            
+            // Look for Reddit post ID in the post data
+            if (currentPostData && currentPostData.url) {
+                const url = currentPostData.url;
+                // Extract Reddit post ID from URL like: https://reddit.com/r/subreddit/comments/abc123/title/
+                const match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
+                if (match) {
+                    redditPostId = `t3_${match[1]}`;
+                    console.log('Extracted Reddit post ID from URL:', redditPostId);
+                }
+            }
+            
+            // If we still don't have a Reddit ID, try to use the postId as Reddit ID
+            if (!redditPostId && postId && postId.length > 5) {
+                // Check if postId looks like a Reddit ID (alphanumeric)
+                if (/^[a-zA-Z0-9]+$/.test(postId)) {
+                    redditPostId = `t3_${postId}`;
+                    console.log('Using postId as Reddit post ID:', redditPostId);
+                }
+            }
+            
+            // If still no Reddit ID, use placeholder
+            if (!redditPostId) {
+                redditPostId = 't3_placeholder';
+                console.log('Could not extract Reddit post ID, using placeholder');
+            }
         }
         
         console.log('Reddit post ID for commenting:', redditPostId);
