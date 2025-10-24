@@ -900,6 +900,14 @@ function showCommentPopup(postCard) {
         postPreview.setAttribute('data-reddit-id', redditPostId);
         window.currentRedditPostId = redditPostId;
         console.log('✅ Set Reddit post ID for commenting:', redditPostId);
+        
+        // Update currentPostData with Reddit post ID for commenting
+        if (currentPostData) {
+            currentPostData.reddit_post_id = redditPostId;
+            currentPostData.reddit_id = redditPostId.replace('t3_', '');
+            currentPostData.url = `https://reddit.com/r/${currentPostData.subreddit || 'unknown'}/comments/${redditPostId.replace('t3_', '')}/`;
+            console.log('✅ Updated currentPostData with Reddit ID:', currentPostData);
+        }
     } else {
         console.warn('⚠️ No Reddit post ID found for commenting');
     }
@@ -989,44 +997,35 @@ function setupCommentPopupListeners() {
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             
-                // Extract Reddit post ID from post data (improved approach!)
+                // Extract Reddit post ID from currentPostData (no database check needed!)
                 let redditPostId = null;
                 try {
-                    // Get the post data from the database
-                    const posts = await postSparkDB.getPosts(window.currentCampaignId);
-                    const post = posts.find(p => p.id === postId);
+                    console.log('🔍 Extracting Reddit post ID from currentPostData:', currentPostData);
                     
-                    if (post) {
-                        console.log('Post data found:', post);
-                        
-        // Try multiple approaches to get Reddit post ID
-        if (post.reddit_post_id) {
-            redditPostId = post.reddit_post_id;
-            console.log('✅ Found reddit_post_id:', redditPostId);
-        } else if (post.reddit_id) {
-            redditPostId = `t3_${post.reddit_id}`;
-            console.log('✅ Constructed from reddit_id:', redditPostId);
-        } else if (post.url) {
-            // Extract Reddit post ID from URL using robust function
-            redditPostId = extractRedditPostId(post.url);
-            if (redditPostId) {
-                console.log('✅ Extracted from URL:', redditPostId);
-            } else {
-                console.log('❌ Could not extract Reddit post ID from URL:', post.url);
-            }
-        } else if (post.id && !post.id.includes('-')) {
-            // If post.id looks like a Reddit ID (no dashes), use it directly
-            redditPostId = `t3_${post.id}`;
-            console.log('✅ Using post.id as Reddit ID:', redditPostId);
-        }
-                        
-                        if (!redditPostId) {
-                            console.error('Could not determine Reddit post ID for post:', post);
-                            throw new Error('Could not determine Reddit post ID. Post may not have valid Reddit data.');
+                    // Try multiple approaches to get Reddit post ID from currentPostData
+                    if (currentPostData.reddit_post_id) {
+                        redditPostId = currentPostData.reddit_post_id;
+                        console.log('✅ Found reddit_post_id in currentPostData:', redditPostId);
+                    } else if (currentPostData.reddit_id) {
+                        redditPostId = `t3_${currentPostData.reddit_id}`;
+                        console.log('✅ Constructed from reddit_id in currentPostData:', redditPostId);
+                    } else if (currentPostData.url) {
+                        // Extract Reddit post ID from URL using robust function
+                        redditPostId = extractRedditPostId(currentPostData.url);
+                        if (redditPostId) {
+                            console.log('✅ Extracted from URL in currentPostData:', redditPostId);
+                        } else {
+                            console.log('❌ Could not extract Reddit post ID from URL:', currentPostData.url);
                         }
-                    } else {
-                        console.error('Post not found in database:', postId);
-                        throw new Error('Post not found in database.');
+                    } else if (currentPostData.id && !currentPostData.id.includes('-')) {
+                        // If currentPostData.id looks like a Reddit ID (no dashes), use it directly
+                        redditPostId = `t3_${currentPostData.id}`;
+                        console.log('✅ Using currentPostData.id as Reddit ID:', redditPostId);
+                    }
+                    
+                    if (!redditPostId) {
+                        console.error('Could not determine Reddit post ID from currentPostData:', currentPostData);
+                        throw new Error('Could not determine Reddit post ID. Please ensure the post has valid Reddit data.');
                     }
                 } catch (error) {
                     console.error('Error getting Reddit post ID:', error);
@@ -2853,14 +2852,18 @@ async function openCommentForPost(postId) {
         created_at: created_at
     };
     
-    // Set currentPostData for AI generation
-    currentPostData = postData;
-    console.log('Post data set for AI:', currentPostData); // Debug log
-    
-    // Call writeComment with the extracted data
-    // We need to get the actual Reddit post ID from the element
+    // Get the actual Reddit post ID from the element
     const actualRedditPostId = postElement.getAttribute('data-reddit-id');
     console.log('Actual Reddit post ID from element:', actualRedditPostId);
+    
+    // Set currentPostData for AI generation with Reddit post ID
+    currentPostData = {
+        ...postData,
+        reddit_post_id: actualRedditPostId,
+        reddit_id: actualRedditPostId ? actualRedditPostId.replace('t3_', '') : null,
+        url: actualRedditPostId ? `https://reddit.com/r/${postData.subreddit}/comments/${actualRedditPostId.replace('t3_', '')}/` : null
+    };
+    console.log('Post data set for AI with Reddit ID:', currentPostData); // Debug log
     
     // Use the actual Reddit post ID instead of database ID
     if (actualRedditPostId) {
@@ -2881,8 +2884,8 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
             title: title,
             content: content,
             subreddit: subreddit,
-            url: `https://reddit.com/r/${subreddit}/comments/${postId}/`, // Construct Reddit URL
-            reddit_id: postId, // Store the Reddit ID for commenting
+            url: actualRedditPostId ? `https://reddit.com/r/${subreddit}/comments/${actualRedditPostId.replace('t3_', '')}/` : `https://reddit.com/r/${subreddit}/comments/${postId}/`,
+            reddit_id: actualRedditPostId ? actualRedditPostId.replace('t3_', '') : postId, // Store the Reddit ID for commenting
             reddit_post_id: actualRedditPostId || `t3_${postId}` // Use the actual Reddit post ID if provided
         };
         
