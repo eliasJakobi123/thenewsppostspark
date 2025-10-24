@@ -929,16 +929,28 @@ function setupCommentPopupListeners() {
             // Try to get Reddit post ID from multiple sources
             let postId = null;
             
+            console.log('🔍 Debugging Reddit post ID sources:');
+            console.log('window.currentRedditPostId:', window.currentRedditPostId);
+            console.log('currentPostData:', currentPostData);
+            console.log('postPreview:', postPreview);
+            
             // First, try to get from the actualRedditPostId parameter passed to writeComment
             if (window.currentRedditPostId) {
                 postId = window.currentRedditPostId;
-                console.log('Found Reddit post ID from window.currentRedditPostId:', postId);
+                console.log('✅ Found Reddit post ID from window.currentRedditPostId:', postId);
             } else if (currentPostData && currentPostData.reddit_post_id) {
                 postId = currentPostData.reddit_post_id;
-                console.log('Found Reddit post ID in currentPostData:', postId);
+                console.log('✅ Found Reddit post ID in currentPostData:', postId);
             } else if (currentPostData && currentPostData.reddit_id) {
                 postId = `t3_${currentPostData.reddit_id}`;
-                console.log('Constructed Reddit post ID from currentPostData:', postId);
+                console.log('✅ Constructed Reddit post ID from currentPostData:', postId);
+            } else if (currentPostData && currentPostData.url) {
+                postId = extractRedditPostId(currentPostData.url);
+                if (postId) {
+                    console.log('✅ Extracted Reddit post ID from currentPostData URL:', postId);
+                } else {
+                    console.log('❌ Could not extract from currentPostData URL:', currentPostData.url);
+                }
             } else if (postPreview) {
                 // Fallback to attribute
                 postId = postPreview.getAttribute('data-reddit-id');
@@ -946,7 +958,12 @@ function setupCommentPopupListeners() {
             }
             
             if (!postId) {
-                console.error('No Reddit post ID found in any source');
+                console.error('❌ No Reddit post ID found in any source');
+                console.log('Available data:', {
+                    window_currentRedditPostId: window.currentRedditPostId,
+                    currentPostData: currentPostData,
+                    postPreview: postPreview
+                });
                 showNotification('Post ID not found - please try again', 'error');
                 return;
             }
@@ -2925,7 +2942,14 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
             postPreview.setAttribute('data-reddit-id', redditPostId);
             // Also store in window for easy access
             window.currentRedditPostId = redditPostId;
-            console.log('Stored Reddit post ID in window.currentRedditPostId:', redditPostId);
+            console.log('✅ Stored Reddit post ID in window.currentRedditPostId:', redditPostId);
+        } else {
+            console.error('❌ No Reddit post ID to store for commenting');
+            console.log('Available data for debugging:', {
+                actualRedditPostId: actualRedditPostId,
+                postId: postId,
+                currentPostData: currentPostData
+            });
         }
         
         // Show popup
