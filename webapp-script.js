@@ -2924,20 +2924,19 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
             });
         }
             
-            // If we still don't have a Reddit ID, try to use the postId as Reddit ID
-            if (!redditPostId && postId && postId.length > 5) {
-                // Check if postId looks like a Reddit ID (alphanumeric)
-                if (/^[a-zA-Z0-9]+$/.test(postId)) {
-                    redditPostId = `t3_${postId}`;
-                    console.log('Using postId as Reddit post ID:', redditPostId);
-                }
+        // If we still don't have a Reddit ID, try to use the postId as Reddit ID
+        if (!redditPostId && postId && postId.length > 5) {
+            // Check if postId looks like a Reddit ID (alphanumeric)
+            if (/^[a-zA-Z0-9]+$/.test(postId)) {
+                redditPostId = `t3_${postId}`;
+                console.log('Using postId as Reddit post ID:', redditPostId);
             }
-            
-            // If still no Reddit ID, use placeholder
-            if (!redditPostId) {
-                redditPostId = 't3_placeholder';
-                console.log('Could not extract Reddit post ID, using placeholder');
-            }
+        }
+        
+        // If still no Reddit ID, use placeholder
+        if (!redditPostId) {
+            redditPostId = 't3_placeholder';
+            console.log('Could not extract Reddit post ID, using placeholder');
         }
         
         console.log('Reddit post ID for commenting:', redditPostId);
