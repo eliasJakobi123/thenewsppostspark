@@ -102,7 +102,8 @@ export default async function handler(req, res) {
                     error: 'Insufficient permissions', 
                     details: errorText,
                     status: response.status,
-                    suggestion: 'Please reconnect your Reddit account to grant comment permissions'
+                    suggestion: 'Please reconnect your Reddit account to grant comment permissions',
+                    autoReconnect: true
                 });
             }
             

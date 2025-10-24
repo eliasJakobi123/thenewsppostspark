@@ -880,6 +880,12 @@ class PostSparkSupabase {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Vercel API error response:', errorData);
+                
+                // Check if it's a permission issue that requires reconnection
+                if (response.status === 403 && errorData.autoReconnect) {
+                    throw new Error('Insufficient permissions - Please reconnect your Reddit account to grant comment permissions.');
+                }
+                
                 throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             }
 
