@@ -224,9 +224,9 @@ async function updateCommentPopupRedditStatus() {
             const disconnectBtn = redditStatus.querySelector('.disconnect-btn');
             
             if (isConnected) {
-                // Connected state - show only green checkmark
+                // Connected state - no icon, just text
                 if (statusIndicator) {
-                    statusIndicator.innerHTML = '<i class="fas fa-check" style="color: #10b981; font-size: 1.2rem;"></i>';
+                    statusIndicator.innerHTML = '';
                     statusIndicator.className = 'reddit-status-indicator connected';
                 }
                 if (statusText) {
@@ -246,9 +246,9 @@ async function updateCommentPopupRedditStatus() {
                     disconnectBtn.style.display = 'inline-flex';
                 }
             } else {
-                // Disconnected state - show red X
+                // Disconnected state - no icon, just text
                 if (statusIndicator) {
-                    statusIndicator.innerHTML = '<i class="fas fa-times" style="color: #ef4444; font-size: 1.2rem;"></i>';
+                    statusIndicator.innerHTML = '';
                     statusIndicator.className = 'reddit-status-indicator disconnected';
                 }
                 if (statusText) {
@@ -3962,37 +3962,11 @@ async function updateRedditSettingsStatus() {
             statusDot.className = 'status-dot connected';
             statusText.textContent = 'Reddit account connected';
             statusText.className = 'status-text connected';
-            connectionDetails.style.display = 'block';
+            connectionDetails.style.display = 'none'; // Hide connection details
             connectBtn.style.display = 'none';
             disconnectBtn.style.display = 'inline-flex';
             
-            // Parse user info
-            try {
-                const userInfo = JSON.parse(redditUser);
-                if (username) username.textContent = userInfo.name || 'Loading...';
-                
-                // Get connection date from localStorage or use current date
-                if (connectionDate) {
-                    if (connectionDateStored) {
-                        connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
-                    } else {
-                        connectionDate.textContent = new Date().toLocaleDateString();
-                        localStorage.setItem('reddit_connection_date', new Date().toISOString());
-                    }
-                }
-                
-                if (permissions) permissions.textContent = 'Comment, Read';
-            } catch (e) {
-                if (username) username.textContent = 'Loading...';
-                if (connectionDate) {
-                    if (connectionDateStored) {
-                        connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
-                    } else {
-                        connectionDate.textContent = 'Loading...';
-                    }
-                }
-                if (permissions) permissions.textContent = 'Loading...';
-            }
+            // Connection details are now hidden - no need to populate them
         } else {
             // Disconnected state
             console.log('❌ Reddit account is not connected');
@@ -4003,10 +3977,7 @@ async function updateRedditSettingsStatus() {
             connectBtn.style.display = 'inline-flex';
             disconnectBtn.style.display = 'none';
             
-            // Clear user info when disconnected
-            if (username) username.textContent = '';
-            if (connectionDate) connectionDate.textContent = '';
-            if (permissions) permissions.textContent = '';
+            // Connection details are hidden - no need to clear them
         }
         
         const endTime = performance.now();
