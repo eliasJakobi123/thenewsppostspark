@@ -243,7 +243,13 @@ class PostSparkSupabase {
 
             if (error) throw error;
             
-            return data || [];
+            // Ensure each post has a reddit_post_id for commenting
+            const posts = (data || []).map(post => ({
+                ...post,
+                reddit_post_id: post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : null)
+            }));
+            
+            return posts;
         } catch (error) {
             console.error('Error fetching posts:', error);
             throw error;
