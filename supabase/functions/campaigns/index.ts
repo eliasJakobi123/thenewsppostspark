@@ -16,16 +16,22 @@ serve(async (req) => {
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     )
 
     // Get the user from the request
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader)
     
     if (authError || !user) {
       return new Response(

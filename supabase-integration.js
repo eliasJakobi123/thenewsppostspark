@@ -112,7 +112,8 @@ class PostSparkSupabase {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${this.user.access_token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY
                 }
             });
 
@@ -246,7 +247,8 @@ class PostSparkSupabase {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${this.user.access_token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY
                 }
             });
 
