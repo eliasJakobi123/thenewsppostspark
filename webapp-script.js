@@ -917,43 +917,58 @@ function setupCommentPopupListeners() {
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             
-                // Extract Reddit post ID from URL (much simpler approach!)
+                // Extract Reddit post ID from post data (improved approach!)
                 let redditPostId = null;
                 try {
                     // Get the post data from the database
                     const posts = await postSparkDB.getPosts(window.currentCampaignId);
                     const post = posts.find(p => p.id === postId);
                     
-                    if (post && post.url) {
-                        // Extract Reddit post ID from URL - this is the simplest approach!
-                        const url = post.url;
-                        console.log('Extracting Reddit post ID from URL:', url);
+                    if (post) {
+                        console.log('Post data found:', post);
                         
-                        // Try different URL patterns
-                        let match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
-                        if (!match) {
-                            // Try alternative pattern
-                            match = url.match(/\/r\/\w+\/comments\/([a-zA-Z0-9]+)\//);
-                        }
-                        if (!match) {
-                            // Try direct post ID pattern
-                            match = url.match(/\/([a-zA-Z0-9]+)\/$/);
+                        // Try multiple approaches to get Reddit post ID
+                        if (post.reddit_post_id) {
+                            redditPostId = post.reddit_post_id;
+                            console.log('✅ Found reddit_post_id:', redditPostId);
+                        } else if (post.reddit_id) {
+                            redditPostId = `t3_${post.reddit_id}`;
+                            console.log('✅ Constructed from reddit_id:', redditPostId);
+                        } else if (post.url) {
+                            // Extract Reddit post ID from URL
+                            const url = post.url;
+                            console.log('Extracting Reddit post ID from URL:', url);
+                            
+                            // Try different URL patterns
+                            let match = url.match(/\/comments\/([a-zA-Z0-9]+)\//);
+                            if (!match) {
+                                match = url.match(/\/r\/\w+\/comments\/([a-zA-Z0-9]+)\//);
+                            }
+                            if (!match) {
+                                match = url.match(/\/([a-zA-Z0-9]+)\/$/);
+                            }
+                            
+                            if (match) {
+                                redditPostId = `t3_${match[1]}`;
+                                console.log('✅ Extracted from URL:', redditPostId);
+                            }
+                        } else if (post.id && !post.id.includes('-')) {
+                            // If post.id looks like a Reddit ID (no dashes), use it directly
+                            redditPostId = `t3_${post.id}`;
+                            console.log('✅ Using post.id as Reddit ID:', redditPostId);
                         }
                         
-                        if (match) {
-                            redditPostId = `t3_${match[1]}`;
-                            console.log('✅ Successfully extracted Reddit post ID from URL:', redditPostId);
-                        } else {
-                            console.error('Could not extract Reddit post ID from URL:', url);
-                            throw new Error('Could not extract Reddit post ID from URL. Please check if the post has a valid Reddit URL.');
+                        if (!redditPostId) {
+                            console.error('Could not determine Reddit post ID for post:', post);
+                            throw new Error('Could not determine Reddit post ID. Post may not have valid Reddit data.');
                         }
                     } else {
-                        console.error('No URL found for post:', post);
-                        throw new Error('No Reddit URL found for this post.');
+                        console.error('Post not found in database:', postId);
+                        throw new Error('Post not found in database.');
                     }
                 } catch (error) {
                     console.error('Error getting Reddit post ID:', error);
-                    showNotification('Error: Could not extract Reddit post ID from URL. Please ensure the post has a valid Reddit URL.', 'error');
+                    showNotification('Error: Could not determine Reddit post ID. Please ensure the post has valid Reddit data.', 'error');
                     return;
                 }
 
