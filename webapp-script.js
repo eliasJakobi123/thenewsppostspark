@@ -224,10 +224,9 @@ async function updateCommentPopupRedditStatus() {
             const disconnectBtn = redditStatus.querySelector('.disconnect-btn');
             
             if (isConnected) {
-                // Connected state - no icon, just text
+                // Connected state - hide indicator completely
                 if (statusIndicator) {
-                    statusIndicator.innerHTML = '';
-                    statusIndicator.className = 'reddit-status-indicator connected';
+                    statusIndicator.style.display = 'none';
                 }
                 if (statusText) {
                     statusText.textContent = 'Reddit account connected';
@@ -246,10 +245,9 @@ async function updateCommentPopupRedditStatus() {
                     disconnectBtn.style.display = 'inline-flex';
                 }
             } else {
-                // Disconnected state - no icon, just text
+                // Disconnected state - hide indicator completely
                 if (statusIndicator) {
-                    statusIndicator.innerHTML = '';
-                    statusIndicator.className = 'reddit-status-indicator disconnected';
+                    statusIndicator.style.display = 'none';
                 }
                 if (statusText) {
                     statusText.textContent = 'Reddit account not connected';
@@ -304,19 +302,60 @@ document.addEventListener('DOMContentLoaded', async function() {
     await checkRedditConnection();
 });
 
+// Show loading overlay
+function showLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+    }
+}
+
+// Hide loading overlay
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 500);
+    }
+}
+
+// Update loading step
+function updateLoadingStep(stepId, status) {
+    const step = document.getElementById(stepId);
+    if (step) {
+        step.className = `loading-step ${status}`;
+    }
+}
+
 // Initialize the application
 async function initializeApp() {
     try {
         console.log('🚀 Initializing PostSpark application...');
         
+        // Show loading overlay
+        showLoadingOverlay();
+        
+        // Update loading step - user profile
+        updateLoadingStep('step-user', 'completed');
+        
         // Load campaigns from Supabase
+        updateLoadingStep('step-campaigns', 'active');
         await loadCampaigns();
+        updateLoadingStep('step-campaigns', 'completed');
         
         // Preload dashboard data immediately after login
+        updateLoadingStep('step-posts', 'active');
         await preloadDashboardData();
+        updateLoadingStep('step-posts', 'completed');
         
         // Update user info in sidebar
         updateUserInfo();
+        
+        // Update loading step - dashboard
+        updateLoadingStep('step-dashboard', 'active');
         
         // Initialize router navigation
         initializeRouterNavigation();
@@ -328,11 +367,20 @@ async function initializeApp() {
         initializeAnimations();
         initializeRippleEffects();
         
+        // Complete loading
+        updateLoadingStep('step-dashboard', 'completed');
+        
+        // Hide loading overlay after a short delay
+        setTimeout(() => {
+            hideLoadingOverlay();
+        }, 1000);
+        
         console.log('✅ PostSpark application initialized successfully');
         
     } catch (error) {
         console.error('Error initializing app:', error);
         showNotification('Error loading application data', 'error');
+        hideLoadingOverlay();
     }
 }
 
@@ -745,15 +793,39 @@ async function refreshCampaignPosts(campaignId) {
             });
             
             if (uniqueNewPosts.length > 0) {
-                // Add new posts to the campaign
-                for (const post of uniqueNewPosts) {
-                    await postSparkDB.addPostToCampaign(campaignId, post);
+                // Add new posts to the campaign using direct Supabase insertion
+                try {
+                    for (const post of uniqueNewPosts) {
+                        const { error } = await postSparkDB.supabase
+                            .from('posts')
+                            .insert({
+                                campaign_id: campaignId,
+                                title: post.title,
+                                content: post.content,
+                                subreddit: post.subreddit,
+                                reddit_id: post.reddit_id,
+                                reddit_post_id: post.reddit_post_id,
+                                url: post.url,
+                                score: post.score || 0,
+                                created_at: post.created_at || new Date().toISOString(),
+                                is_contacted: false
+                            });
+                        
+                        if (error) {
+                            console.error('Error adding post to campaign:', error);
+                        }
+                    }
+                    
+                    // Reload the campaign posts to show new ones at the top
+                    await showCampaignPosts(campaignId);
+                    
+                    showNotification(`Found ${uniqueNewPosts.length} new posts!`, 'success');
+                } catch (error) {
+                    console.error('Error adding posts to campaign:', error);
+                    showNotification('Error adding posts to campaign: ' + error.message, 'error');
+                    // Reload current posts on error
+                    await showCampaignPosts(campaignId);
                 }
-                
-                // Reload the campaign posts to show new ones at the top
-                await showCampaignPosts(campaignId);
-                
-                showNotification(`Found ${uniqueNewPosts.length} new posts!`, 'success');
             } else {
                 showNotification('No new posts found. Try different keywords or subreddits.', 'info');
                 // Reload current posts

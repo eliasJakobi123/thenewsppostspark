@@ -10,6 +10,36 @@
     <script src="router.js"></script>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <div class="loading-spinner"></div>
+            <h2>Welcome to PostSpark</h2>
+            <p>Setting up your dashboard and loading your data...</p>
+            <div class="loading-steps">
+                <div class="loading-step" id="step-user">
+                    <i class="fas fa-user"></i>
+                    <span>Loading user profile...</span>
+                </div>
+                <div class="loading-step" id="step-campaigns">
+                    <i class="fas fa-rocket"></i>
+                    <span>Loading campaigns...</span>
+                </div>
+                <div class="loading-step" id="step-posts">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analyzing posts...</span>
+                </div>
+                <div class="loading-step" id="step-dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Preparing dashboard...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="webapp-container">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
