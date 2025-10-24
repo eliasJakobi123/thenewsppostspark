@@ -665,12 +665,15 @@ function renderCampaignPosts(posts) {
     
     console.log('Rendering', posts.length, 'posts');
     
-    posts.forEach(post => {
-        const postCard = document.createElement('div');
-        postCard.className = `post-card ${post.score >= 85 ? 'high-potential' : post.score >= 70 ? 'medium-potential' : 'low-potential'}`;
-        postCard.setAttribute('data-post-id', post.id);
-        postCard.setAttribute('data-subreddit', post.subreddit);
-        postCard.setAttribute('data-created-at', post.created_at);
+    posts.forEach((post, index) => {
+        try {
+            console.log(`Processing post ${index + 1}/${posts.length}:`, post);
+            
+            const postCard = document.createElement('div');
+            postCard.className = `post-card ${post.score >= 85 ? 'high-potential' : post.score >= 70 ? 'medium-potential' : 'low-potential'}`;
+            postCard.setAttribute('data-post-id', post.id);
+            postCard.setAttribute('data-subreddit', post.subreddit || 'unknown');
+            postCard.setAttribute('data-created-at', post.created_at || new Date().toISOString());
         
         // Add Reddit post ID for commenting
         if (post.reddit_post_id) {
@@ -685,7 +688,12 @@ function renderCampaignPosts(posts) {
         }
         
         // Format time
-        const timeAgo = formatTimeAgo(new Date(post.created_at));
+        let timeAgo = 'Unknown time';
+        try {
+            timeAgo = formatTimeAgo(new Date(post.created_at));
+        } catch (error) {
+            console.error('Error formatting time for post:', post.id, error);
+        }
         console.log('Post time debug:', { 
             created_at: post.created_at, 
             timeAgo: timeAgo,
@@ -695,30 +703,36 @@ function renderCampaignPosts(posts) {
         // Add contacted badge if applicable
         const contactedBadge = post.is_contacted ? '<span class="contacted-badge">Contacted</span>' : '';
         
+        // Safely escape strings for HTML
+        const safeTitle = (post.title || 'No title').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeContent = (post.content || 'No content available').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeSubreddit = (post.subreddit || 'unknown').replace(/'/g, "\\'");
+        const safeCreatedAt = (post.created_at || new Date().toISOString()).replace(/'/g, "\\'");
+        
         postCard.innerHTML = `
             <div class="post-header">
                 <div class="post-meta">
-                    <span class="platform">r/${post.subreddit}</span>
+                    <span class="platform">r/${safeSubreddit}</span>
                     <span class="time">${timeAgo}</span>
                     ${contactedBadge}
                 </div>
                 <div class="post-score">
                     <i class="fas fa-star"></i>
-                    <span>${post.score}%</span>
+                    <span>${post.score || 0}%</span>
                 </div>
             </div>
             <div class="post-content">
-                <h3>${post.title}</h3>
+                <h3>${safeTitle}</h3>
                 <div class="post-text-container">
-                    <p class="post-text">${post.content || 'No content available'}</p>
+                    <p class="post-text">${safeContent}</p>
                 </div>
             </div>
             <div class="post-actions">
-                <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}', '${redditPostId || ''}')">
+                <button class="btn btn-primary" onclick="writeComment('${post.id}', '${safeSubreddit}', '${safeTitle}', '${safeContent}', '${safeCreatedAt}', '${redditPostId || ''}')">
                     <i class="fas fa-comment"></i>
                     Comment
                 </button>
-                <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id}', '${post.subreddit}')">
+                <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id || ''}', '${safeSubreddit}')">
                     <i class="fas fa-external-link-alt"></i>
                     Show
                 </button>
@@ -729,6 +743,21 @@ function renderCampaignPosts(posts) {
             </div>
         `;
         postsGrid.appendChild(postCard);
+        
+        } catch (error) {
+            console.error(`Error rendering post ${index + 1}:`, error, post);
+            // Create a simple error card
+            const errorCard = document.createElement('div');
+            errorCard.className = 'post-card error-card';
+            errorCard.innerHTML = `
+                <div class="post-content">
+                    <h3>Error loading post</h3>
+                    <p>Post ID: ${post.id || 'Unknown'}</p>
+                    <p>Error: ${error.message}</p>
+                </div>
+            `;
+            postsGrid.appendChild(errorCard);
+        }
     });
     
     // Add event listeners to new post action buttons
