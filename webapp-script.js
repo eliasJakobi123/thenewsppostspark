@@ -2639,7 +2639,13 @@ async function openCommentForPost(postId) {
     const actualRedditPostId = postCard.getAttribute('data-reddit-post-id') || postCard.getAttribute('data-reddit-id');
     console.log('Actual Reddit post ID from element:', actualRedditPostId);
     
-    await writeComment(postData.id, postData.subreddit, postData.title, postData.content, postData.created_at, actualRedditPostId);
+    // Use the actual Reddit post ID instead of database ID
+    if (actualRedditPostId) {
+        await writeComment(actualRedditPostId, postData.subreddit, postData.title, postData.content, postData.created_at, actualRedditPostId);
+    } else {
+        console.error('No Reddit post ID found for commenting');
+        showNotification('Reddit post ID not found. Cannot comment.', 'error');
+    }
 }
 
 // Write comment function
@@ -2690,6 +2696,10 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         if (actualRedditPostId) {
             redditPostId = actualRedditPostId;
             console.log('Using provided Reddit post ID:', redditPostId);
+        } else if (postId && postId.startsWith('t3_')) {
+            // If postId is already a Reddit post ID, use it directly
+            redditPostId = postId;
+            console.log('Using postId as Reddit post ID:', redditPostId);
         } else if (currentPostData && currentPostData.reddit_post_id) {
             redditPostId = currentPostData.reddit_post_id;
             console.log('Found Reddit post ID in currentPostData:', redditPostId);
@@ -2894,7 +2904,11 @@ function navigateToPage(page) {
         }
     } else {
         // Fallback to hash routing
-        showPage(page);
+        if (window.router && window.router.showPage) {
+            window.router.showPage(page);
+        } else {
+            console.error('Router not available for page:', page);
+        }
     }
 }
 
