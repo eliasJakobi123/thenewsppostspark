@@ -107,24 +107,14 @@ class PostSparkSupabase {
         if (!this.user) throw new Error('User not authenticated');
 
         try {
-            // Use Edge Function instead of direct Supabase call
-            const edgeFunctionUrl = `https://ntutkssgqzqgmbvuwjqu.supabase.co/functions/v1/campaigns`;
-            console.log('Calling Edge Function:', edgeFunctionUrl);
-            console.log('User access token:', this.user.access_token ? 'Present' : 'Missing');
-            const response = await fetch(edgeFunctionUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.user.access_token}`,
-                    'Content-Type': 'application/json',
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            });
+            const { data, error } = await supabaseClient
+                .from(TABLES.CAMPAIGNS)
+                .select('*')
+                .eq('user_id', this.user.id)
+                .order('created_at', { ascending: false });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+            if (error) throw error;
+            
             this.campaigns = data || [];
             return this.campaigns;
         } catch (error) {
@@ -245,25 +235,21 @@ class PostSparkSupabase {
         if (!this.user) throw new Error('User not authenticated');
 
         try {
-            // Use Edge Function instead of direct Supabase call
-            const edgeFunctionUrl = `https://ntutkssgqzqgmbvuwjqu.supabase.co/functions/v1/posts?campaign_id=${campaignId}`;
-            console.log('Calling Edge Function:', edgeFunctionUrl);
-            console.log('User access token:', this.user.access_token ? 'Present' : 'Missing');
-            const response = await fetch(edgeFunctionUrl, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.user.access_token}`,
-                    'Content-Type': 'application/json',
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            });
+            const { data, error } = await supabaseClient
+                .from(TABLES.POSTS)
+                .select('*')
+                .eq('campaign_id', campaignId)
+                .order('created_at', { ascending: false });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data || [];
+            if (error) throw error;
+            
+            // Ensure each post has a reddit_post_id for commenting
+            const posts = (data || []).map(post => ({
+                ...post,
+                reddit_post_id: post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : null)
+            }));
+            
+            return posts;
         } catch (error) {
             console.error('Error fetching posts:', error);
             throw error;
