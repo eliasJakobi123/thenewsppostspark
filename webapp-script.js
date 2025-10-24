@@ -2636,7 +2636,7 @@ async function openCommentForPost(postId) {
     
     // Call writeComment with the extracted data
     // We need to get the actual Reddit post ID from the database
-    const actualRedditPostId = postCard.getAttribute('data-reddit-post-id') || postCard.getAttribute('data-reddit-id');
+    const actualRedditPostId = postElement.getAttribute('data-reddit-post-id') || postElement.getAttribute('data-reddit-id');
     console.log('Actual Reddit post ID from element:', actualRedditPostId);
     
     // Use the actual Reddit post ID instead of database ID
@@ -2697,8 +2697,8 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         if (actualRedditPostId) {
             redditPostId = actualRedditPostId;
             console.log('Using provided Reddit post ID:', redditPostId);
-        } else if (postId && postId.startsWith('t3_')) {
-            // If postId is already a Reddit post ID, use it directly
+        } else if (postId && postId.startsWith('t3_') && !postId.includes('-')) {
+            // If postId is already a Reddit post ID (not a UUID), use it directly
             redditPostId = postId;
             console.log('Using postId as Reddit post ID:', redditPostId);
         } else if (currentPostData && currentPostData.reddit_post_id) {
