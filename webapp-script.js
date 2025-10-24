@@ -679,11 +679,11 @@ function renderCampaignPosts(posts) {
         let redditPostId = null;
         if (post.reddit_post_id) {
             redditPostId = post.reddit_post_id;
-            postCard.setAttribute('data-reddit-post-id', redditPostId);
+            postCard.setAttribute('data-reddit-id', redditPostId);
             console.log('Added Reddit post ID to card:', redditPostId);
         } else if (post.reddit_id) {
             redditPostId = `t3_${post.reddit_id}`;
-            postCard.setAttribute('data-reddit-post-id', redditPostId);
+            postCard.setAttribute('data-reddit-id', redditPostId);
             console.log('Constructed Reddit post ID for card:', redditPostId);
         } else {
             console.warn('No Reddit post ID found for post:', post.id);
@@ -873,6 +873,10 @@ function showCommentPopup(postCard) {
     const time = postCard.querySelector('.time').textContent;
     const score = postCard.querySelector('.post-score span').textContent;
     
+    // Get Reddit post ID from the post card
+    const redditPostId = postCard.getAttribute('data-reddit-id');
+    console.log('Reddit post ID from post card:', redditPostId);
+    
     // Create post preview HTML
     postPreview.innerHTML = `
         <div class="post-header">
@@ -890,6 +894,15 @@ function showCommentPopup(postCard) {
             <p>${content}</p>
         </div>
     `;
+    
+    // Set Reddit post ID for commenting
+    if (redditPostId) {
+        postPreview.setAttribute('data-reddit-id', redditPostId);
+        window.currentRedditPostId = redditPostId;
+        console.log('✅ Set Reddit post ID for commenting:', redditPostId);
+    } else {
+        console.warn('⚠️ No Reddit post ID found for commenting');
+    }
     
     // Show popup
     popup.classList.add('active');
@@ -2530,6 +2543,18 @@ function createPostCard(post) {
     card.className = 'post-card';
     card.setAttribute('data-post-id', post.id);
     
+    // Set Reddit post ID for commenting functionality
+    if (post.reddit_post_id) {
+        card.setAttribute('data-reddit-id', post.reddit_post_id);
+        console.log('✅ Set data-reddit-id attribute:', post.reddit_post_id);
+    } else if (post.reddit_id) {
+        const redditPostId = `t3_${post.reddit_id}`;
+        card.setAttribute('data-reddit-id', redditPostId);
+        console.log('✅ Set data-reddit-id attribute from reddit_id:', redditPostId);
+    } else {
+        console.warn('⚠️ No Reddit post ID found for post:', post.id);
+    }
+    
     const contactedClass = post.is_contacted ? 'contacted' : '';
     const contactedBadge = post.is_contacted ? '<span class="contacted-badge">Contacted</span>' : '';
     
@@ -2547,7 +2572,7 @@ function createPostCard(post) {
             <p>${post.content || 'No content available'}</p>
         </div>
         <div class="post-actions">
-            <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}')">
+            <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}', '${post.reddit_post_id || (post.reddit_id ? `t3_${post.reddit_id}` : '')}')">
                 <i class="fas fa-comment"></i> Write Comment
             </button>
             ${!post.is_contacted ? `
@@ -2571,6 +2596,7 @@ async function markAsContacted(postId) {
         if (postCard) {
             postCard.classList.add('contacted');
             const actions = postCard.querySelector('.post-actions');
+            const redditPostId = postCard.getAttribute('data-reddit-id');
             actions.innerHTML = `
                 <button class="btn btn-primary" onclick="openCommentForPost('${postId}')">
                     <i class="fas fa-comment"></i> Write Comment
@@ -2832,14 +2858,14 @@ async function openCommentForPost(postId) {
     console.log('Post data set for AI:', currentPostData); // Debug log
     
     // Call writeComment with the extracted data
-    // We need to get the actual Reddit post ID from the database
-    const actualRedditPostId = postElement.getAttribute('data-reddit-post-id') || postElement.getAttribute('data-reddit-id');
+    // We need to get the actual Reddit post ID from the element
+    const actualRedditPostId = postElement.getAttribute('data-reddit-id');
     console.log('Actual Reddit post ID from element:', actualRedditPostId);
     
     // Use the actual Reddit post ID instead of database ID
     if (actualRedditPostId) {
         console.log('Using Reddit post ID for commenting:', actualRedditPostId);
-        await writeComment(actualRedditPostId, postData.subreddit, postData.title, postData.content, postData.created_at, actualRedditPostId);
+        await writeComment(postId, postData.subreddit, postData.title, postData.content, postData.created_at, actualRedditPostId);
     } else {
         console.error('No Reddit post ID found for commenting');
         showNotification('Reddit post ID not found. Cannot comment.', 'error');
@@ -2857,7 +2883,7 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
             subreddit: subreddit,
             url: `https://reddit.com/r/${subreddit}/comments/${postId}/`, // Construct Reddit URL
             reddit_id: postId, // Store the Reddit ID for commenting
-            reddit_post_id: `t3_${postId}` // Store the Reddit post ID for commenting
+            reddit_post_id: actualRedditPostId || `t3_${postId}` // Use the actual Reddit post ID if provided
         };
         
         console.log('🔍 Updated currentPostData:', currentPostData);
