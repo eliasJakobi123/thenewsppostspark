@@ -881,9 +881,11 @@ async function showCampaignPosts(campaignId) {
         }
         
         // Render posts
+        console.log('🎨 Rendering posts in UI...');
         renderCampaignPosts(posts);
         
         // Posts loaded successfully (no notification needed)
+        console.log('✅ Campaign posts loaded and rendered successfully');
         
     } catch (error) {
         console.error('Error loading campaign posts:', error);
@@ -893,18 +895,19 @@ async function showCampaignPosts(campaignId) {
 
 // Render campaign posts
 function renderCampaignPosts(posts) {
-    console.log('Rendering campaign posts:', posts.length, posts);
+    console.log('🎨 Rendering campaign posts:', posts.length, posts);
     const postsGrid = document.getElementById('campaign-posts-grid');
     
     if (!postsGrid) {
-        console.error('Campaign posts grid element not found!');
+        console.error('❌ Campaign posts grid element not found!');
         return;
     }
     
+    console.log('📋 Found posts grid, clearing existing posts...');
     postsGrid.innerHTML = '';
     
     if (posts.length === 0) {
-        console.log('No posts to render, showing empty state');
+        console.log('⚠️ No posts to render, showing empty state');
         postsGrid.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-search"></i>
@@ -915,11 +918,11 @@ function renderCampaignPosts(posts) {
         return;
     }
     
-    console.log('Rendering', posts.length, 'posts');
+    console.log(`📝 Rendering ${posts.length} posts...`);
     
     posts.forEach((post, index) => {
         try {
-            console.log(`Processing post ${index + 1}/${posts.length}:`, post);
+            console.log(`📝 Processing post ${index + 1}/${posts.length}:`, post);
             
             const postCard = document.createElement('div');
             postCard.className = `post-card ${post.score >= 85 ? 'high-potential' : post.score >= 70 ? 'medium-potential' : 'low-potential'}`;
@@ -996,9 +999,10 @@ function renderCampaignPosts(posts) {
             </div>
         `;
         postsGrid.appendChild(postCard);
+        console.log(`✅ Successfully added post ${index + 1} to UI`);
         
         } catch (error) {
-            console.error(`Error rendering post ${index + 1}:`, error, post);
+            console.error(`❌ Error rendering post ${index + 1}:`, error, post);
             // Create a simple error card
             const errorCard = document.createElement('div');
             errorCard.className = 'post-card error-card';
@@ -1015,6 +1019,8 @@ function renderCampaignPosts(posts) {
     
     // Add event listeners to new post action buttons
     addPostActionListeners();
+    
+    console.log(`🎉 Successfully rendered ${posts.length} posts in UI`);
     
     // Read more functionality removed
 }
