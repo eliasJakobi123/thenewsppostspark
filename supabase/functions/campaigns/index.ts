@@ -21,6 +21,8 @@ serve(async (req) => {
 
     // Get the user from the request
     const authHeader = req.headers.get('Authorization')
+    console.log('Auth header received:', authHeader ? 'Present' : 'Missing')
+    
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
@@ -31,7 +33,9 @@ serve(async (req) => {
       )
     }
 
+    // Set the authorization header for the client
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader)
+    console.log('User authentication result:', { user: user?.id, error: authError?.message })
     
     if (authError || !user) {
       return new Response(
