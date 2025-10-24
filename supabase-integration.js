@@ -851,6 +851,27 @@ class PostSparkSupabase {
                 }
             }
 
+            // Check if token has required scopes for commenting
+            console.log('Checking if token has required scopes for commenting...');
+            try {
+                // Make a test request to see if we can access comment-related endpoints
+                const scopeTestResponse = await fetch(`${REDDIT_CONFIG.API_BASE}/api/v1/me/prefs`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${tokens.reddit_access_token}`,
+                        'User-Agent': 'PostSpark/1.0'
+                    }
+                });
+                
+                if (!scopeTestResponse.ok) {
+                    console.log('Scope test failed, token may not have required permissions');
+                    throw new Error('Reddit token does not have required permissions for commenting. Please reconnect your Reddit account.');
+                }
+            } catch (scopeError) {
+                console.error('Scope validation failed:', scopeError);
+                throw new Error('Reddit token scope validation failed. Please reconnect your Reddit account to grant comment permissions.');
+            }
+
             // Ensure postId has correct format (should start with t3_)
             if (!postId.startsWith('t3_')) {
                 console.log('Converting post ID format from', postId, 'to t3_ format');

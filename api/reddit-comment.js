@@ -97,6 +97,17 @@ export default async function handler(req, res) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Reddit API error:', errorText);
+            
+            // Check if it's a scope/permission issue
+            if (response.status === 403) {
+                return res.status(403).json({ 
+                    error: 'Insufficient permissions', 
+                    details: errorText,
+                    status: response.status,
+                    suggestion: 'Please reconnect your Reddit account to grant comment permissions'
+                });
+            }
+            
             return res.status(response.status).json({ 
                 error: 'Reddit API error', 
                 details: errorText,

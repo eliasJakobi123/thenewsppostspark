@@ -892,10 +892,28 @@ function setupCommentPopupListeners() {
             let errorMessage = 'Error posting comment: ';
             if (error.message.includes('Reddit account not connected')) {
                 errorMessage = 'Please connect your Reddit account first.';
-            } else if (error.message.includes('token') || error.message.includes('403')) {
-                errorMessage = 'Reddit authentication failed. Please reconnect your Reddit account.';
+            } else if (error.message.includes('token') || error.message.includes('403') || error.message.includes('permissions')) {
+                errorMessage = 'Reddit permissions issue. Please reconnect your Reddit account to grant comment permissions.';
+                // Add a button to reconnect Reddit
+                showNotification(errorMessage, 'error');
+                setTimeout(() => {
+                    if (confirm('Would you like to reconnect your Reddit account now?')) {
+                        postSparkDB.connectReddit();
+                    }
+                }, 2000);
+                return;
             } else if (error.message.includes('Reddit API error')) {
                 errorMessage = 'Reddit API error. Please try again or reconnect your account.';
+            } else if (error.message.includes('scope')) {
+                errorMessage = 'Reddit token permissions issue. Please reconnect your Reddit account.';
+                // Add a button to reconnect Reddit
+                showNotification(errorMessage, 'error');
+                setTimeout(() => {
+                    if (confirm('Would you like to reconnect your Reddit account now?')) {
+                        postSparkDB.connectReddit();
+                    }
+                }, 2000);
+                return;
             } else {
                 errorMessage += error.message;
             }
