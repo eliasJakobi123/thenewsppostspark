@@ -213,39 +213,60 @@ async function updateCommentPopupRedditStatus() {
         const connectBtn = document.getElementById('connect-reddit-btn');
         const disconnectBtn = document.getElementById('disconnect-reddit-btn');
         
-        if (isConnected) {
-            // Connected state
-            if (statusDot) {
-                statusDot.className = 'status-dot connected';
-            }
-            if (statusText) {
-                statusText.textContent = 'Reddit account connected';
-            }
-            if (statusSubtitle) {
-                statusSubtitle.textContent = 'Ready to post comments on Reddit';
-            }
-            if (connectBtn) {
-                connectBtn.style.display = 'none';
-            }
-            if (disconnectBtn) {
-                disconnectBtn.style.display = 'inline-flex';
-            }
-        } else {
-            // Disconnected state
-            if (statusDot) {
-                statusDot.className = 'status-dot disconnected';
-            }
-            if (statusText) {
-                statusText.textContent = 'Reddit account not connected';
-            }
-            if (statusSubtitle) {
-                statusSubtitle.textContent = 'Connect your Reddit account to post comments';
-            }
-            if (connectBtn) {
-                connectBtn.style.display = 'inline-flex';
-            }
-            if (disconnectBtn) {
-                disconnectBtn.style.display = 'none';
+        // Update Reddit connection status in comment popup
+        const redditStatus = document.querySelector('.reddit-connection-status');
+        if (redditStatus) {
+            const statusIndicator = redditStatus.querySelector('.reddit-status-indicator');
+            const statusText = redditStatus.querySelector('.reddit-status-text');
+            const statusSubtitle = redditStatus.querySelector('.reddit-status-subtitle');
+            const statusDot = redditStatus.querySelector('.status-dot');
+            const connectBtn = redditStatus.querySelector('.connect-btn');
+            const disconnectBtn = redditStatus.querySelector('.disconnect-btn');
+            
+            if (isConnected) {
+                // Connected state - show only green checkmark
+                if (statusIndicator) {
+                    statusIndicator.innerHTML = '<i class="fas fa-check" style="color: #10b981; font-size: 1.2rem;"></i>';
+                    statusIndicator.className = 'reddit-status-indicator connected';
+                }
+                if (statusText) {
+                    statusText.textContent = 'Reddit account connected';
+                    statusText.className = 'reddit-status-text connected';
+                }
+                if (statusSubtitle) {
+                    statusSubtitle.textContent = 'Ready to post comments on Reddit';
+                }
+                if (statusDot) {
+                    statusDot.className = 'status-dot connected';
+                }
+                if (connectBtn) {
+                    connectBtn.style.display = 'none';
+                }
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'inline-flex';
+                }
+            } else {
+                // Disconnected state - show red X
+                if (statusIndicator) {
+                    statusIndicator.innerHTML = '<i class="fas fa-times" style="color: #ef4444; font-size: 1.2rem;"></i>';
+                    statusIndicator.className = 'reddit-status-indicator disconnected';
+                }
+                if (statusText) {
+                    statusText.textContent = 'Reddit account not connected';
+                    statusText.className = 'reddit-status-text disconnected';
+                }
+                if (statusSubtitle) {
+                    statusSubtitle.textContent = 'Connect your Reddit account to post comments';
+                }
+                if (statusDot) {
+                    statusDot.className = 'status-dot disconnected';
+                }
+                if (connectBtn) {
+                    connectBtn.style.display = 'inline-flex';
+                }
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'none';
+                }
             }
         }
         
@@ -3876,7 +3897,7 @@ async function updateRedditSettingsStatus() {
             // Parse user info
             try {
                 const userInfo = JSON.parse(redditUser);
-                if (username) username.textContent = userInfo.name || 'Unknown User';
+                if (username) username.textContent = userInfo.name || 'Loading...';
                 
                 // Get connection date from localStorage or use current date
                 if (connectionDate) {
@@ -3890,15 +3911,15 @@ async function updateRedditSettingsStatus() {
                 
                 if (permissions) permissions.textContent = 'Comment, Read';
             } catch (e) {
-                if (username) username.textContent = 'Unknown User';
+                if (username) username.textContent = 'Loading...';
                 if (connectionDate) {
                     if (connectionDateStored) {
                         connectionDate.textContent = new Date(connectionDateStored).toLocaleDateString();
                     } else {
-                        connectionDate.textContent = 'Unknown';
+                        connectionDate.textContent = 'Loading...';
                     }
                 }
-                if (permissions) permissions.textContent = 'Unknown';
+                if (permissions) permissions.textContent = 'Loading...';
             }
         } else {
             // Disconnected state
@@ -3909,6 +3930,11 @@ async function updateRedditSettingsStatus() {
             connectionDetails.style.display = 'none';
             connectBtn.style.display = 'inline-flex';
             disconnectBtn.style.display = 'none';
+            
+            // Clear user info when disconnected
+            if (username) username.textContent = '';
+            if (connectionDate) connectionDate.textContent = '';
+            if (permissions) permissions.textContent = '';
         }
         
         const endTime = performance.now();
