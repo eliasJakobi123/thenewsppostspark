@@ -837,8 +837,10 @@ function setupCommentPopupListeners() {
                 return;
             }
             
-            // Show loading state
+            // Store original button text outside try-catch
             const originalText = sendBtn.innerHTML;
+            
+            // Show loading state
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             

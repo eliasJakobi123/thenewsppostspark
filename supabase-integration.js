@@ -771,8 +771,7 @@ class PostSparkSupabase {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${tokens.reddit_access_token}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': 'PostSpark/1.0 by YourUsername'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: new URLSearchParams({
                     thing_id: postId,
