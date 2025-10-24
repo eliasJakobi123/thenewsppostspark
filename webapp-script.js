@@ -423,13 +423,20 @@ function initializeNavigation() {
     const backBtn = document.querySelector('.back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', function() {
+            console.log('Back button clicked');
             // Hide campaign posts page and show campaigns page
             document.getElementById('campaign-posts').classList.remove('active');
             document.getElementById('campaigns').classList.add('active');
             
             // Update navigation
             navItems.forEach(nav => nav.classList.remove('active'));
-            document.querySelector('[data-page="campaigns"]').classList.add('active');
+            const campaignsNav = document.querySelector('[data-page="campaigns"]');
+            if (campaignsNav) {
+                campaignsNav.classList.add('active');
+            }
+            
+            // Reload campaigns to refresh stats
+            loadCampaigns();
         });
     }
     
@@ -706,20 +713,20 @@ function renderCampaignPosts(posts) {
                     <p class="post-text">${post.content || 'No content available'}</p>
                 </div>
             </div>
-                <div class="post-actions">
-                    <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}')">
-                        <i class="fas fa-comment"></i>
-                        Comment
-                    </button>
-                    <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id}', '${post.subreddit}')">
-                        <i class="fas fa-external-link-alt"></i>
-                        Show
-                    </button>
-                    <button class="btn btn-tertiary" onclick="togglePostExpansion(this)">
-                        <i class="fas fa-expand-arrows-alt"></i>
-                        Show All
-                    </button>
-                </div>
+            <div class="post-actions">
+                <button class="btn btn-primary" onclick="writeComment('${post.id}', '${post.subreddit}', '${(post.title || '').replace(/'/g, "\\'")}', '${(post.content || '').replace(/'/g, "\\'")}', '${post.created_at}')">
+                    <i class="fas fa-comment"></i>
+                    Comment
+                </button>
+                <button class="btn btn-secondary" onclick="showRedditPost('${post.reddit_id}', '${post.subreddit}')">
+                    <i class="fas fa-external-link-alt"></i>
+                    Show
+                </button>
+                <button class="btn btn-tertiary" onclick="togglePostExpansion(this)">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                    Show All
+                </button>
+            </div>
         `;
         postsGrid.appendChild(postCard);
     });
