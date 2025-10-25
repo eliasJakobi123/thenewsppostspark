@@ -877,7 +877,7 @@ body::before {
 
 /* Comparison Section */
 .comparison {
-    padding: 4rem 0;
+    padding: 6rem 0;
     animation: gentleFadeIn 0.8s ease-out;
 }
 
@@ -1899,7 +1899,12 @@ body::before {
 }
 
 /* CTA Sections */
-.comparison-cta,
+.comparison-cta {
+    padding: 4rem 0;
+    text-align: center;
+    margin-top: 2rem;
+}
+
 .case-studies-cta,
 .testimonials-cta {
     padding: 3rem 0;
