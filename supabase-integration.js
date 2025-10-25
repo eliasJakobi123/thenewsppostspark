@@ -673,6 +673,36 @@ class PostSparkSupabase {
         }
     }
 
+    async clearRedditTokens() {
+        try {
+            console.log('Clearing Reddit tokens from database');
+            
+            if (!this.user || !this.user.id) {
+                throw new Error('No user found for clearing Reddit tokens');
+            }
+            
+            const { data, error } = await supabaseClient
+                .from(TABLES.USERS)
+                .update({
+                    reddit_access_token: null,
+                    reddit_refresh_token: null,
+                    reddit_token_expires: null
+                })
+                .eq('id', this.user.id);
+            
+            if (error) {
+                console.error('Error clearing Reddit tokens:', error);
+                throw error;
+            }
+            
+            console.log('Reddit tokens cleared successfully');
+            return data;
+        } catch (error) {
+            console.error('Error clearing Reddit tokens:', error);
+            throw error;
+        }
+    }
+
     async getRedditTokens() {
         try {
             // Ensure user is initialized
@@ -810,6 +840,13 @@ class PostSparkSupabase {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Reddit user info error:', errorText);
+                
+                // If token is invalid, clear it from database
+                if (response.status === 401) {
+                    console.log('Reddit token expired, clearing from database');
+                    await this.clearRedditTokens();
+                }
+                
                 throw new Error(`Reddit token invalid: ${response.status}`);
             }
 

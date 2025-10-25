@@ -4593,6 +4593,8 @@ function setupAIPopupEventListeners() {
     // Generate Response button
     const generateBtn = document.getElementById('ai-generate-btn');
     if (generateBtn) {
+        // Remove existing listeners to prevent duplicates
+        generateBtn.removeEventListener('click', generateAIResponseWithLoading);
         generateBtn.addEventListener('click', generateAIResponseWithLoading);
     }
     
@@ -5046,6 +5048,12 @@ async function saveAIStyleAndClose() {
 
 async function generateAIResponseWithLoading() {
     const generateBtn = document.getElementById('ai-generate-btn');
+    
+    // Prevent multiple clicks
+    if (generateBtn.disabled) {
+        return;
+    }
+    
     const originalText = generateBtn.innerHTML;
     
     try {
