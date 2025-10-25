@@ -1,4 +1,6 @@
 {
+  "buildCommand": "echo 'No build required for static site'",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/api/ai-response",
