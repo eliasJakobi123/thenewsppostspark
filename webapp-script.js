@@ -915,8 +915,9 @@ async function refreshCampaignPosts(campaignId) {
 // Show campaign posts function
 async function showCampaignPosts(campaignId) {
     try {
-        // Set current campaign ID for refresh functionality
+        // Set current campaign ID for refresh functionality and AI style tracking
         window.currentCampaignId = campaignId;
+        localStorage.setItem('currentCampaignId', campaignId);
         
         // Update URL if router is available
         if (window.router) {
@@ -1279,6 +1280,13 @@ async function showCommentPopup(postCard) {
     // Show popup
     popup.classList.add('active');
     
+    // Reset send button to normal state
+    const sendBtn = document.getElementById('send-comment');
+    if (sendBtn) {
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send to Reddit';
+        sendBtn.disabled = false;
+    }
+    
     // Update Reddit status in popup
     await updateCommentPopupRedditStatus();
     
@@ -1312,13 +1320,12 @@ function setupCommentPopupListeners() {
             return;
         }
         
-        // Show loading state
+        // Store original button text
+        const originalText = sendBtn.innerHTML;
+        
+        // Show loading state only when actually clicking
         sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         sendBtn.disabled = true;
-        sendBtn.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
-        
-        // Store original button text outside try-catch
-        const originalText = sendBtn.innerHTML;
         
         try {
             // Get the post ID from the current post data (more reliable approach)
@@ -1371,11 +1378,7 @@ function setupCommentPopupListeners() {
                 return;
             }
             
-            // Show loading state
-            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            sendBtn.disabled = true;
-            
-            // Ensure close button remains clickable during loading
+            // Ensure close button remains clickable
             const closeBtn = document.getElementById('popup-close');
             if (closeBtn) {
                 closeBtn.disabled = false;
@@ -1600,8 +1603,9 @@ function setupCommentPopupListeners() {
             return;
         }
         
-        // Check if user has saved writing style for this campaign
-        console.log('Campaign ID:', campaignId);
+        // Get current campaign ID
+        campaignId = window.currentCampaignId || localStorage.getItem('currentCampaignId') || campaignId;
+        console.log('Campaign ID for AI style:', campaignId);
         
         try {
             const savedStyle = WritingStyleManager.getStyle(campaignId);
@@ -1873,14 +1877,88 @@ async function refreshCampaignPosts() {
 }
 
 // Show delete confirmation
-function showDeleteConfirmation() {
-    if (confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
-        showNotification('Campaign deleted successfully!', 'success');
-        // In a real app, this would delete the campaign
-        setTimeout(() => {
-            showCampaigns();
-        }, 1000);
+async function showDeleteConfirmation() {
+    const campaignId = getCurrentCampaignId(); // Get current campaign ID from page
+    
+    // Create custom confirmation modal
+    const modal = document.createElement('div');
+    modal.className = 'delete-confirmation-modal';
+    modal.innerHTML = `
+        <div class="modal-overlay"></div>
+        <div class="modal-content delete-modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2>Delete Campaign</h2>
+            <p>Are you sure you want to delete this campaign? This action cannot be undone and will permanently delete all posts and data associated with this campaign.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary cancel-delete-btn">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="btn btn-danger confirm-delete-btn">
+                    <i class="fas fa-trash"></i>
+                    Delete Campaign
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Show modal with animation
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+    
+    // Handle button clicks
+    return new Promise((resolve) => {
+        const cancelBtn = modal.querySelector('.cancel-delete-btn');
+        const confirmBtn = modal.querySelector('.confirm-delete-btn');
+        
+        const closeModal = () => {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                document.body.removeChild(modal);
+                resolve(false);
+            }, 300);
+        };
+        
+        cancelBtn.addEventListener('click', closeModal);
+        confirmBtn.addEventListener('click', async () => {
+            closeModal();
+            resolve(true);
+            
+            // Delete the campaign
+            if (campaignId) {
+                await deleteCampaign(campaignId);
+            }
+        });
+        
+        // Close on overlay click
+        modal.querySelector('.modal-overlay').addEventListener('click', closeModal);
+        
+        // Close on Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    });
+}
+
+function getCurrentCampaignId() {
+    // Get campaign ID from the page URL or data attribute
+    const campaignPostsPage = document.getElementById('campaign-posts');
+    if (campaignPostsPage && campaignPostsPage.dataset.campaignId) {
+        return campaignPostsPage.dataset.campaignId;
     }
+    
+    // Try to get from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('campaignId');
 }
 
 // Show create campaign page
@@ -4026,8 +4104,19 @@ async function openCommentForPost(postId) {
 }
 
 // Write comment function
-async function writeComment(postId, subreddit, title, content, created_at, actualRedditPostId = null) {
+async function writeComment(postId, subreddit, title, content, created_at, actualRedditPostId = null, campaignId = null) {
     try {
+        // Get current campaign ID if not provided
+        if (!campaignId) {
+            campaignId = window.currentCampaignId || localStorage.getItem('currentCampaignId');
+        }
+        
+        // Store current campaign ID for AI style loading
+        if (campaignId) {
+            window.currentCampaignId = campaignId;
+            localStorage.setItem('currentCampaignId', campaignId);
+        }
+        
         // Always update current post data for AI generation
         currentPostData = {
             id: postId,
@@ -4036,7 +4125,8 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
             subreddit: subreddit,
             url: actualRedditPostId ? `https://reddit.com/r/${subreddit}/comments/${actualRedditPostId.replace('t3_', '')}/` : `https://reddit.com/r/${subreddit}/comments/${postId}/`,
             reddit_id: actualRedditPostId ? actualRedditPostId.replace('t3_', '') : postId, // Store the Reddit ID for commenting
-            reddit_post_id: actualRedditPostId || `t3_${postId}` // Use the actual Reddit post ID if provided
+            reddit_post_id: actualRedditPostId || `t3_${postId}`, // Use the actual Reddit post ID if provided
+            campaign_id: campaignId // Store campaign ID for style loading
         };
         
         console.log('🔍 Updated currentPostData:', currentPostData);
@@ -5505,7 +5595,7 @@ async function generateAIResponseWithSavedStyleNew(style) {
                 websiteUrl: style.includeWebsite ? (campaign.website_url || "") : "",
                 tone: style.tone,
                 salesStrength: style.salesStrength,
-                responseLength: style.responseLength,
+                responseLength: style.responseLength || 3,
                 customOffer: style.customOffer,
                 subreddit: currentPostData.subreddit || ''
             })

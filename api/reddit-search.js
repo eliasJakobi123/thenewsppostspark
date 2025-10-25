@@ -361,7 +361,7 @@ export default async function handler(req, res) {
                             combinedText.includes('question') || combinedText.includes('recommend') ||
                             combinedText.includes('stuck') || combinedText.includes('difficult') ||
                             combinedText.includes('challenge') || combinedText.includes('issue')) {
-                            relevanceScore += 20;
+                            relevanceScore += 25;  // Erhöht von 20
                         }
                         
                         // Boost for posts showing buying intent or need for solutions
@@ -372,8 +372,10 @@ export default async function handler(req, res) {
                             combinedText.includes('suggestions') || combinedText.includes('alternatives') ||
                             combinedText.includes('budget') || combinedText.includes('price') ||
                             combinedText.includes('cost') || combinedText.includes('worth it') ||
-                            combinedText.includes('worth the money') || combinedText.includes('investment')) {
-                            relevanceScore += 25;
+                            combinedText.includes('worth the money') || combinedText.includes('investment') ||
+                            combinedText.includes('looking') || combinedText.includes('which') ||
+                            combinedText.includes('should i') || combinedText.includes('can someone')) {
+                            relevanceScore += 30;  // Erhöht von 25
                         }
                         
                         // Boost for motivation/life related posts
@@ -391,10 +393,18 @@ export default async function handler(req, res) {
                         // Boost for recent posts (within last 30 days)
                         const postDate = new Date(postData.created_utc * 1000);
                         const daysAgo = (Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24);
-                        if (daysAgo < 30) relevanceScore += 10;
                         
-                        // Very low threshold to find many posts
-                        if (relevanceScore >= 20) {
+                        // MAJOR BOOST for very recent posts (last 7 days)
+                        if (daysAgo <= 7) {
+                            relevanceScore += 30;  // Starker Boost für neue Posts
+                        } else if (daysAgo < 30) {
+                            relevanceScore += 15;  // Normale Boost
+                        } else if (daysAgo > 365) {
+                            relevanceScore -= 20;  // Strafe für alte Posts
+                        }
+                        
+                        // Higher threshold for better quality
+                        if (relevanceScore >= 35) {
                             console.log(`Post accepted - score: ${relevanceScore}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,

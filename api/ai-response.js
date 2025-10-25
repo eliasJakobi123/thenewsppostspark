@@ -12,7 +12,8 @@ export default async function handler(req, res) {
             websiteUrl, 
             tone, 
             salesStrength, 
-            customOffer 
+            customOffer,
+            responseLength
         } = req.body;
 
         // Validate required fields
@@ -30,7 +31,8 @@ export default async function handler(req, res) {
             offer: customOffer || offer,
             websiteUrl,
             tone,
-            salesStrength
+            salesStrength,
+            responseLength
         });
 
         // Call OpenAI API
@@ -77,7 +79,7 @@ export default async function handler(req, res) {
     }
 }
 
-function buildPrompt({ postContent, postTitle, offer, websiteUrl, tone, salesStrength }) {
+function buildPrompt({ postContent, postTitle, offer, websiteUrl, tone, salesStrength, responseLength }) {
     const toneInstructions = {
         'friendly': 'Use a warm, approachable tone. Be conversational and helpful.',
         'professional': 'Use a professional, business-like tone. Be formal but not cold.',
@@ -92,6 +94,26 @@ function buildPrompt({ postContent, postTitle, offer, websiteUrl, tone, salesStr
         4: 'Be direct and promotional. Focus on selling your solution.'
     };
 
+    // Determine response length based on user setting
+    let lengthInstruction = '';
+    if (responseLength === 1) {
+        lengthInstruction = 'Keep the response VERY SHORT - maximum 1-2 sentences. Be concise and direct.';
+    } else if (responseLength === 2) {
+        lengthInstruction = 'Keep the response SHORT - maximum 2-3 sentences. Be brief but helpful.';
+    } else if (responseLength === 3) {
+        lengthInstruction = 'Keep the response MEDIUM - maximum 3-4 sentences. Provide some detail but stay focused.';
+    } else {
+        lengthInstruction = 'Keep the response at a reasonable length - provide helpful detail as needed.';
+    }
+
+    // Only include website if it's actually provided
+    let websiteInstruction = '';
+    if (websiteUrl && websiteUrl.trim() !== '') {
+        websiteInstruction = `4. Include this website link only if it's real: ${websiteUrl}`;
+    } else {
+        websiteInstruction = '4. DO NOT include any website URLs - no website link should be mentioned.';
+    }
+
     return `
 Generate a helpful response to this Reddit post:
 
@@ -101,17 +123,21 @@ POST CONTENT: ${postContent}
 Your task:
 1. Write a genuine, helpful response that adds value to the discussion
 2. Naturally mention this solution: ${offer}
-3. Include this website link: ${websiteUrl}
+3. ${websiteInstruction}
 4. Use ${tone} tone: ${toneInstructions[tone]}
 5. Sales approach: ${salesInstructions[salesStrength]}
+6. ${lengthInstruction}
 
-Guidelines:
+CRITICAL RULES:
 - Be authentic and helpful, not spammy
 - Address the user's specific problem or question
 - Provide genuine value before mentioning your solution
 - Keep it conversational and natural
 - Don't be overly promotional
 - Make it feel like a genuine community member responding
+- NEVER create or mention fake website names or URLs
+- ONLY include the website link if a real one is provided above
+- DO NOT invent website names, URLs, or links
 
 Generate a response that feels natural and helpful:
 `;
