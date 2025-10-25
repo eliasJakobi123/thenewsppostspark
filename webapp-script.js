@@ -858,8 +858,15 @@ async function refreshCampaignPosts(campaignId) {
         }
         
         // Track usage
-        if (window.subscriptionManager) {
-            await window.subscriptionManager.trackUsage('refreshes', 1);
+        if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
+            try {
+                await window.subscriptionManager.trackUsage('refreshes', 1);
+                console.log('✅ Tracked refresh usage');
+            } catch (error) {
+                console.error('Error tracking refresh usage:', error);
+            }
+        } else {
+            console.log('⚠️ Subscription manager not available for tracking refresh usage');
         }
         
     } catch (error) {
@@ -1789,8 +1796,15 @@ async function refreshCampaignPosts() {
         await loadCampaigns();
         
         // Track usage
-        if (window.subscriptionManager) {
-            await window.subscriptionManager.trackUsage('refreshes', 1);
+        if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
+            try {
+                await window.subscriptionManager.trackUsage('refreshes', 1);
+                console.log('✅ Tracked refresh usage');
+            } catch (error) {
+                console.error('Error tracking refresh usage:', error);
+            }
+        } else {
+            console.log('⚠️ Subscription manager not available for tracking refresh usage');
         }
         
         showNotification('Campaign refreshed successfully!', 'success');
@@ -2966,8 +2980,15 @@ async function createCampaign(campaignData) {
         const campaign = await postSparkDB.createCampaign(campaignData);
         
         // Track usage
-        if (window.subscriptionManager) {
-            await window.subscriptionManager.trackUsage('campaigns', 1);
+        if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
+            try {
+                await window.subscriptionManager.trackUsage('campaigns', 1);
+                console.log('✅ Tracked campaign usage');
+            } catch (error) {
+                console.error('Error tracking campaign usage:', error);
+            }
+        } else {
+            console.log('⚠️ Subscription manager not available for tracking campaign usage');
         }
         
         // Campaign created successfully (no notification needed)
@@ -5213,8 +5234,15 @@ async function generateAIResponseWithSavedStyleNew(style) {
             }
             
             // Track usage
-            if (window.subscriptionManager) {
-                await window.subscriptionManager.trackUsage('ai_responses', 1);
+            if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
+                try {
+                    await window.subscriptionManager.trackUsage('ai_responses', 1);
+                    console.log('✅ Tracked AI response usage');
+                } catch (error) {
+                    console.error('Error tracking AI response usage:', error);
+                }
+            } else {
+                console.log('⚠️ Subscription manager not available for tracking AI response usage');
             }
             
             showNotification("AI response generated successfully!", "success");
@@ -5289,7 +5317,7 @@ function hideAIStyleInfo() {
 }
 
 // Subscription Management Functions
-function initializeSubscriptionManagement() {
+async function initializeSubscriptionManagement() {
     console.log('Initializing subscription management...');
     
     // Add event listeners for subscription buttons
@@ -5306,8 +5334,15 @@ function initializeSubscriptionManagement() {
     
     // Update subscription UI when settings page loads
     if (window.subscriptionManager) {
-        window.subscriptionManager.updateSettingsPage();
-        updateSubscriptionButtons();
+        try {
+            await window.subscriptionManager.updateSettingsPage();
+            updateSubscriptionButtons();
+            console.log('✅ Subscription UI updated successfully');
+        } catch (error) {
+            console.error('❌ Error updating subscription UI:', error);
+        }
+    } else {
+        console.log('⚠️ Subscription manager not available during initialization');
     }
 }
 
@@ -5389,8 +5424,13 @@ async function checkSubscriptionAndShowPaywall() {
 // Initialize subscription management when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize subscription management after a short delay to ensure other scripts are loaded
-    setTimeout(() => {
-        initializeSubscriptionManagement();
-        checkSubscriptionAndShowPaywall();
+    setTimeout(async () => {
+        try {
+            await initializeSubscriptionManagement();
+            await checkSubscriptionAndShowPaywall();
+            console.log('✅ Subscription management initialized successfully');
+        } catch (error) {
+            console.error('❌ Error initializing subscription management:', error);
+        }
     }, 1000);
 });
