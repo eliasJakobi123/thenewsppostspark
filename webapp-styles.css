@@ -189,11 +189,19 @@ body {
     margin-left: 220px;
     background: #0a0a0a;
     min-height: 100vh;
+    width: calc(100% - 220px);
+    max-width: calc(100% - 220px);
+    box-sizing: border-box;
+    overflow-x: auto;
 }
 
 .page {
     display: none;
     padding: 1rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
 }
 
 .page.active {
@@ -207,6 +215,10 @@ body {
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .page-header h1 {
@@ -221,6 +233,9 @@ body {
 .header-actions {
     display: flex;
     gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
 }
 
 /* Buttons */
@@ -629,6 +644,24 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Desktop specific fixes */
+@media (min-width: 769px) {
+    .page-header {
+        flex-wrap: nowrap;
+    }
+    
+    .header-actions {
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .header-actions .btn {
+        flex-shrink: 0;
+    }
 }
 
 .back-btn {
@@ -3554,11 +3587,32 @@ input:checked + .toggle-slider:before {
         justify-content: flex-start;
     }
     
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
     .header-left {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.75rem;
+        width: 100%;
     }
+    
+    .header-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+.header-actions .btn {
+    flex-shrink: 0;
+    min-width: 120px;
+    justify-content: center;
+    white-space: nowrap;
+}
     
     .posts-stats {
         grid-template-columns: 1fr;
@@ -3566,6 +3620,10 @@ input:checked + .toggle-slider:before {
     
     .posts-stat-card {
         padding: 1rem;
+    }
+    
+    .campaign-posts-grid {
+        gap: 0.75rem;
     }
     
     .popup-content {
@@ -4391,5 +4449,40 @@ input:checked + .toggle-slider:before {
     
     .length-selection {
         grid-template-columns: 1fr;
+    }
+    
+    .header-actions .btn {
+        flex: 1 1 100%;
+        min-width: unset;
+        margin-bottom: 0.5rem;
+    }
+    
+    .header-actions .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .back-btn {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .campaign-posts-grid {
+        gap: 0.5rem;
+    }
+    
+    .posts-stat-card {
+        padding: 0.75rem;
+    }
+    
+    .posts-stat-card h3 {
+        font-size: 0.9rem;
+    }
+    
+    .posts-stat-card .stat-number {
+        font-size: 1.5rem;
     }
 }
