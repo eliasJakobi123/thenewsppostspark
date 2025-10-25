@@ -109,23 +109,23 @@
 
 .paywall-plans {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-    padding: 40px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 30px;
     background: rgba(0, 0, 0, 0.2);
 }
 
 .plan-card {
     background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 35px 25px;
+    border-radius: 16px;
+    padding: 25px 20px;
     text-align: center;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 6px 24px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -158,17 +158,17 @@
 .plan-card.featured {
     border-color: rgba(255, 107, 53, 0.6);
     background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 50%, #2a2a2a 100%);
-    transform: scale(1.08);
+    transform: scale(1.05);
     box-shadow: 
-        0 15px 35px rgba(255, 107, 53, 0.2),
+        0 12px 28px rgba(255, 107, 53, 0.2),
         0 0 0 1px rgba(255, 107, 53, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .plan-card.featured:hover {
-    transform: scale(1.08) translateY(-8px);
+    transform: scale(1.05) translateY(-6px);
     box-shadow: 
-        0 25px 50px rgba(255, 107, 53, 0.3),
+        0 20px 40px rgba(255, 107, 53, 0.3),
         0 0 0 1px rgba(255, 107, 53, 0.6),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -417,8 +417,8 @@
     
     .paywall-plans {
         grid-template-columns: 1fr;
-        gap: 20px;
-        padding: 30px 25px;
+        gap: 15px;
+        padding: 25px 20px;
     }
     
     .plan-card {

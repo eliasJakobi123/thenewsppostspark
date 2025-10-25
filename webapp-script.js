@@ -282,33 +282,33 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize PostSparkDB first
     postSparkDB = new PostSparkSupabase();
     
-    // Rate limiting for comments
-    const COMMENT_RATE_LIMIT = 10; // 10 comments per minute
-    const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
-    let commentTimestamps = [];
+// Rate limiting for comments - Global scope
+const COMMENT_RATE_LIMIT = 10; // 10 comments per minute
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
+let commentTimestamps = [];
+
+// Rate limiting functions - Global scope
+function checkCommentRateLimit() {
+    const now = Date.now();
+    // Remove timestamps older than 1 minute
+    commentTimestamps = commentTimestamps.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
     
-    // Rate limiting functions
-    function checkCommentRateLimit() {
-        const now = Date.now();
-        // Remove timestamps older than 1 minute
-        commentTimestamps = commentTimestamps.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
-        
-        // Check if user has exceeded the limit
-        if (commentTimestamps.length >= COMMENT_RATE_LIMIT) {
-            return false; // Rate limit exceeded
-        }
-        
-        // Add current timestamp
-        commentTimestamps.push(now);
-        return true; // Rate limit not exceeded
+    // Check if user has exceeded the limit
+    if (commentTimestamps.length >= COMMENT_RATE_LIMIT) {
+        return false; // Rate limit exceeded
     }
     
-    function getRateLimitMessage() {
-        const now = Date.now();
-        const oldestTimestamp = Math.min(...commentTimestamps);
-        const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestTimestamp)) / 1000);
-        return `It seems like you're commenting a lot. Please wait ${timeRemaining} seconds before commenting again.`;
-    }
+    // Add current timestamp
+    commentTimestamps.push(now);
+    return true; // Rate limit not exceeded
+}
+
+function getRateLimitMessage() {
+    const now = Date.now();
+    const oldestTimestamp = Math.min(...commentTimestamps);
+    const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestTimestamp)) / 1000);
+    return `It seems like you're commenting a lot. Please wait ${timeRemaining} seconds before commenting again.`;
+}
     
     // Initialize authentication
     const isAuthenticated = await postSparkDB.initializeAuth();
@@ -2020,8 +2020,14 @@ function addModernKeyword(keyword) {
     const keywordsTags = document.getElementById('modern-keywords-tags');
     if (!keywordsTags) return;
     
-    // Check if keyword already exists
+    // Check keyword limit (max 10 keywords)
     const existingKeywords = Array.from(keywordsTags.querySelectorAll('.keyword-tag')).map(tag => tag.dataset.keyword);
+    if (existingKeywords.length >= 10) {
+        showNotification('Maximum 10 keywords allowed', 'warning');
+        return;
+    }
+    
+    // Check if keyword already exists
     if (existingKeywords.includes(keyword)) {
         showNotification('Keyword already exists', 'warning');
         return;
@@ -2371,8 +2377,14 @@ function addKeyword(keyword) {
     const keywordsTags = document.getElementById('keywords-tags');
     if (!keywordsTags) return;
     
-    // Check if keyword already exists
+    // Check keyword limit (max 10 keywords)
     const existingKeywords = Array.from(keywordsTags.querySelectorAll('.keyword-tag')).map(tag => tag.dataset.keyword);
+    if (existingKeywords.length >= 10) {
+        showNotification('Maximum 10 keywords allowed', 'warning');
+        return;
+    }
+    
+    // Check if keyword already exists
     if (existingKeywords.includes(keyword)) {
         showNotification('Keyword already exists', 'warning');
         return;

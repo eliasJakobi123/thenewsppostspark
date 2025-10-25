@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS public.ipn_logs (
 INSERT INTO public.subscription_plans (plan_name, plan_code, digistore_product_id, price_monthly, max_campaigns, max_refreshes_per_campaign, max_refreshes_per_month, features) VALUES
 ('Starter', 'starter', '643746', 900, 1, 10, 10, '{"analytics": "basic", "support": "email", "api_access": false, "max_ai_responses": 100}'),
 ('Pro', 'pro', '643752', 1900, 5, 10, 50, '{"analytics": "advanced", "support": "priority", "api_access": false, "custom_keywords": true, "max_ai_responses": 500}'),
-('Enterprise', 'enterprise', '643754', 4900, 15, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true, "max_ai_responses": 2000}')
+('Enterprise', 'enterprise', '643754', 4900, 10, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true, "max_ai_responses": 2000}')
 ON CONFLICT (plan_name) DO UPDATE SET
     plan_code = EXCLUDED.plan_code,
     digistore_product_id = EXCLUDED.digistore_product_id,
@@ -74,7 +74,7 @@ ON CONFLICT (plan_name) DO UPDATE SET
 -- Upgrade Products
 INSERT INTO public.subscription_plans (plan_name, plan_code, digistore_product_id, price_monthly, max_campaigns, max_refreshes_per_campaign, max_refreshes_per_month, features, is_active) VALUES
 ('Upgrade to Pro', 'upgrade_pro', '1322890', 0, 5, 10, 50, '{"analytics": "advanced", "support": "priority", "api_access": false, "custom_keywords": true, "max_ai_responses": 500}', false),
-('Upgrade to Enterprise', 'upgrade_enterprise', '1322889', 0, 15, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true, "max_ai_responses": 2000}', false)
+('Upgrade to Enterprise', 'upgrade_enterprise', '1322889', 0, 10, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true, "max_ai_responses": 2000}', false)
 ON CONFLICT (plan_name) DO UPDATE SET
     plan_code = EXCLUDED.plan_code,
     digistore_product_id = EXCLUDED.digistore_product_id,

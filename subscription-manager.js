@@ -331,8 +331,8 @@ class SubscriptionManager {
                                 <ul>
                                     <li><i class="fas fa-check"></i> 1 Campaign</li>
                                     <li><i class="fas fa-check"></i> 10 Refreshes per month</li>
-                                    <li><i class="fas fa-check"></i> Basic Analytics</li>
-                                    <li><i class="fas fa-check"></i> Email Support</li>
+                                    <li><i class="fas fa-check"></i> 100 AI Responses</li>
+                                    <li><i class="fas fa-check"></i> Up to 10 Keywords</li>
                                 </ul>
                             </div>
                             <button class="plan-button" data-plan="starter">
@@ -354,9 +354,8 @@ class SubscriptionManager {
                                 <ul>
                                     <li><i class="fas fa-check"></i> 5 Campaigns</li>
                                     <li><i class="fas fa-check"></i> 10 Refreshes per campaign</li>
-                                    <li><i class="fas fa-check"></i> Advanced Analytics</li>
-                                    <li><i class="fas fa-check"></i> Priority Support</li>
-                                    <li><i class="fas fa-check"></i> Custom Keywords</li>
+                                    <li><i class="fas fa-check"></i> 500 AI Responses</li>
+                                    <li><i class="fas fa-check"></i> Up to 10 Keywords</li>
                                 </ul>
                             </div>
                             <button class="plan-button primary" data-plan="pro">
@@ -375,12 +374,10 @@ class SubscriptionManager {
                             </div>
                             <div class="plan-features">
                                 <ul>
-                                    <li><i class="fas fa-check"></i> 15 Campaigns</li>
+                                    <li><i class="fas fa-check"></i> 10 Campaigns</li>
                                     <li><i class="fas fa-check"></i> 10 Refreshes per campaign</li>
-                                    <li><i class="fas fa-check"></i> Full Analytics Suite</li>
-                                    <li><i class="fas fa-check"></i> 24/7 Support</li>
-                                    <li><i class="fas fa-check"></i> API Access</li>
-                                    <li><i class="fas fa-check"></i> Custom Integrations</li>
+                                    <li><i class="fas fa-check"></i> 2000 AI Responses</li>
+                                    <li><i class="fas fa-check"></i> Up to 10 Keywords</li>
                                 </ul>
                             </div>
                             <button class="plan-button" data-plan="enterprise">
