@@ -437,10 +437,6 @@ class SubscriptionManager {
                     </div>
                     
                     <div class="paywall-footer">
-                        <button class="paywall-close" id="paywall-close">
-                            <i class="fas fa-times"></i>
-                            Maybe Later
-                        </button>
                         <button class="dev-skip-btn" id="dev-skip-btn" style="display: none;">
                             <i class="fas fa-code"></i>
                             Dev Skip Paywall
@@ -452,13 +448,7 @@ class SubscriptionManager {
     }
 
     attachPaywallEventListeners() {
-        // Close button
-        const closeBtn = document.getElementById('paywall-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                this.hidePaywall();
-            });
-        }
+        // Close button removed - users must select a plan
 
         // Expand/collapse button
         const expandBtn = document.getElementById('paywall-expand-btn');
@@ -509,15 +499,7 @@ class SubscriptionManager {
             });
         });
 
-        // Close on overlay click
-        const overlay = document.getElementById('subscription-paywall');
-        if (overlay) {
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    this.hidePaywall();
-                }
-            });
-        }
+        // Overlay click disabled - users must select a plan
     }
 
     selectPlan(plan) {
@@ -534,8 +516,8 @@ class SubscriptionManager {
         }
 
         // Redirect to Digistore24 checkout
-        const checkoutUrl = `https://www.checkout-ds24.com/checkout/${productId}`;
-        window.location.href = checkoutUrl;
+        const checkoutUrl = `https://www.checkout-ds24.com/product/${productId}`;
+        window.open(checkoutUrl, '_blank');
     }
 
     hidePaywall() {
