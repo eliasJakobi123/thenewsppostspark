@@ -364,22 +364,23 @@ async function processUpgrade(eventData, targetPlan) {
 }
 
 export default async function handler(req, res) {
+    // Set CORS headers immediately
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+        console.log('IPN: Method not allowed:', req.method);
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+    
     try {
-        // Set CORS headers
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        
-        // Handle preflight requests
-        if (req.method === 'OPTIONS') {
-            return res.status(200).end();
-        }
-        
-        // Only allow POST requests
-        if (req.method !== 'POST') {
-            console.log('IPN: Method not allowed:', req.method);
-            return res.status(405).json({ error: 'Method not allowed' });
-        }
 
         // Debug environment variables
         console.log('Environment check:', {
