@@ -651,11 +651,36 @@ export default async function handler(req, res) {
         await logIPN(eventData, eventType, result ? null : 'Processing failed');
 
         // Return success response to Digistore24
-        return res.status(200).json({ 
+        // Digistore24 expects a simple "OK" response for connection tests
+        if (eventType === 'connection_test') {
+            console.log('Connection test successful - returning OK');
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send('OK');
+        }
+        
+        // For other events, try different response formats for Digistore24 compatibility
+        const response = {
             success: true, 
             event_type: eventType,
-            result: result 
-        });
+            result: result,
+            status: 'success',
+            message: 'IPN processed successfully'
+        };
+        
+        // Log the response for debugging
+        console.log('Sending response to Digistore24:', JSON.stringify(response, null, 2));
+        
+        // Set proper content type for JSON responses
+        res.setHeader('Content-Type', 'application/json');
+        
+        // Try JSON first, fallback to simple text if needed
+        try {
+            return res.status(200).json(response);
+        } catch (jsonError) {
+            console.log('JSON response failed, trying simple text response');
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send('OK');
+        }
 
     } catch (error) {
         console.error('IPN Handler Error:', error);
@@ -669,6 +694,12 @@ export default async function handler(req, res) {
         }
         
         // Always return 200 to Digistore24 to prevent retries
+        // For connection tests, return simple OK even on error
+        if (req.body && (req.body.event_type === 'connection_test' || req.body.event === 'connection_test')) {
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(200).send('OK');
+        }
+        
         return res.status(200).json({ 
             success: false,
             error: 'Internal server error',
