@@ -437,6 +437,8 @@ export default async function handler(req, res) {
             eventType = eventData.action;
         } else if (eventData.type) {
             eventType = eventData.type;
+        } else if (eventData.event) {
+            eventType = eventData.event;
         } else {
             // Fallback: try to determine from other fields
             if (eventData.status === 'completed' || eventData.payment_status === 'completed') {
@@ -451,6 +453,50 @@ export default async function handler(req, res) {
                 eventType = 'on_payment';
             } else if (eventData.status === 'success' || eventData.payment_status === 'success') {
                 eventType = 'on_payment';
+            } else if (eventData.status === 'missed' || eventData.payment_status === 'missed') {
+                eventType = 'on_payment_missed';
+            } else if (eventData.status === 'denied' || eventData.payment_status === 'denied') {
+                eventType = 'payment_denial';
+            } else if (eventData.status === 'chargeback' || eventData.payment_status === 'chargeback') {
+                eventType = 'on_chargeback';
+            } else if (eventData.status === 'rebill_cancelled' || eventData.payment_status === 'rebill_cancelled') {
+                eventType = 'on_rebill_cancelled';
+            } else if (eventData.status === 'rebill_resumed' || eventData.payment_status === 'rebill_resumed') {
+                eventType = 'on_rebill_resumed';
+            } else if (eventData.status === 'last_paid_day' || eventData.payment_status === 'last_paid_day') {
+                eventType = 'last_paid_day';
+            } else if (eventData.status === 'connection_test' || eventData.payment_status === 'connection_test') {
+                eventType = 'connection_test';
+            } else if (eventData.status === 'affiliation' || eventData.payment_status === 'affiliation') {
+                eventType = 'on_affiliation';
+            } else if (eventData.status === 'eticket' || eventData.payment_status === 'eticket') {
+                eventType = 'eticket';
+            } else if (eventData.status === 'custom_form' || eventData.payment_status === 'custom_form') {
+                eventType = 'custom_form';
+            } else if (eventData.status === 'payment' || eventData.payment_status === 'payment') {
+                eventType = 'on_payment';
+            } else if (eventData.status === 'refund' || eventData.payment_status === 'refund') {
+                eventType = 'on_refund';
+            } else if (eventData.status === 'chargeback' || eventData.payment_status === 'chargeback') {
+                eventType = 'on_chargeback';
+            } else if (eventData.status === 'missed_recurring_payment' || eventData.payment_status === 'missed_recurring_payment') {
+                eventType = 'on_payment_missed';
+            } else if (eventData.status === 'rejected_payment' || eventData.payment_status === 'rejected_payment') {
+                eventType = 'payment_denial';
+            } else if (eventData.status === 'rebilling_canceled' || eventData.payment_status === 'rebilling_canceled') {
+                eventType = 'on_rebill_cancelled';
+            } else if (eventData.status === 'rebilling_resumed' || eventData.payment_status === 'rebilling_resumed') {
+                eventType = 'on_rebill_resumed';
+            } else if (eventData.status === 'end_of_paid_period' || eventData.payment_status === 'end_of_paid_period') {
+                eventType = 'last_paid_day';
+            } else if (eventData.status === 'test_connection' || eventData.payment_status === 'test_connection') {
+                eventType = 'connection_test';
+            } else if (eventData.status === 'new_affiliate' || eventData.payment_status === 'new_affiliate') {
+                eventType = 'on_affiliation';
+            } else if (eventData.status === 'new_eticket' || eventData.payment_status === 'new_eticket') {
+                eventType = 'eticket';
+            } else if (eventData.status === 'new_custom_form' || eventData.payment_status === 'new_custom_form') {
+                eventType = 'custom_form';
             } else {
                 // If we can't determine the event type, try to process as payment anyway
                 eventType = 'on_payment';
@@ -528,6 +574,55 @@ export default async function handler(req, res) {
                 } else {
                     result = { success: false, error: 'No order ID found for payment denial' };
                 }
+                break;
+                
+            case 'connection_test':
+                // Connection test - just acknowledge
+                result = { 
+                    success: true, 
+                    action: 'connection_test', 
+                    message: 'Connection test successful',
+                    timestamp: new Date().toISOString()
+                };
+                break;
+                
+            case 'on_affiliation':
+                // New affiliate - log but don't process subscription
+                result = { 
+                    success: true, 
+                    action: 'affiliation', 
+                    message: 'New affiliate registered',
+                    affiliate_data: {
+                        email: eventData.email || eventData.customer_email || eventData.affiliate_email,
+                        name: eventData.name || eventData.customer_name || eventData.affiliate_name
+                    }
+                };
+                break;
+                
+            case 'eticket':
+                // E-ticket created - log but don't process subscription
+                result = { 
+                    success: true, 
+                    action: 'eticket', 
+                    message: 'E-ticket created',
+                    ticket_data: {
+                        email: eventData.email || eventData.customer_email || eventData.ticket_email,
+                        event: eventData.event_name || eventData.event || eventData.ticket_event
+                    }
+                };
+                break;
+                
+            case 'custom_form':
+                // Custom form submitted - log but don't process subscription
+                result = { 
+                    success: true, 
+                    action: 'custom_form', 
+                    message: 'Custom form submitted',
+                    form_data: {
+                        email: eventData.email || eventData.customer_email || eventData.form_email,
+                        form_name: eventData.form_name || eventData.form || eventData.custom_form_name
+                    }
+                };
                 break;
                 
             default:
