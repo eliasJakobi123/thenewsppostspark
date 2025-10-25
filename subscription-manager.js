@@ -129,18 +129,104 @@ class SubscriptionManager {
         }
     }
 
+    async canGenerateAIResponse() {
+        if (!this.hasActiveSubscription()) {
+            return { allowed: false, reason: 'no_subscription' };
+        }
+
+        try {
+            // Get current AI response count for this month
+            const { data: usage, error: usageError } = await supabaseClient
+                .from('subscription_usage')
+                .select('usage_count')
+                .eq('user_id', this.currentUser.id)
+                .eq('usage_type', 'ai_responses')
+                .gte('reset_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+
+            if (usageError) {
+                console.error('Error fetching AI response usage:', usageError);
+                return { allowed: false, reason: 'error' };
+            }
+
+            const currentUsage = usage?.reduce((sum, item) => sum + item.usage_count, 0) || 0;
+            const maxAIResponses = this.getSubscriptionFeatures().max_ai_responses || 0;
+
+            return { 
+                allowed: currentUsage < maxAIResponses, 
+                reason: currentUsage < maxAIResponses ? 'allowed' : 'limit_reached',
+                currentUsage,
+                maxUsage: maxAIResponses
+            };
+        } catch (error) {
+            console.error('Error checking AI response limits:', error);
+            return { allowed: false, reason: 'error' };
+        }
+    }
+
     async trackUsage(usageType, count = 1) {
         if (!this.hasActiveSubscription()) {
+            console.log('No active subscription, skipping usage tracking');
             return;
         }
 
         try {
-            await supabaseClient
-                .rpc('track_subscription_usage', {
-                    user_uuid: this.currentUser.id,
-                    usage_type_param: usageType,
-                    usage_count_param: count
-                });
+            console.log(`Tracking usage: ${usageType} +${count}`);
+            
+            // Get current month's usage record
+            const currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+            
+            const { data: existingUsage, error: fetchError } = await supabaseClient
+                .from('subscription_usage')
+                .select('*')
+                .eq('user_id', this.currentUser.id)
+                .eq('usage_type', usageType)
+                .gte('reset_date', currentMonth.toISOString())
+                .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+                console.error('Error fetching existing usage:', fetchError);
+                return;
+            }
+
+            if (existingUsage) {
+                // Update existing usage
+                const { error: updateError } = await supabaseClient
+                    .from('subscription_usage')
+                    .update({ 
+                        usage_count: existingUsage.usage_count + count,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', existingUsage.id);
+
+                if (updateError) {
+                    console.error('Error updating usage:', updateError);
+                } else {
+                    console.log(`Updated usage: ${usageType} = ${existingUsage.usage_count + count}`);
+                }
+            } else {
+                // Create new usage record
+                const { error: insertError } = await supabaseClient
+                    .from('subscription_usage')
+                    .insert({
+                        user_id: this.currentUser.id,
+                        usage_type: usageType,
+                        usage_count: count,
+                        reset_date: currentMonth.toISOString(),
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    });
+
+                if (insertError) {
+                    console.error('Error creating usage record:', insertError);
+                } else {
+                    console.log(`Created usage record: ${usageType} = ${count}`);
+                }
+            }
+
+            // Refresh limits display after tracking
+            this.updateLimitsDisplay();
+            this.updateSettingsLimitsDisplay();
+
         } catch (error) {
             console.error('Error tracking usage:', error);
         }
@@ -444,6 +530,12 @@ class SubscriptionManager {
                 reason = refreshCheck.reason;
                 break;
                 
+            case 'ai_response':
+                const aiCheck = await this.canGenerateAIResponse();
+                canProceed = aiCheck.allowed;
+                reason = aiCheck.reason;
+                break;
+                
             default:
                 console.error('Unknown action:', action);
                 return false;
@@ -591,6 +683,27 @@ class SubscriptionManager {
                 }
             }
 
+            // Update AI responses usage
+            const aiResponsesUsage = document.getElementById('ai-responses-usage');
+            const aiResponsesProgress = document.getElementById('ai-responses-progress');
+            
+            if (aiResponsesUsage && aiResponsesProgress) {
+                const aiResponsesUsed = usage.aiResponses || 0;
+                const aiResponsesMax = this.getSubscriptionFeatures().max_ai_responses || 0;
+                const aiResponsesPercent = aiResponsesMax > 0 ? Math.min((aiResponsesUsed / aiResponsesMax) * 100, 100) : 0;
+                
+                aiResponsesUsage.textContent = `${aiResponsesUsed}/${aiResponsesMax}`;
+                aiResponsesProgress.style.width = `${aiResponsesPercent}%`;
+                
+                // Update progress bar color based on usage
+                aiResponsesProgress.className = 'limit-progress';
+                if (aiResponsesPercent >= 90) {
+                    aiResponsesProgress.classList.add('danger');
+                } else if (aiResponsesPercent >= 70) {
+                    aiResponsesProgress.classList.add('warning');
+                }
+            }
+
             // Show/hide upgrade button
             if (upgradeBtn) {
                 const currentPlan = this.getSubscriptionPlan();
@@ -609,7 +722,7 @@ class SubscriptionManager {
 
     async getCurrentUsage() {
         if (!this.currentUser) {
-            return { campaigns: 0, refreshes: 0 };
+            return { campaigns: 0, refreshes: 0, aiResponses: 0 };
         }
 
         try {
@@ -625,24 +738,37 @@ class SubscriptionManager {
             }
 
             // Get current month's refresh count
-            const { data: usage, error: usageError } = await supabaseClient
+            const { data: refreshesUsage, error: refreshesError } = await supabaseClient
                 .from('subscription_usage')
                 .select('usage_count')
                 .eq('user_id', this.currentUser.id)
                 .eq('usage_type', 'refreshes')
                 .gte('reset_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
 
-            if (usageError) {
-                console.error('Error fetching usage:', usageError);
+            if (refreshesError) {
+                console.error('Error fetching refreshes usage:', refreshesError);
+            }
+
+            // Get current month's AI responses count
+            const { data: aiResponsesUsage, error: aiResponsesError } = await supabaseClient
+                .from('subscription_usage')
+                .select('usage_count')
+                .eq('user_id', this.currentUser.id)
+                .eq('usage_type', 'ai_responses')
+                .gte('reset_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+
+            if (aiResponsesError) {
+                console.error('Error fetching AI responses usage:', aiResponsesError);
             }
 
             return {
                 campaigns: campaigns?.length || 0,
-                refreshes: usage?.reduce((sum, item) => sum + item.usage_count, 0) || 0
+                refreshes: refreshesUsage?.reduce((sum, item) => sum + item.usage_count, 0) || 0,
+                aiResponses: aiResponsesUsage?.reduce((sum, item) => sum + item.usage_count, 0) || 0
             };
         } catch (error) {
             console.error('Error getting current usage:', error);
-            return { campaigns: 0, refreshes: 0 };
+            return { campaigns: 0, refreshes: 0, aiResponses: 0 };
         }
     }
 
@@ -703,6 +829,27 @@ class SubscriptionManager {
                     refreshesProgress.classList.add('danger');
                 } else if (refreshesPercent >= 70) {
                     refreshesProgress.classList.add('warning');
+                }
+            }
+
+            // Update AI responses usage in settings
+            const aiResponsesUsage = document.getElementById('settings-ai-responses-usage');
+            const aiResponsesProgress = document.getElementById('settings-ai-responses-progress');
+            
+            if (aiResponsesUsage && aiResponsesProgress) {
+                const aiResponsesUsed = usage.aiResponses || 0;
+                const aiResponsesMax = this.getSubscriptionFeatures().max_ai_responses || 0;
+                const aiResponsesPercent = aiResponsesMax > 0 ? Math.min((aiResponsesUsed / aiResponsesMax) * 100, 100) : 0;
+                
+                aiResponsesUsage.textContent = `${aiResponsesUsed}/${aiResponsesMax}`;
+                aiResponsesProgress.style.width = `${aiResponsesPercent}%`;
+                
+                // Update progress bar color based on usage
+                aiResponsesProgress.className = 'limit-progress';
+                if (aiResponsesPercent >= 90) {
+                    aiResponsesProgress.classList.add('danger');
+                } else if (aiResponsesPercent >= 70) {
+                    aiResponsesProgress.classList.add('warning');
                 }
             }
 

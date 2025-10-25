@@ -743,10 +743,20 @@ function initializeNavigation() {
     // Create campaign functionality
     const createCampaignBtns = document.querySelectorAll('.create-campaign-btn');
     createCampaignBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
+        btn.addEventListener('click', async function(e) {
             e.preventDefault();
             e.stopPropagation();
             console.log('Create campaign button clicked'); // Debug log
+            
+            // Check subscription limits before showing create campaign
+            if (window.subscriptionManager) {
+                const canCreate = await window.subscriptionManager.checkAndEnforceLimits('create_campaign');
+                if (!canCreate) {
+                    console.log('Create campaign blocked by subscription limits');
+                    return;
+                }
+            }
+            
             showCreateCampaign();
         });
     });
@@ -4478,12 +4488,27 @@ function showAIStylePopup() {
     // Load saved style settings
     loadStyleSettings();
     
+    // Show campaign offer if available
+    showCampaignOfferPreview();
+    
     // Show popup
     const popup = document.getElementById('ai-style-popup');
     popup.classList.add('active');
     
     // Add event listeners for new buttons
     setupAIPopupEventListeners();
+}
+
+function showCampaignOfferPreview() {
+    const campaignId = window.currentCampaignId;
+    const campaign = campaignId ? postSparkDB.campaigns.find(c => c.id === campaignId) : null;
+    const customOfferTextarea = document.getElementById('custom-offer');
+    
+    if (customOfferTextarea && campaign?.offer) {
+        // Set the campaign offer as the value in the textarea
+        customOfferTextarea.value = campaign.offer;
+        customOfferTextarea.placeholder = `Campaign Offer: ${campaign.offer}`;
+    }
 }
 
 function openAIStylePopup(postData) {
@@ -5132,7 +5157,15 @@ async function generateAIResponseWithSavedStyleNew(style) {
         return;
     }
     
-    // Get campaign data
+    // Check subscription limits before generating AI response
+    if (window.subscriptionManager) {
+        const canGenerate = await window.subscriptionManager.checkAndEnforceLimits('ai_response');
+        if (!canGenerate) {
+            console.log('AI response generation blocked by subscription limits');
+            return;
+        }
+    }
+        // Get campaign data
     const campaign = postSparkDB.campaigns.find(c => c.id === campaignId);
     if (!campaign) {
         showNotification("Campaign not found", "error");
@@ -5177,6 +5210,11 @@ async function generateAIResponseWithSavedStyleNew(style) {
             const sendBtn = document.getElementById("send-comment");
             if (sendBtn) {
                 sendBtn.disabled = false;
+            }
+            
+            // Track usage
+            if (window.subscriptionManager) {
+                await window.subscriptionManager.trackUsage('ai_responses', 1);
             }
             
             showNotification("AI response generated successfully!", "success");

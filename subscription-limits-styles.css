@@ -3,10 +3,10 @@
 .subscription-limits {
     margin-top: 20px;
     padding: 15px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: #1a1a1a;
     border-radius: 12px;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #333333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .limits-header {
@@ -16,7 +16,7 @@
 .limits-header h4 {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #495057;
+    color: #ffffff;
     margin: 0;
     display: flex;
     align-items: center;
@@ -45,12 +45,12 @@
 }
 
 .limit-label span:first-child {
-    color: #6c757d;
+    color: #cccccc;
     font-weight: 500;
 }
 
 .limit-count {
-    color: #495057;
+    color: #ffffff;
     font-weight: 600;
     font-size: 0.75rem;
 }
@@ -58,7 +58,7 @@
 .limit-bar {
     width: 100%;
     height: 6px;
-    background: #e9ecef;
+    background: #333333;
     border-radius: 3px;
     overflow: hidden;
     position: relative;
@@ -103,7 +103,7 @@
 .limits-footer {
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid #333333;
 }
 
 .upgrade-btn {
@@ -191,10 +191,10 @@
 .usage-limits {
     margin: 20px 0;
     padding: 20px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: #1a1a1a;
     border-radius: 12px;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #333333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .usage-limits .limits-header {
@@ -204,7 +204,7 @@
 .usage-limits .limits-header h4 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #495057;
+    color: #ffffff;
     margin: 0;
     display: flex;
     align-items: center;
@@ -227,9 +227,9 @@
     align-items: center;
     gap: 15px;
     padding: 15px;
-    background: white;
+    background: #2a2a2a;
     border-radius: 10px;
-    border: 1px solid #e9ecef;
+    border: 1px solid #444444;
     transition: all 0.3s ease;
 }
 
@@ -257,7 +257,7 @@
 
 .limit-content .limit-label {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: #cccccc;
     font-weight: 500;
     margin-bottom: 5px;
 }
@@ -265,14 +265,14 @@
 .limit-content .limit-value {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #495057;
+    color: #ffffff;
     margin-bottom: 8px;
 }
 
 .limit-content .limit-bar {
     width: 100%;
     height: 8px;
-    background: #e9ecef;
+    background: #333333;
     border-radius: 4px;
     overflow: hidden;
     position: relative;

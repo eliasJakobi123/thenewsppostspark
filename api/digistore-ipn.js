@@ -16,7 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Digistore24 configuration
 const DIGISTORE24_MERCHANT_ID = process.env.DIGISTORE24_MERCHANT_ID || '13809';
-const DIGISTORE24_IPN_SECRET = process.env.DIGISTORE24_IPN_SECRET; // Optional
+const DIGISTORE24_IPN_SECRET = process.env.DIGISTORE24_IPN_SECRET || 'ORA_digi_2025_s3cur3_ipn_X7kP9mQ4';
 
 // Product ID mappings
 const PRODUCT_MAPPINGS = {
@@ -302,11 +302,13 @@ async function processUpgrade(eventData, targetPlan) {
 export default async function handler(req, res) {
     // Only allow POST requests
     if (req.method !== 'POST') {
+        console.log('IPN: Method not allowed:', req.method);
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
         const eventData = req.body;
+        console.log('IPN received:', JSON.stringify(eventData, null, 2));
         
         // Log the incoming IPN
         await logIPN(eventData, 'received');
@@ -363,11 +365,18 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('IPN Handler Error:', error);
+        console.error('Error stack:', error.stack);
         
         // Log the error
-        await logIPN(req.body, 'error', error.message);
+        try {
+            await logIPN(req.body, 'error', error.message);
+        } catch (logError) {
+            console.error('Failed to log IPN error:', logError);
+        }
         
-        return res.status(500).json({ 
+        // Always return 200 to Digistore24 to prevent retries
+        return res.status(200).json({ 
+            success: false,
             error: 'Internal server error',
             message: error.message 
         });

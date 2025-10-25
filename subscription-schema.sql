@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_usage (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
     subscription_id UUID REFERENCES public.user_subscriptions(id) ON DELETE CASCADE,
-    usage_type TEXT NOT NULL CHECK (usage_type IN ('campaigns', 'refreshes', 'api_calls')),
+    usage_type TEXT NOT NULL CHECK (usage_type IN ('campaigns', 'refreshes', 'api_calls', 'ai_responses')),
     usage_count INTEGER DEFAULT 0,
     reset_date DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -57,16 +57,33 @@ CREATE TABLE IF NOT EXISTS public.ipn_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert default subscription plans
+-- Insert or update default subscription plans
 INSERT INTO public.subscription_plans (plan_name, plan_code, digistore_product_id, price_monthly, max_campaigns, max_refreshes_per_campaign, max_refreshes_per_month, features) VALUES
-('Starter', 'starter', '643746', 900, 1, 10, 10, '{"analytics": "basic", "support": "email", "api_access": false}'),
-('Pro', 'pro', '643752', 1900, 5, 10, 50, '{"analytics": "advanced", "support": "priority", "api_access": false, "custom_keywords": true}'),
-('Enterprise', 'enterprise', '643754', 4900, 15, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true}');
+('Starter', 'starter', '643746', 900, 1, 10, 10, '{"analytics": "basic", "support": "email", "api_access": false, "max_ai_responses": 100}'),
+('Pro', 'pro', '643752', 1900, 5, 10, 50, '{"analytics": "advanced", "support": "priority", "api_access": false, "custom_keywords": true, "max_ai_responses": 500}'),
+('Enterprise', 'enterprise', '643754', 4900, 15, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true, "max_ai_responses": 2000}')
+ON CONFLICT (plan_name) DO UPDATE SET
+    plan_code = EXCLUDED.plan_code,
+    digistore_product_id = EXCLUDED.digistore_product_id,
+    price_monthly = EXCLUDED.price_monthly,
+    max_campaigns = EXCLUDED.max_campaigns,
+    max_refreshes_per_campaign = EXCLUDED.max_refreshes_per_campaign,
+    max_refreshes_per_month = EXCLUDED.max_refreshes_per_month,
+    features = EXCLUDED.features;
 
 -- Upgrade Products
 INSERT INTO public.subscription_plans (plan_name, plan_code, digistore_product_id, price_monthly, max_campaigns, max_refreshes_per_campaign, max_refreshes_per_month, features, is_active) VALUES
-('Upgrade to Pro', 'upgrade_pro', '1322890', 0, 5, 10, 50, '{"analytics": "advanced", "support": "priority", "api_access": false, "custom_keywords": true}', false),
-('Upgrade to Enterprise', 'upgrade_enterprise', '1322889', 0, 15, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true}', false);
+('Upgrade to Pro', 'upgrade_pro', '1322890', 0, 5, 10, 50, '{"analytics": "advanced", "support": "priority", "api_access": false, "custom_keywords": true, "max_ai_responses": 500}', false),
+('Upgrade to Enterprise', 'upgrade_enterprise', '1322889', 0, 15, 10, 150, '{"analytics": "full", "support": "24/7", "api_access": true, "custom_integrations": true, "max_ai_responses": 2000}', false)
+ON CONFLICT (plan_name) DO UPDATE SET
+    plan_code = EXCLUDED.plan_code,
+    digistore_product_id = EXCLUDED.digistore_product_id,
+    price_monthly = EXCLUDED.price_monthly,
+    max_campaigns = EXCLUDED.max_campaigns,
+    max_refreshes_per_campaign = EXCLUDED.max_refreshes_per_campaign,
+    max_refreshes_per_month = EXCLUDED.max_refreshes_per_month,
+    features = EXCLUDED.features,
+    is_active = EXCLUDED.is_active;
 
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user_id ON public.user_subscriptions(user_id);
