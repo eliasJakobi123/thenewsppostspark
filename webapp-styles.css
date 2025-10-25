@@ -3426,62 +3426,7 @@ input:checked + .toggle-slider:before {
     box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
 }
 
-/* Footer Styles for all pages */
-.main-footer,
-.login-footer,
-.register-footer {
-    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 2rem 0;
-    margin-top: 4rem;
-}
-
-.footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-}
-
-.footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.footer-links {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.footer-links a {
-    color: #ffffff;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-}
-
-.footer-links a:hover {
-    color: #ff6b35;
-}
-
-.footer-copyright {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.85rem;
-}
-
 @media (max-width: 768px) {
-    .footer-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .footer-links {
-        justify-content: center;
-    }
-    
     .legal-links {
         gap: 1rem;
     }
