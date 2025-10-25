@@ -202,8 +202,6 @@ class SubscriptionManager {
                     console.error('Error updating usage:', updateError);
                 } else {
                     console.log(`Updated usage: ${usageType} = ${existingUsage.usage_count + count}`);
-                    // Update UI immediately
-                    this.updateUsageDisplay();
                 }
             } else {
                 // Create new usage record
@@ -222,8 +220,6 @@ class SubscriptionManager {
                     console.error('Error creating usage record:', insertError);
                 } else {
                     console.log(`Created usage record: ${usageType} = ${count}`);
-                    // Update UI immediately
-                    this.updateUsageDisplay();
                 }
             }
 

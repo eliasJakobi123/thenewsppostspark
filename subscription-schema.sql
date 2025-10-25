@@ -113,6 +113,14 @@ DROP POLICY IF EXISTS "Users can view own usage" ON public.subscription_usage;
 CREATE POLICY "Users can view own usage" ON public.subscription_usage
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own usage" ON public.subscription_usage;
+CREATE POLICY "Users can insert own usage" ON public.subscription_usage
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own usage" ON public.subscription_usage;
+CREATE POLICY "Users can update own usage" ON public.subscription_usage
+    FOR UPDATE USING (auth.uid() = user_id);
+
 -- RLS Policies for ipn_logs (admin only)
 DROP POLICY IF EXISTS "Admin can view ipn logs" ON public.ipn_logs;
 CREATE POLICY "Admin can view ipn logs" ON public.ipn_logs

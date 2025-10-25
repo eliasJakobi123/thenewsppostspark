@@ -210,13 +210,12 @@ async function registerUser(name, email, password, submitBtn, originalText) {
         }
         
         if (data.user) {
-            showNotification('Account created successfully! Please check your email to verify your account.', 'success');
+            showNotification('Account created successfully! Redirecting to your dashboard...', 'success');
             
             // Redirect to dashboard after successful registration
             setTimeout(() => {
-                showNotification('Redirecting to your dashboard...', 'info');
                 window.location.href = '/dashboard';
-            }, 3000);
+            }, 2000);
         }
         
     } catch (error) {
