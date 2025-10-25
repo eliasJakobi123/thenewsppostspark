@@ -4386,8 +4386,15 @@ async function findMoreLeads(campaignId) {
             }
             
             // Track usage
-            if (window.subscriptionManager) {
-                await window.subscriptionManager.trackUsage('refreshes', 1);
+            if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
+                try {
+                    await window.subscriptionManager.trackUsage('refreshes', 1);
+                    console.log('✅ Tracked refresh usage');
+                } catch (error) {
+                    console.error('Error tracking refresh usage:', error);
+                }
+            } else {
+                console.log('⚠️ Subscription manager not available for tracking refresh usage');
             }
         } else {
             showNotification('No new leads found. Try different keywords or subreddits.', 'warning');
@@ -5409,15 +5416,22 @@ function handleManageSubscription() {
 // Check subscription status and show paywall if needed
 async function checkSubscriptionAndShowPaywall() {
     if (!window.subscriptionManager) {
-        console.log('Subscription manager not available');
+        console.log('⚠️ Subscription manager not available');
         return;
     }
     
-    await window.subscriptionManager.initialize();
-    
-    if (!window.subscriptionManager.hasActiveSubscription()) {
-        console.log('No active subscription found, showing paywall');
-        window.subscriptionManager.showPaywall('no_subscription');
+    try {
+        await window.subscriptionManager.initialize();
+        console.log('✅ Subscription manager initialized successfully');
+        
+        if (!window.subscriptionManager.hasActiveSubscription()) {
+            console.log('No active subscription found, showing paywall');
+            window.subscriptionManager.showPaywall('no_subscription');
+        } else {
+            console.log('✅ Active subscription found');
+        }
+    } catch (error) {
+        console.error('❌ Error initializing subscription manager:', error);
     }
 }
 
