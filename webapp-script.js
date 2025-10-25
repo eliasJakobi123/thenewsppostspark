@@ -2620,6 +2620,14 @@ function initializeSettings() {
         });
     }
     
+    // Logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function() {
+            await handleLogout();
+        });
+    }
+    
     // Cancel subscription
     const cancelSubscriptionBtn = document.querySelector('.subscription-actions .btn-danger');
     if (cancelSubscriptionBtn) {
@@ -2634,6 +2642,55 @@ function initializeSettings() {
         upgradePlanBtn.addEventListener('click', function() {
             upgradePlan();
         });
+    }
+}
+
+// Handle logout
+async function handleLogout() {
+    try {
+        // Show confirmation dialog
+        const confirmed = confirm('Are you sure you want to log out?');
+        if (!confirmed) {
+            return;
+        }
+        
+        // Show loading state
+        const logoutBtn = document.getElementById('logout-btn');
+        const originalText = logoutBtn.innerHTML;
+        logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+        logoutBtn.disabled = true;
+        
+        // Clear all local storage data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Sign out from Supabase
+        if (postSparkDB && postSparkDB.user) {
+            try {
+                await postSparkDB.supabase.auth.signOut();
+            } catch (error) {
+                console.error('Error signing out from Supabase:', error);
+            }
+        }
+        
+        // Show success message
+        showNotification('Logged out successfully!', 'success');
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+            window.location.href = '/login.html';
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error logging out:', error);
+        showNotification('Error logging out. Please try again.', 'error');
+        
+        // Reset button state
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+            logoutBtn.disabled = false;
+        }
     }
 }
 

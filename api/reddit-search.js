@@ -1,3 +1,85 @@
+// Helper function to extract semantic context from offer - DEEP ANALYSIS
+function extractOfferContext(offerText) {
+    const contextKeywords = [];
+    const lowerOffer = offerText.toLowerCase();
+    
+    // Extract key nouns and important words from offer
+    const importantWords = lowerOffer.match(/\b[a-z]{4,}\b/g) || [];
+    contextKeywords.push(...importantWords);
+    
+    // Detect solution types with more context
+    const solutionMap = {
+        'app': ['app', 'application', 'mobile app', 'software', 'iphone', 'android', 'smartphone'],
+        'software': ['software', 'tool', 'platform', 'solution', 'system', 'program'],
+        'tool': ['tool', 'software', 'platform', 'solution', 'utility', 'instrument'],
+        'service': ['service', 'help', 'support', 'assistance', 'consulting', 'coaching'],
+        'course': ['course', 'learn', 'training', 'education', 'tutorial', 'class', 'lesson', 'skill'],
+        'book': ['book', 'guide', 'resource', 'material', 'ebook', 'manual'],
+        'saas': ['saas', 'software', 'platform', 'cloud', 'online', 'webapp', 'web application'],
+        'website': ['website', 'site', 'web', 'online', 'webapp'],
+        'plugin': ['plugin', 'extension', 'addon', 'widget'],
+        'integration': ['integration', 'connect', 'sync', 'api', 'automation']
+    };
+    
+    for (const [key, values] of Object.entries(solutionMap)) {
+        if (lowerOffer.includes(key)) {
+            contextKeywords.push(...values);
+        }
+    }
+    
+    // Detect problem/solution keywords with MORE variations
+    const problemMap = {
+        'productivity': ['productivity', 'productive', 'efficiency', 'efficient', 'time management', 'save time', 'faster'],
+        'automate': ['automate', 'automatic', 'streamline', 'workflow', 'no manual', 'eliminate manual'],
+        'track': ['track', 'tracking', 'monitor', 'monitoring', 'follow', 'watch', 'oversee'],
+        'manage': ['manage', 'management', 'organize', 'organization', 'administer', 'coordinate'],
+        'save': ['save', 'money', 'budget', 'cost', 'affordable', 'cheap', 'reduce cost', 'cut cost'],
+        'grow': ['grow', 'growth', 'scale', 'expand', 'increase', 'boost'],
+        'improve': ['improve', 'better', 'enhance', 'optimize', 'upgrade'],
+        'learn': ['learn', 'learning', 'knowledge', 'skill', 'educate', 'understand'],
+        'build': ['build', 'create', 'make', 'develop', 'construct'],
+        'find': ['find', 'search', 'locate', 'discover'],
+        'schedule': ['schedule', 'calendar', 'plan', 'organize time', 'time management'],
+        'collaborate': ['collaborate', 'team', 'work together', 'share', 'cooperate'],
+        'secure': ['secure', 'security', 'protect', 'safe', 'encrypt'],
+        'backup': ['backup', 'save data', 'store', 'preserve'],
+        'analyze': ['analyze', 'analysis', 'insight', 'report', 'data', 'metrics'],
+        'communicate': ['communicate', 'message', 'chat', 'talk', 'contact'],
+        'delegate': ['delegate', 'assign', 'outsource', 'hand off'],
+        'focus': ['focus', 'concentrate', 'attention', 'distraction-free']
+    };
+    
+    for (const [key, values] of Object.entries(problemMap)) {
+        if (lowerOffer.includes(key)) {
+            contextKeywords.push(...values);
+        }
+    }
+    
+    // Add specific industry/niche keywords if found
+    const nicheMap = {
+        'ecommerce': ['store', 'shop', 'sell', 'product', 'cart', 'checkout', 'inventory'],
+        'marketing': ['marketing', 'promote', 'advertise', 'campaign', 'lead', 'customer'],
+        'finance': ['finance', 'money', 'pay', 'invoice', 'billing', 'payment', 'transaction'],
+        'health': ['health', 'fitness', 'workout', 'exercise', 'diet', 'nutrition', 'wellness'],
+        'education': ['school', 'student', 'teacher', 'learn', 'study', 'exam', 'course'],
+        'design': ['design', 'graphic', 'logo', 'visual', 'creative', 'art', 'brand'],
+        'development': ['code', 'develop', 'programming', 'tech', 'software', 'build', 'deploy'],
+        'customer service': ['customer', 'client', 'support', 'help', 'service', 'care'],
+        'social media': ['social', 'media', 'instagram', 'facebook', 'twitter', 'linkedin', 'post'],
+        'email': ['email', 'mail', 'send', 'message', 'newsletter', 'campaign'],
+        'seo': ['seo', 'search', 'google', 'rank', 'traffic', 'visitor', 'organic'],
+        'crm': ['crm', 'customer', 'relationship', 'manage', 'contact', 'database']
+    };
+    
+    for (const [key, values] of Object.entries(nicheMap)) {
+        if (lowerOffer.includes(key)) {
+            contextKeywords.push(...values);
+        }
+    }
+    
+    return contextKeywords;
+}
+
 // Reddit API integration for finding real posts
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -337,21 +419,65 @@ export default async function handler(req, res) {
                             continue;
                         }
                         
-                        // Score based on offer context (if available) - OPTIONAL for relevance
+                        // Score based on offer context - CRITICAL for better matches
+                        let offerMatchScore = 0;
+                        let hasOfferMatch = false;
+                        
                         if (offer && offer !== 'No offer provided' && offer.trim() !== '') {
-                            const offerWords = offer.toLowerCase().split(' ').filter(word => word.length > 3);
-                            let offerMatches = 0;
+                            const offerLower = offer.toLowerCase();
+                            const offerWords = offerLower.split(' ').filter(word => word.length > 3);
+                            let offerWordMatches = 0;
+                            let semanticMatches = 0;
+                            let titleOfferMatches = 0;
+                            let bodyOfferMatches = 0;
                             
+                            // Direct word matches in offer - STRICT MATCHING
                             for (const word of offerWords) {
                                 if (combinedText.includes(word)) {
-                                    offerMatches++;
-                                    relevanceScore += 20; // Lower weight for offer matches
+                                    offerWordMatches++;
+                                    relevanceScore += 30; // Increased weight
                                 }
                             }
                             
-                            // OPTIONAL: Offer matches are nice but not required
-                            if (offerMatches >= 1) {
-                                relevanceScore += 10; // Bonus for offer matches
+                            // Semantic matching - check if post content relates to offer context
+                            const offerContext = extractOfferContext(offerLower);
+                            for (const context of offerContext) {
+                                if (combinedText.includes(context)) {
+                                    semanticMatches++;
+                                    relevanceScore += 35; // Increased weight
+                                }
+                            }
+                            
+                            // Title matching gets MASSIVE bonus points
+                            for (const word of offerWords.slice(0, 3)) { // Check first 3 important words
+                                if (title.includes(word)) {
+                                    titleOfferMatches++;
+                                }
+                            }
+                            if (titleOfferMatches >= 1) {
+                                relevanceScore += 50; // Massive boost for title matches
+                            } else if (titleOfferMatches >= 2) {
+                                relevanceScore += 70; // Extra boost for multiple title matches
+                            }
+                            
+                            // Text body matching - require STRONG match
+                            if (selftext && selftext.length > 50) {
+                                const bodyMatches = offerWords.filter(word => selftext.includes(word)).length;
+                                const bodySemanticMatches = offerContext.filter(context => selftext.includes(context)).length;
+                                
+                                if (bodyMatches >= 2 || bodySemanticMatches >= 2) {
+                                    relevanceScore += 50; // Strong body match
+                                } else if (bodyMatches >= 1 || bodySemanticMatches >= 1) {
+                                    relevanceScore += 30; // Moderate body match
+                                }
+                            }
+                            
+                            // Check if post has meaningful connection to offer
+                            hasOfferMatch = (offerWordMatches >= 1 || semanticMatches >= 1 || titleOfferMatches >= 1);
+                            
+                            // MASSIVE penalty if no offer relation at all
+                            if (!hasOfferMatch) {
+                                relevanceScore -= 30; // Strong penalty
                             }
                         }
                         
@@ -403,8 +529,15 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Higher threshold for better quality
-                        if (relevanceScore >= 35) {
+                        // Higher threshold for better quality - require strong offer match AND minimum connection to offer
+                        const minRequiredScore = 60; // Increased to require much better matches
+                        const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
+                        
+                        // Only accept posts that have a strong offer match OR a very high overall score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 50;
+                        const hasVeryHighScore = relevanceScore >= 80;
+                        
+                        if ((hasStrongOfferConnection || hasVeryHighScore) && relevanceScore >= minRequiredScore) {
                             console.log(`Post accepted - score: ${relevanceScore}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,
