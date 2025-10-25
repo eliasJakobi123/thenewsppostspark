@@ -1,5 +1,33 @@
 // Webapp JavaScript with Supabase Integration
 
+// Rate limiting for comments - Global scope
+const COMMENT_RATE_LIMIT = 10; // 10 comments per minute
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
+let commentTimestamps = [];
+
+// Rate limiting functions - Global scope
+function checkCommentRateLimit() {
+    const now = Date.now();
+    // Remove timestamps older than 1 minute
+    commentTimestamps = commentTimestamps.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
+    
+    // Check if user has exceeded the limit
+    if (commentTimestamps.length >= COMMENT_RATE_LIMIT) {
+        return false; // Rate limit exceeded
+    }
+    
+    // Add current timestamp
+    commentTimestamps.push(now);
+    return true; // Rate limit not exceeded
+}
+
+function getRateLimitMessage() {
+    const now = Date.now();
+    const oldestTimestamp = Math.min(...commentTimestamps);
+    const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestTimestamp)) / 1000);
+    return `It seems like you're commenting a lot. Please wait ${timeRemaining} seconds before commenting again.`;
+}
+
 // Handle Reddit OAuth callback
 async function handleRedditCallback() {
     console.log('=== REDDIT CALLBACK HANDLER STARTED ===');
@@ -282,33 +310,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize PostSparkDB first
     postSparkDB = new PostSparkSupabase();
     
-// Rate limiting for comments - Global scope
-const COMMENT_RATE_LIMIT = 10; // 10 comments per minute
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
-let commentTimestamps = [];
-
-// Rate limiting functions - Global scope
-function checkCommentRateLimit() {
-    const now = Date.now();
-    // Remove timestamps older than 1 minute
-    commentTimestamps = commentTimestamps.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
-    
-    // Check if user has exceeded the limit
-    if (commentTimestamps.length >= COMMENT_RATE_LIMIT) {
-        return false; // Rate limit exceeded
-    }
-    
-    // Add current timestamp
-    commentTimestamps.push(now);
-    return true; // Rate limit not exceeded
-}
-
-function getRateLimitMessage() {
-    const now = Date.now();
-    const oldestTimestamp = Math.min(...commentTimestamps);
-    const timeRemaining = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestTimestamp)) / 1000);
-    return `It seems like you're commenting a lot. Please wait ${timeRemaining} seconds before commenting again.`;
-}
     
     // Initialize authentication
     const isAuthenticated = await postSparkDB.initializeAuth();
@@ -5127,6 +5128,18 @@ async function generateAIResponse() {
         const data = await response.json();
         
         if (data.success) {
+            // Track AI response usage
+            if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
+                try {
+                    await window.subscriptionManager.trackUsage('ai_responses', 1);
+                    console.log('✅ Tracked AI response usage');
+                } catch (error) {
+                    console.error('Error tracking AI response usage:', error);
+                }
+            } else {
+                console.log('⚠️ Subscription manager not available for tracking AI response usage');
+            }
+            
             // Fill the comment textarea with AI response
             const textarea = document.getElementById('comment-text');
             if (textarea) {
@@ -5246,6 +5259,18 @@ async function generateAIResponseWithSavedStyleNew(style) {
         const data = await response.json();
         
         if (data.success) {
+            // Track AI response usage
+            if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
+                try {
+                    await window.subscriptionManager.trackUsage('ai_responses', 1);
+                    console.log('✅ Tracked AI response usage');
+                } catch (error) {
+                    console.error('Error tracking AI response usage:', error);
+                }
+            } else {
+                console.log('⚠️ Subscription manager not available for tracking AI response usage');
+            }
+            
             // Fill the comment textarea with AI response
             const textarea = document.getElementById("comment-text");
             if (textarea) {
@@ -5260,17 +5285,6 @@ async function generateAIResponseWithSavedStyleNew(style) {
                 sendBtn.disabled = false;
             }
             
-            // Track usage
-            if (window.subscriptionManager && typeof window.subscriptionManager.trackUsage === 'function') {
-                try {
-                    await window.subscriptionManager.trackUsage('ai_responses', 1);
-                    console.log('✅ Tracked AI response usage');
-                } catch (error) {
-                    console.error('Error tracking AI response usage:', error);
-                }
-            } else {
-                console.log('⚠️ Subscription manager not available for tracking AI response usage');
-            }
             
             showNotification("AI response generated successfully!", "success");
         } else {

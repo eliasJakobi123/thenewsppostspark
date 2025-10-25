@@ -202,6 +202,8 @@ class SubscriptionManager {
                     console.error('Error updating usage:', updateError);
                 } else {
                     console.log(`Updated usage: ${usageType} = ${existingUsage.usage_count + count}`);
+                    // Update UI immediately
+                    this.updateUsageDisplay();
                 }
             } else {
                 // Create new usage record
@@ -220,6 +222,8 @@ class SubscriptionManager {
                     console.error('Error creating usage record:', insertError);
                 } else {
                     console.log(`Created usage record: ${usageType} = ${count}`);
+                    // Update UI immediately
+                    this.updateUsageDisplay();
                 }
             }
 
@@ -336,12 +340,11 @@ class SubscriptionManager {
                                 </ul>
                             </div>
                             <button class="plan-button" data-plan="starter">
-                                Choose Starter
+                                Start 7 days free trial
                             </button>
                         </div>
                         
                         <div class="plan-card featured">
-                            <div class="popular-badge">Most Popular</div>
                             <div class="plan-header">
                                 <h3>Pro</h3>
                                 <div class="plan-price">
@@ -359,7 +362,7 @@ class SubscriptionManager {
                                 </ul>
                             </div>
                             <button class="plan-button primary" data-plan="pro">
-                                Choose Pro
+                                Start 7 days free trial
                             </button>
                         </div>
                         
@@ -381,7 +384,7 @@ class SubscriptionManager {
                                 </ul>
                             </div>
                             <button class="plan-button" data-plan="enterprise">
-                                Choose Enterprise
+                                Start 7 days free trial
                             </button>
                         </div>
                     </div>
