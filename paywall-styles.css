@@ -1,4 +1,4 @@
-/* PostSpark Paywall Styles */
+/* PostSpark Paywall Styles - Dark Theme */
 
 .paywall-overlay {
     position: fixed;
@@ -6,14 +6,14 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+    backdrop-filter: blur(15px);
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    animation: paywallFadeIn 0.3s ease-out;
+    animation: paywallFadeIn 0.4s ease-out;
 }
 
 @keyframes paywallFadeIn {
@@ -28,14 +28,19 @@
 }
 
 .paywall-content {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     max-width: 1000px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    animation: paywallSlideIn 0.4s ease-out;
+    animation: paywallSlideIn 0.5s ease-out;
+    position: relative;
 }
 
 @keyframes paywallSlideIn {
@@ -51,65 +56,121 @@
 
 .paywall-header {
     text-align: center;
-    padding: 40px 40px 20px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.paywall-header h2 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0 0 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-}
-
-.paywall-header h2 i {
-    color: #ff6b35;
-    font-size: 2.2rem;
-}
-
-.paywall-header p {
-    font-size: 1.1rem;
-    color: #666;
-    margin: 0;
-    line-height: 1.5;
-}
-
-.paywall-plans {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    padding: 40px;
-}
-
-.plan-card {
-    background: #fff;
-    border: 2px solid #f0f0f0;
-    border-radius: 15px;
-    padding: 30px;
-    text-align: center;
-    transition: all 0.3s ease;
+    padding: 50px 40px 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 140, 66, 0.05) 100%);
+    border-radius: 24px 24px 0 0;
     position: relative;
     overflow: hidden;
 }
 
+.paywall-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ff6b35, #ff8c42, #ff6b35);
+    background-size: 200% 100%;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.paywall-header h2 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.paywall-header h2 i {
+    color: #ff6b35;
+    font-size: 2.5rem;
+    filter: drop-shadow(0 2px 4px rgba(255, 107, 53, 0.3));
+}
+
+.paywall-header p {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+.paywall-plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.plan-card {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 35px 25px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.plan-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05) 0%, rgba(255, 140, 66, 0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
 .plan-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-    border-color: #ff6b35;
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 107, 53, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 107, 53, 0.5);
+}
+
+.plan-card:hover::before {
+    opacity: 1;
 }
 
 .plan-card.featured {
-    border-color: #ff6b35;
-    background: linear-gradient(135deg, #fff 0%, #fff8f5 100%);
-    transform: scale(1.05);
+    border-color: rgba(255, 107, 53, 0.6);
+    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 50%, #2a2a2a 100%);
+    transform: scale(1.08);
+    box-shadow: 
+        0 15px 35px rgba(255, 107, 53, 0.2),
+        0 0 0 1px rgba(255, 107, 53, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .plan-card.featured:hover {
-    transform: scale(1.05) translateY(-5px);
+    transform: scale(1.08) translateY(-8px);
+    box-shadow: 
+        0 25px 50px rgba(255, 107, 53, 0.3),
+        0 0 0 1px rgba(255, 107, 53, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .popular-badge {
@@ -119,54 +180,65 @@
     transform: translateX(-50%);
     background: linear-gradient(135deg, #ff6b35, #ff8c42);
     color: white;
-    padding: 8px 20px;
-    border-radius: 0 0 10px 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    padding: 10px 25px;
+    border-radius: 0 0 15px 15px;
+    font-size: 0.9rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+    z-index: 10;
 }
 
 .plan-header {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 5;
 }
 
 .plan-header h3 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0 0 15px;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .plan-price {
     display: flex;
     align-items: baseline;
     justify-content: center;
-    gap: 5px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 25px;
 }
 
 .plan-price .currency {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #666;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .plan-price .amount {
-    font-size: 3rem;
-    font-weight: 800;
-    color: #ff6b35;
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     line-height: 1;
+    text-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
 }
 
 .plan-price .period {
-    font-size: 1rem;
-    color: #666;
-    font-weight: 500;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
 }
 
 .plan-features {
-    margin-bottom: 30px;
+    margin-bottom: 35px;
+    position: relative;
+    z-index: 5;
 }
 
 .plan-features ul {
@@ -179,164 +251,268 @@
 .plan-features li {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    font-size: 0.95rem;
-    color: #555;
+    gap: 15px;
+    padding: 12px 0;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.plan-features li:last-child {
+    border-bottom: none;
+}
+
+.plan-features li:hover {
+    color: #ffffff;
+    padding-left: 5px;
 }
 
 .plan-features li i {
     color: #4CAF50;
-    font-size: 1rem;
-    width: 16px;
+    font-size: 1.1rem;
+    width: 20px;
     text-align: center;
+    filter: drop-shadow(0 1px 2px rgba(76, 175, 80, 0.3));
 }
 
 .plan-button {
     width: 100%;
-    padding: 15px 25px;
+    padding: 18px 30px;
     border: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background: #f8f9fa;
-    color: #666;
-    border: 2px solid #e9ecef;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #404040, #2a2a2a);
+    color: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    z-index: 5;
+}
+
+.plan-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.plan-button:hover::before {
+    left: 100%;
 }
 
 .plan-button:hover {
-    background: #e9ecef;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #4a4a4a, #353535);
+    color: #ffffff;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .plan-button.primary {
     background: linear-gradient(135deg, #ff6b35, #ff8c42);
     color: white;
-    border-color: #ff6b35;
+    border-color: rgba(255, 107, 53, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
 }
 
 .plan-button.primary:hover {
     background: linear-gradient(135deg, #ff8c42, #ff6b35);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+    box-shadow: 0 12px 30px rgba(255, 107, 53, 0.4);
+    transform: translateY(-4px);
+    border-color: rgba(255, 107, 53, 0.8);
 }
 
 .paywall-footer {
-    padding: 20px 40px 40px;
+    padding: 30px 40px 50px;
     text-align: center;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0 0 24px 24px;
 }
 
 .paywall-close {
-    background: none;
-    border: 2px solid #e9ecef;
-    color: #666;
-    padding: 12px 25px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 500;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    backdrop-filter: blur(10px);
 }
 
 .paywall-close:hover {
-    background: #f8f9fa;
-    border-color: #dee2e6;
-    color: #495057;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .dev-skip-btn {
-    background: linear-gradient(135deg, #6c757d, #495057);
-    border: 2px solid #6c757d;
-    color: white;
-    padding: 12px 25px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 500;
+    background: linear-gradient(135deg, #404040, #2a2a2a);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    margin-left: 10px;
+    gap: 10px;
+    margin-left: 15px;
+    backdrop-filter: blur(10px);
 }
 
 .dev-skip-btn:hover {
-    background: linear-gradient(135deg, #495057, #343a40);
-    border-color: #495057;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    background: linear-gradient(135deg, #4a4a4a, #353535);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     .paywall-overlay {
-        padding: 10px;
+        padding: 15px;
     }
     
     .paywall-content {
-        border-radius: 15px;
+        border-radius: 20px;
+        max-height: 95vh;
     }
     
     .paywall-header {
-        padding: 30px 20px 15px;
+        padding: 40px 25px 25px;
     }
     
     .paywall-header h2 {
-        font-size: 2rem;
+        font-size: 2.2rem;
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
+    }
+    
+    .paywall-header h2 i {
+        font-size: 2rem;
     }
     
     .paywall-plans {
         grid-template-columns: 1fr;
         gap: 20px;
-        padding: 30px 20px;
+        padding: 30px 25px;
     }
     
     .plan-card {
-        padding: 25px 20px;
+        padding: 30px 20px;
     }
     
     .plan-card.featured {
-        transform: none;
+        transform: scale(1.02);
     }
     
     .plan-card.featured:hover {
-        transform: translateY(-5px);
+        transform: scale(1.02) translateY(-8px);
     }
     
     .plan-price .amount {
-        font-size: 2.5rem;
+        font-size: 3rem;
+    }
+    
+    .plan-header h3 {
+        font-size: 1.8rem;
     }
     
     .paywall-footer {
-        padding: 15px 20px 30px;
+        padding: 25px 25px 40px;
+    }
+    
+    .paywall-close,
+    .dev-skip-btn {
+        padding: 12px 25px;
+        font-size: 0.95rem;
+        margin-left: 10px;
     }
 }
 
 @media (max-width: 480px) {
+    .paywall-overlay {
+        padding: 10px;
+    }
+    
+    .paywall-content {
+        border-radius: 16px;
+    }
+    
+    .paywall-header {
+        padding: 30px 20px 20px;
+    }
+    
     .paywall-header h2 {
         font-size: 1.8rem;
+    }
+    
+    .paywall-header h2 i {
+        font-size: 1.6rem;
     }
     
     .paywall-header p {
         font-size: 1rem;
     }
     
+    .paywall-plans {
+        padding: 25px 20px;
+    }
+    
+    .plan-card {
+        padding: 25px 15px;
+    }
+    
     .plan-price .amount {
-        font-size: 2.2rem;
+        font-size: 2.8rem;
+    }
+    
+    .plan-header h3 {
+        font-size: 1.6rem;
     }
     
     .plan-features li {
         font-size: 0.9rem;
+        padding: 10px 0;
+    }
+    
+    .plan-button {
+        padding: 15px 20px;
+        font-size: 1rem;
+    }
+    
+    .paywall-footer {
+        padding: 20px 20px 30px;
+    }
+    
+    .paywall-close,
+    .dev-skip-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        margin-left: 8px;
     }
 }
 
