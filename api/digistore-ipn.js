@@ -150,8 +150,8 @@ async function createOrUpdateSubscription(userId, planCode, orderData) {
                 .from('user_subscriptions')
                 .update({
                     plan_id: plan.id,
-                    digistore_order_id: orderData.order_id || orderData.orderId,
-                    digistore_transaction_id: orderData.transaction_id || orderData.transactionId,
+                    digistore_order_id: orderData.order_id || orderData.orderId || orderData.order_id_digi,
+                    digistore_transaction_id: orderData.transaction_id || orderData.transactionId || orderData.transaction_id_digi,
                     status: 'active',
                     expires_at: expiresAt.toISOString(),
                     updated_at: new Date().toISOString()
@@ -173,8 +173,8 @@ async function createOrUpdateSubscription(userId, planCode, orderData) {
                 .insert({
                     user_id: userId,
                     plan_id: plan.id,
-                    digistore_order_id: orderData.order_id || orderData.orderId,
-                    digistore_transaction_id: orderData.transaction_id || orderData.transactionId,
+                    digistore_order_id: orderData.order_id || orderData.orderId || orderData.order_id_digi,
+                    digistore_transaction_id: orderData.transaction_id || orderData.transactionId || orderData.transaction_id_digi,
                     status: 'active',
                     expires_at: expiresAt.toISOString()
                 })
@@ -195,6 +195,10 @@ async function createOrUpdateSubscription(userId, planCode, orderData) {
 
 async function cancelSubscription(orderId) {
     try {
+        if (!orderId) {
+            throw new Error('No order ID provided for cancellation');
+        }
+
         const { error } = await supabase
             .from('user_subscriptions')
             .update({
@@ -207,6 +211,8 @@ async function cancelSubscription(orderId) {
         if (error) {
             throw error;
         }
+
+        console.log(`Successfully cancelled subscription for order ID: ${orderId}`);
     } catch (err) {
         console.error('Error cancelling subscription:', err);
         throw err;
@@ -215,10 +221,13 @@ async function cancelSubscription(orderId) {
 
 async function processSubscriptionEvent(eventData) {
     try {
-        const productId = eventData.product_id || eventData.productId;
+        // Digistore24 uses different field names
+        const productId = eventData.product_id || eventData.productId || eventData.product_id_digi;
         const planCode = PRODUCT_MAPPINGS[productId];
         
         if (!planCode) {
+            console.log('Available product IDs in mapping:', Object.keys(PRODUCT_MAPPINGS));
+            console.log('Received product ID:', productId);
             throw new Error(`Unknown product ID: ${productId}`);
         }
 
@@ -228,9 +237,10 @@ async function processSubscriptionEvent(eventData) {
             return await processUpgrade(eventData, targetPlan);
         }
 
-        // Find user by email
-        const userEmail = eventData.email || eventData.customer_email;
+        // Find user by email - Digistore24 uses different field names
+        const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || eventData.buyer_email;
         if (!userEmail) {
+            console.log('Available email fields:', Object.keys(eventData).filter(key => key.toLowerCase().includes('email')));
             throw new Error('No email found in event data');
         }
 
@@ -246,7 +256,8 @@ async function processSubscriptionEvent(eventData) {
             success: true,
             subscriptionId,
             planCode,
-            userId: user.id
+            userId: user.id,
+            userEmail: userEmail
         };
     } catch (err) {
         console.error('Error processing subscription event:', err);
@@ -256,7 +267,7 @@ async function processSubscriptionEvent(eventData) {
 
 async function processUpgrade(eventData, targetPlan) {
     try {
-        const userEmail = eventData.email || eventData.customer_email;
+        const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || eventData.buyer_email;
         if (!userEmail) {
             throw new Error('No email found in upgrade event data');
         }
@@ -277,8 +288,8 @@ async function processUpgrade(eventData, targetPlan) {
             .from('user_subscriptions')
             .update({
                 plan_id: plan.id,
-                digistore_order_id: eventData.order_id || eventData.orderId,
-                digistore_transaction_id: eventData.transaction_id || eventData.transactionId,
+                digistore_order_id: eventData.order_id || eventData.orderId || eventData.order_id_digi,
+                digistore_transaction_id: eventData.transaction_id || eventData.transactionId || eventData.transaction_id_digi,
                 updated_at: new Date().toISOString()
             })
             .eq('user_id', user.id)
@@ -300,6 +311,16 @@ async function processUpgrade(eventData, targetPlan) {
 }
 
 export default async function handler(req, res) {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    
     // Only allow POST requests
     if (req.method !== 'POST') {
         console.log('IPN: Method not allowed:', req.method);
@@ -310,6 +331,11 @@ export default async function handler(req, res) {
         const eventData = req.body;
         console.log('IPN received:', JSON.stringify(eventData, null, 2));
         
+        // Validate required environment variables
+        if (!supabaseUrl || !supabaseServiceKey) {
+            throw new Error('Missing required environment variables');
+        }
+        
         // Log the incoming IPN
         await logIPN(eventData, 'received');
 
@@ -317,39 +343,104 @@ export default async function handler(req, res) {
         let eventType = 'unknown';
         let result = null;
 
-        // Check for different event types
+        // Check for Digistore24 event types
         if (eventData.event_type) {
             eventType = eventData.event_type;
-        } else if (eventData.status === 'completed' || eventData.payment_status === 'completed') {
-            eventType = 'subscription_created';
-        } else if (eventData.status === 'cancelled' || eventData.payment_status === 'cancelled') {
-            eventType = 'subscription_cancelled';
-        } else if (eventData.status === 'renewed' || eventData.payment_status === 'renewed') {
-            eventType = 'subscription_renewed';
+        } else if (eventData.event_name) {
+            eventType = eventData.event_name;
+        } else {
+            // Fallback: try to determine from other fields
+            if (eventData.status === 'completed' || eventData.payment_status === 'completed') {
+                eventType = 'on_payment';
+            } else if (eventData.status === 'cancelled' || eventData.payment_status === 'cancelled') {
+                eventType = 'on_rebill_cancelled';
+            } else if (eventData.status === 'refunded' || eventData.payment_status === 'refunded') {
+                eventType = 'on_refund';
+            } else if (eventData.status === 'failed' || eventData.payment_status === 'failed') {
+                eventType = 'payment_denial';
+            }
         }
 
-        // Process based on event type
+        // Process based on Digistore24 event type
         switch (eventType) {
-            case 'subscription_created':
-            case 'subscription_renewed':
+            case 'on_payment':
+                // Payment was successful - create or renew subscription
                 result = await processSubscriptionEvent(eventData);
                 break;
                 
-            case 'subscription_cancelled':
-                const orderId = eventData.order_id || eventData.orderId;
+            case 'on_rebill_cancelled':
+                // Recurring payment was cancelled
+                const orderId = eventData.order_id || eventData.orderId || eventData.order_id_digi;
                 if (orderId) {
                     await cancelSubscription(orderId);
                     result = { success: true, action: 'cancelled' };
+                } else {
+                    result = { success: false, error: 'No order ID found for cancellation' };
+                }
+                break;
+                
+            case 'on_refund':
+                // Refund was processed - cancel subscription
+                const refundOrderId = eventData.order_id || eventData.orderId || eventData.order_id_digi;
+                if (refundOrderId) {
+                    await cancelSubscription(refundOrderId);
+                    result = { success: true, action: 'refunded' };
+                } else {
+                    result = { success: false, error: 'No order ID found for refund' };
+                }
+                break;
+                
+            case 'on_chargeback':
+                // Chargeback occurred - cancel subscription
+                const chargebackOrderId = eventData.order_id || eventData.orderId || eventData.order_id_digi;
+                if (chargebackOrderId) {
+                    await cancelSubscription(chargebackOrderId);
+                    result = { success: true, action: 'chargeback' };
+                } else {
+                    result = { success: false, error: 'No order ID found for chargeback' };
+                }
+                break;
+                
+            case 'on_payment_missed':
+                // Payment missed - could be temporary, log but don't cancel
+                result = { success: true, action: 'payment_missed', message: 'Payment missed - subscription remains active' };
+                break;
+                
+            case 'on_rebill_resumed':
+                // Recurring payment resumed - reactivate subscription
+                result = await processSubscriptionEvent(eventData);
+                break;
+                
+            case 'last_paid_day':
+                // Last paid period ended - cancel subscription
+                const lastPaidOrderId = eventData.order_id || eventData.orderId || eventData.order_id_digi;
+                if (lastPaidOrderId) {
+                    await cancelSubscription(lastPaidOrderId);
+                    result = { success: true, action: 'last_paid_day' };
+                } else {
+                    result = { success: false, error: 'No order ID found for last_paid_day' };
+                }
+                break;
+                
+            case 'payment_denial':
+                // Payment was denied - cancel subscription
+                const deniedOrderId = eventData.order_id || eventData.orderId || eventData.order_id_digi;
+                if (deniedOrderId) {
+                    await cancelSubscription(deniedOrderId);
+                    result = { success: true, action: 'payment_denied' };
+                } else {
+                    result = { success: false, error: 'No order ID found for payment denial' };
                 }
                 break;
                 
             default:
-                // Try to process as subscription event anyway
+                // Try to process as payment event anyway
                 try {
                     result = await processSubscriptionEvent(eventData);
-                    eventType = 'subscription_processed';
+                    eventType = 'payment_processed';
                 } catch (err) {
-                    console.log('Could not process as subscription event:', err.message);
+                    console.log('Could not process as payment event:', err.message);
+                    result = { success: false, error: 'Unknown event type', eventType };
                 }
         }
 
@@ -369,7 +460,7 @@ export default async function handler(req, res) {
         
         // Log the error
         try {
-            await logIPN(req.body, 'error', error.message);
+            await logIPN(req.body || {}, 'error', error.message);
         } catch (logError) {
             console.error('Failed to log IPN error:', logError);
         }
@@ -378,7 +469,8 @@ export default async function handler(req, res) {
         return res.status(200).json({ 
             success: false,
             error: 'Internal server error',
-            message: error.message 
+            message: error.message,
+            timestamp: new Date().toISOString()
         });
     }
 }

@@ -398,6 +398,14 @@ async function initializeApp() {
         // Complete loading
         updateLoadingStep('step-dashboard', 'completed');
         
+        // Check subscription status
+        try {
+            await checkSubscriptionAndShowPaywall();
+            console.log('✅ Subscription status checked');
+        } catch (error) {
+            console.error('❌ Error checking subscription status:', error);
+        }
+        
         // Hide loading overlay after a short delay
         setTimeout(() => {
             hideLoadingOverlay();
