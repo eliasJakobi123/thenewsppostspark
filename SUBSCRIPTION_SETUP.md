@@ -25,7 +25,7 @@ Führe das neue Schema in deiner Supabase-Datenbank aus:
 In deinem Digistore24 Dashboard:
 
 1. Gehe zu **Produkte** → **IPN (Instant Payment Notification)**
-2. Setze die IPN-URL auf: `https://thenewsppostspark.vercel.app/api/digistore-ipn`
+2. Setze die IPN-URL auf: `https://post-spark.com/api/digistore-ipn`
 3. Aktiviere IPN für alle deine Produkte
 
 ### 3. Produkt-IDs (bereits konfiguriert)

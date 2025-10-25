@@ -8,7 +8,7 @@ Gehe zu [Reddit App Preferences](https://www.reddit.com/prefs/apps) und aktualis
 
 **Redirect URI:** 
 ```
-https://thenewsppostspark.vercel.app/
+https://post-spark.com/
 ```
 
 **WICHTIG:** 
@@ -20,7 +20,7 @@ https://thenewsppostspark.vercel.app/
 
 #### **Production (Vercel):**
 ```
-https://thenewsppostspark.vercel.app/
+https://post-spark.com/
 ```
 
 #### **Development (Local):**
@@ -52,16 +52,16 @@ CLIENT_SECRET: 'uLXMyoHsE8uQyZGhYW3ZMpbJ65BdHA'
 ### **5. OAuth Flow:**
 
 1. **User klickt "Connect Reddit"**
-2. **Redirect zu Reddit:** `https://www.reddit.com/api/v1/authorize?client_id=...&redirect_uri=https://thenewsppostspark.vercel.app/&response_type=code&scope=...&state=...`
+2. **Redirect zu Reddit:** `https://www.reddit.com/api/v1/authorize?client_id=...&redirect_uri=https://post-spark.com/&response_type=code&scope=...&state=...`
 3. **User autorisiert auf Reddit**
-4. **Reddit redirects zurück zu:** `https://thenewsppostspark.vercel.app/?code=...&state=...`
+4. **Reddit redirects zurück zu:** `https://post-spark.com/?code=...&state=...`
 5. **App verarbeitet den Callback** und speichert den Auth Code
 
 ### **6. Troubleshooting:**
 
 #### **"invalid redirect_uri parameter" Fehler:**
-- ✅ **Korrekt:** `https://thenewsppostspark.vercel.app/`
-- ❌ **Falsch:** `https://thenewsppostspark.vercel.app/webapp.html`
+- ✅ **Korrekt:** `https://post-spark.com/`
+- ❌ **Falsch:** `https://post-spark.com/webapp.html`
 - ❌ **Falsch:** `http://localhost:8080` (für Production)
 
 #### **"redirect_uri_mismatch" Fehler:**
@@ -76,7 +76,7 @@ CLIENT_SECRET: 'uLXMyoHsE8uQyZGhYW3ZMpbJ65BdHA'
    - Teste den OAuth Flow lokal
 
 2. **Production Test:**
-   - Verwende `https://thenewsppostspark.vercel.app/` als Redirect URI
+   - Verwende `https://post-spark.com/` als Redirect URI
    - Teste auf der Live-Website
 
 ### **8. Code-Änderungen:**
@@ -85,7 +85,7 @@ Die folgenden Dateien wurden bereits aktualisiert:
 
 #### **supabase-config.js:**
 ```javascript
-REDIRECT_URI: window.VITE_REDDIT_REDIRECT_URI || 'https://thenewsppostspark.vercel.app/',
+REDIRECT_URI: window.VITE_REDDIT_REDIRECT_URI || 'https://post-spark.com/',
 ```
 
 #### **webapp-script.js:**
@@ -97,12 +97,12 @@ REDIRECT_URI: window.VITE_REDDIT_REDIRECT_URI || 'https://thenewsppostspark.verc
 Du kannst auch Environment Variables verwenden:
 
 ```bash
-VITE_REDDIT_REDIRECT_URI=https://thenewsppostspark.vercel.app/
+VITE_REDDIT_REDIRECT_URI=https://post-spark.com/
 ```
 
 ## ✅ **Nach der Konfiguration:**
 
-1. **Reddit App URI aktualisieren** auf `https://thenewsppostspark.vercel.app/`
+1. **Reddit App URI aktualisieren** auf `https://post-spark.com/`
 2. **Code pushen** zu Vercel
 3. **Testen** der Reddit-Verbindung
 4. **"Connect Reddit" Button** sollte jetzt funktionieren
