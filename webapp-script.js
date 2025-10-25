@@ -1597,14 +1597,14 @@ function setupCommentPopupListeners() {
         }
         
         // Check if we have a saved AI style for this campaign
-        const campaignId = window.currentCampaignId;
+        let campaignId = window.currentCampaignId || localStorage.getItem('currentCampaignId');
+        
+        // Get current campaign ID
         if (!campaignId) {
             showNotification('No campaign selected. Please select a campaign first.', 'error');
             return;
         }
         
-        // Get current campaign ID
-        campaignId = window.currentCampaignId || localStorage.getItem('currentCampaignId') || campaignId;
         console.log('Campaign ID for AI style:', campaignId);
         
         try {
