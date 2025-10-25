@@ -640,7 +640,7 @@ class PostSparkSupabase {
             const updateData = {
                 reddit_access_token: tokens.access_token,
                 reddit_refresh_token: tokens.refresh_token,
-                reddit_token_expires: new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+                reddit_token_expires: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000).toISOString() : new Date(Date.now() + 3600 * 1000).toISOString()
             };
             
             console.log('Update data:', updateData);

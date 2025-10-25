@@ -1,5 +1,5 @@
 -- Fix RLS policies for subscription_usage table
--- This allows users to insert and update their own usage records
+-- Run this in Supabase SQL Editor
 
 -- Add INSERT policy for subscription_usage
 DROP POLICY IF EXISTS "Users can insert own usage" ON public.subscription_usage;

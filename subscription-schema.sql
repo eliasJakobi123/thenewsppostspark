@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_usage (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
     subscription_id UUID REFERENCES public.user_subscriptions(id) ON DELETE CASCADE,
-    usage_type TEXT NOT NULL CHECK (usage_type IN ('campaigns', 'refreshes', 'api_calls', 'ai_responses')),
+    usage_type TEXT NOT NULL CHECK (usage_type IN ('campaigns', 'refreshes', 'ai_responses')),
     usage_count INTEGER DEFAULT 0,
     reset_date DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
