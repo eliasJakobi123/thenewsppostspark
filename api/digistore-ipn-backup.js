@@ -1,4 +1,4 @@
-// Digistore24 IPN Handler - Fixed Version
+// Digistore24 IPN Handler
 // Handles subscription events from Digistore24
 
 import { createClient } from '@supabase/supabase-js';
@@ -6,6 +6,17 @@ import { createClient } from '@supabase/supabase-js';
 // Supabase configuration
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://ntutkssgqzqgmbvuwjqu.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseServiceKey) {
+    console.error('SUPABASE_SERVICE_KEY environment variable is required');
+    console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('SUPABASE')));
+    return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Missing SUPABASE_SERVICE_KEY environment variable' })
+    };
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Digistore24 configuration
 const DIGISTORE24_MERCHANT_ID = process.env.DIGISTORE24_MERCHANT_ID || '13809';
@@ -56,24 +67,8 @@ const PLAN_CONFIGS = {
     }
 };
 
-// Initialize Supabase client
-let supabase;
-try {
-    if (!supabaseServiceKey) {
-        throw new Error('SUPABASE_SERVICE_KEY environment variable is required');
-    }
-    supabase = createClient(supabaseUrl, supabaseServiceKey);
-} catch (error) {
-    console.error('Failed to initialize Supabase client:', error.message);
-}
-
 async function logIPN(data, eventType = null, errorMessage = null) {
     try {
-        if (!supabase) {
-            console.error('Supabase client not initialized, cannot log IPN');
-            return;
-        }
-
         const { data: logData, error } = await supabase
             .from('ipn_logs')
             .insert({
@@ -95,10 +90,6 @@ async function logIPN(data, eventType = null, errorMessage = null) {
 
 async function findUserByEmail(email) {
     try {
-        if (!supabase) {
-            throw new Error('Supabase client not initialized');
-        }
-
         const { data, error } = await supabase
             .from('users')
             .select('id')
@@ -118,10 +109,6 @@ async function findUserByEmail(email) {
 
 async function getSubscriptionPlan(planCode) {
     try {
-        if (!supabase) {
-            throw new Error('Supabase client not initialized');
-        }
-
         const { data, error } = await supabase
             .from('subscription_plans')
             .select('*')
@@ -141,10 +128,6 @@ async function getSubscriptionPlan(planCode) {
 
 async function createOrUpdateSubscription(userId, planCode, orderData) {
     try {
-        if (!supabase) {
-            throw new Error('Supabase client not initialized');
-        }
-
         const plan = await getSubscriptionPlan(planCode);
         if (!plan) {
             throw new Error(`Plan not found: ${planCode}`);
@@ -216,10 +199,6 @@ async function createOrUpdateSubscription(userId, planCode, orderData) {
 
 async function cancelSubscription(orderId) {
     try {
-        if (!supabase) {
-            throw new Error('Supabase client not initialized');
-        }
-
         if (!orderId) {
             throw new Error('No order ID provided for cancellation');
         }
@@ -292,10 +271,6 @@ async function processSubscriptionEvent(eventData) {
 
 async function processUpgrade(eventData, targetPlan) {
     try {
-        if (!supabase) {
-            throw new Error('Supabase client not initialized');
-        }
-
         const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || eventData.buyer_email;
         if (!userEmail) {
             throw new Error('No email found in upgrade event data');
@@ -357,32 +332,13 @@ export default async function handler(req, res) {
             return res.status(405).json({ error: 'Method not allowed' });
         }
 
-        // Debug environment variables
-        console.log('Environment check:', {
-            hasSupabaseUrl: !!supabaseUrl,
-            hasSupabaseServiceKey: !!supabaseServiceKey,
-            supabaseUrl: supabaseUrl,
-            availableEnvVars: Object.keys(process.env).filter(key => key.includes('SUPABASE'))
-        });
-
-        // Check if Supabase client is initialized
-        if (!supabase) {
-            console.error('Supabase client not initialized - Environment variables missing');
-            // Return success to Digistore24 but log the issue
-            return res.status(200).json({ 
-                success: true,
-                message: 'IPN received but database not configured',
-                debug: {
-                    hasSupabaseUrl: !!supabaseUrl,
-                    hasSupabaseServiceKey: !!supabaseServiceKey,
-                    availableEnvVars: Object.keys(process.env).filter(key => key.includes('SUPABASE')),
-                    note: 'Please set SUPABASE_SERVICE_KEY in Vercel environment variables'
-                }
-            });
-        }
-
         const eventData = req.body;
         console.log('IPN received:', JSON.stringify(eventData, null, 2));
+        
+        // Validate required environment variables
+        if (!supabaseUrl || !supabaseServiceKey) {
+            throw new Error('Missing required environment variables');
+        }
         
         // Log the incoming IPN
         await logIPN(eventData, 'received');
