@@ -1746,6 +1746,18 @@ async function refreshCampaignPosts() {
             throw new Error('No campaign selected');
         }
         
+        // Check subscription limits before refreshing campaign
+        if (window.subscriptionManager) {
+            const canRefresh = await window.subscriptionManager.checkAndEnforceLimits('refresh_campaign', currentCampaignId);
+            if (!canRefresh) {
+                console.log('Campaign refresh blocked by subscription limits');
+                // Reset button state
+                icon.classList.remove('fa-spin');
+                refreshBtn.disabled = false;
+                return;
+            }
+        }
+        
         // Get current post count before refresh
         const currentPosts = await postSparkDB.getPosts(currentCampaignId);
         const currentPostCount = currentPosts.length;
@@ -1765,6 +1777,11 @@ async function refreshCampaignPosts() {
         
         // Update campaign stats
         await loadCampaigns();
+        
+        // Track usage
+        if (window.subscriptionManager) {
+            await window.subscriptionManager.trackUsage('refreshes', 1);
+        }
         
         showNotification('Campaign refreshed successfully!', 'success');
         
@@ -2070,6 +2087,7 @@ async function findModernLeadsOnReddit() {
             description: offer,
             keywords: keywords,
             website_url: websiteUrl,
+            offer: offer, // Store offer separately for AI comment generation
             subreddits: ['r/entrepreneur', 'r/startups', 'r/smallbusiness', 'r/marketing'],
             target_audience: 'Small business owners, entrepreneurs, project managers'
         };
@@ -4317,6 +4335,15 @@ async function connectRedditAccount() {
 // Find more leads for existing campaign
 async function findMoreLeads(campaignId) {
     try {
+        // Check subscription limits before finding more leads
+        if (window.subscriptionManager) {
+            const canRefresh = await window.subscriptionManager.checkAndEnforceLimits('refresh_campaign', campaignId);
+            if (!canRefresh) {
+                console.log('Finding more leads blocked by subscription limits');
+                return;
+            }
+        }
+        
         showNotification('Searching for more leads...', 'info');
         
         const redditPosts = await postSparkDB.findRedditLeads(campaignId);
@@ -4325,6 +4352,11 @@ async function findMoreLeads(campaignId) {
             // Refresh the campaign posts if we're viewing them
             if (document.getElementById('campaign-posts').classList.contains('active')) {
                 showCampaignPosts(campaignId);
+            }
+            
+            // Track usage
+            if (window.subscriptionManager) {
+                await window.subscriptionManager.trackUsage('refreshes', 1);
             }
         } else {
             showNotification('No new leads found. Try different keywords or subreddits.', 'warning');
@@ -5069,6 +5101,10 @@ function showAIStyleInfoNew(style) {
         
         const salesNames = ["Subtle", "Moderate", "Direct", "Aggressive"];
         
+        // Get campaign data for display
+        const campaignId = window.currentCampaignId;
+        const campaign = campaignId ? postSparkDB.campaigns.find(c => c.id === campaignId) : null;
+        
         aiStylePreview.innerHTML = `
             <div class="style-detail">
                 <strong>Tone:</strong> ${toneNames[style.tone] || style.tone}
@@ -5076,8 +5112,8 @@ function showAIStyleInfoNew(style) {
             <div class="style-detail">
                 <strong>Sales Approach:</strong> ${salesNames[style.salesStrength - 1] || style.salesStrength}
             </div>
-            ${style.includeWebsite ? "<div class=\"style-detail\"><strong>Website:</strong> Included</div>" : ""}
-            ${style.customOffer ? `<div class="style-detail"><strong>Custom Offer:</strong> ${style.customOffer}</div>` : ""}
+            ${style.includeWebsite && campaign?.website_url ? `<div class="style-detail"><strong>Website:</strong> ${campaign.website_url}</div>` : ""}
+            ${style.customOffer ? `<div class="style-detail"><strong>Custom Offer:</strong> ${style.customOffer}</div>` : (campaign?.offer ? `<div class="style-detail"><strong>Campaign Offer:</strong> ${campaign.offer}</div>` : "")}
         `;
         
         aiStyleInfo.style.display = "block";
@@ -5114,8 +5150,8 @@ async function generateAIResponseWithSavedStyleNew(style) {
             body: JSON.stringify({
                 postContent: currentPostData.content,
                 postTitle: currentPostData.title,
-                offer: style.customOffer || campaign.description,
-                websiteUrl: style.includeWebsite ? campaign.website_url : "",
+                offer: style.customOffer || campaign.offer || campaign.description,
+                websiteUrl: style.includeWebsite ? (campaign.website_url || "") : "",
                 tone: style.tone,
                 salesStrength: style.salesStrength,
                 customOffer: style.customOffer
