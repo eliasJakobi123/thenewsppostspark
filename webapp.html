@@ -42,6 +42,54 @@
         </div>
     </div>
 
+    <!-- Reddit Token Expired Popup -->
+    <div id="reddit-token-expired-popup" class="reddit-token-expired-popup">
+        <div class="popup-overlay"></div>
+        <div class="popup-content">
+            <div class="popup-header">
+                <div class="header-icon">
+                    <i class="fab fa-reddit-alien"></i>
+                </div>
+                <div class="header-content">
+                    <h3>Reddit Connection Expired</h3>
+                    <p>Your Reddit access token has expired</p>
+                </div>
+                <button class="popup-close" id="close-reddit-token-popup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="popup-body">
+                <div class="expired-info">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="info-content">
+                        <h4>What happened?</h4>
+                        <p>Your Reddit access token has expired. This is normal and happens periodically for security reasons.</p>
+                    </div>
+                </div>
+                
+                <div class="solution-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="info-content">
+                        <h4>How to fix it:</h4>
+                        <p>Simply reconnect your Reddit account to continue posting comments. This will only take a moment.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="popup-actions">
+                <button class="btn btn-secondary" id="dismiss-reddit-token-popup">
+                    <i class="fas fa-times"></i>
+                    Dismiss
+                </button>
+                <button class="btn btn-primary" id="reconnect-reddit-account">
+                    <i class="fab fa-reddit-alien"></i>
+                    Reconnect Reddit
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="webapp-container">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
@@ -652,10 +700,16 @@
                                     Connect Reddit Account
                                 </button>
                                 
-                                <button class="modern-btn danger" id="disconnect-reddit-btn" style="display: none;">
-                                    <i class="fas fa-unlink"></i>
-                                    Disconnect Reddit Account
-                                </button>
+                                <div class="reddit-disconnect-instructions" id="reddit-disconnect-instructions" style="display: none;">
+                                    <div class="instruction-content">
+                                        <i class="fas fa-info-circle"></i>
+                                        <div class="instruction-text">
+                                            <h4>How to disconnect your Reddit account:</h4>
+                                            <p>To disconnect your Reddit account, please check the email you received from Reddit when you first connected your account. The email contains instructions on how to revoke access to PostSpark.</p>
+                                            <p>Alternatively, you can visit <a href="https://www.reddit.com/prefs/apps" target="_blank" rel="noopener noreferrer">Reddit's app preferences</a> and revoke access to PostSpark from there.</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="reddit-info">

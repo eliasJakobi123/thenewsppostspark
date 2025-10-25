@@ -223,6 +223,11 @@ async function updateRedditConnectionStatus() {
         
     } catch (error) {
         console.error('Error updating Reddit connection status:', error);
+        
+        // Check if it's a 401 error (token expired)
+        if (error.message && error.message.includes('401')) {
+            showRedditTokenExpiredPopup();
+        }
     }
 }
 
@@ -395,6 +400,7 @@ async function initializeApp() {
         initializeSettings();
         initializeAnimations();
         initializeRippleEffects();
+        initializeRedditTokenExpiredPopup();
         
         // Complete loading
         updateLoadingStep('step-dashboard', 'completed');
@@ -3723,7 +3729,30 @@ function initializeSettings() {
     
     if (commentPopupDisconnectBtn) {
         commentPopupDisconnectBtn.addEventListener('click', function() {
-            disconnectRedditAccount();
+            // Close comment popup and navigate to settings
+            const commentPopup = document.getElementById('comment-popup');
+            if (commentPopup) {
+                commentPopup.classList.remove('active');
+            }
+            
+            // Navigate to settings page
+            const settingsPage = document.getElementById('settings-page');
+            const settingsNav = document.querySelector('[data-page="settings"]');
+            
+            if (settingsPage && settingsNav) {
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                
+                // Show settings page
+                settingsPage.classList.add('active');
+                
+                // Update navigation
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                settingsNav.classList.add('active');
+                
+                // Load settings data
+                loadUserSettings();
+            }
         });
     }
 }
@@ -4129,6 +4158,7 @@ async function updateRedditSettingsStatus() {
         const connectionDetails = document.getElementById('reddit-connection-details');
         const connectBtn = document.getElementById('connect-reddit-btn');
         const disconnectBtn = document.getElementById('disconnect-reddit-btn');
+        const disconnectInstructions = document.getElementById('reddit-disconnect-instructions');
         const username = document.getElementById('reddit-username');
         const connectionDate = document.getElementById('reddit-connection-date');
         const permissions = document.getElementById('reddit-permissions');
@@ -4176,7 +4206,8 @@ async function updateRedditSettingsStatus() {
             statusText.className = 'status-text connected';
             connectionDetails.style.display = 'none'; // Hide connection details
             connectBtn.style.display = 'none';
-            disconnectBtn.style.display = 'inline-flex';
+            disconnectBtn.style.display = 'none'; // Hide disconnect button
+            disconnectInstructions.style.display = 'block'; // Show disconnect instructions
             
             // Connection details are now hidden - no need to populate them
         } else {
@@ -4188,6 +4219,7 @@ async function updateRedditSettingsStatus() {
             connectionDetails.style.display = 'none';
             connectBtn.style.display = 'inline-flex';
             disconnectBtn.style.display = 'none';
+            disconnectInstructions.style.display = 'none'; // Hide disconnect instructions
             
             // Connection details are hidden - no need to clear them
         }
@@ -4232,6 +4264,12 @@ async function disconnectRedditAccount() {
         localStorage.removeItem('reddit_auth_state');
         localStorage.removeItem('reddit_connection_date');
         
+        // Clear Reddit tokens from database
+        if (postSparkDB && typeof postSparkDB.clearRedditTokens === 'function') {
+            await postSparkDB.clearRedditTokens();
+            console.log('Reddit tokens cleared from database');
+        }
+        
         // Update UI
         await updateRedditSettingsStatus();
         
@@ -4243,6 +4281,56 @@ async function disconnectRedditAccount() {
     } catch (error) {
         console.error('Error disconnecting Reddit account:', error);
         showNotification('Error disconnecting Reddit account: ' + error.message, 'error');
+    }
+}
+
+// Show Reddit token expired popup
+function showRedditTokenExpiredPopup() {
+    const popup = document.getElementById('reddit-token-expired-popup');
+    if (popup) {
+        popup.classList.add('active');
+        console.log('Reddit token expired popup shown');
+    }
+}
+
+// Hide Reddit token expired popup
+function hideRedditTokenExpiredPopup() {
+    const popup = document.getElementById('reddit-token-expired-popup');
+    if (popup) {
+        popup.classList.remove('active');
+        console.log('Reddit token expired popup hidden');
+    }
+}
+
+// Initialize Reddit token expired popup event listeners
+function initializeRedditTokenExpiredPopup() {
+    const popup = document.getElementById('reddit-token-expired-popup');
+    const closeBtn = document.getElementById('close-reddit-token-popup');
+    const dismissBtn = document.getElementById('dismiss-reddit-token-popup');
+    const reconnectBtn = document.getElementById('reconnect-reddit-account');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', hideRedditTokenExpiredPopup);
+    }
+    
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', hideRedditTokenExpiredPopup);
+    }
+    
+    if (reconnectBtn) {
+        reconnectBtn.addEventListener('click', function() {
+            hideRedditTokenExpiredPopup();
+            connectRedditAccount();
+        });
+    }
+    
+    // Close popup when clicking outside
+    if (popup) {
+        popup.addEventListener('click', function(e) {
+            if (e.target === popup) {
+                hideRedditTokenExpiredPopup();
+            }
+        });
     }
 }
 

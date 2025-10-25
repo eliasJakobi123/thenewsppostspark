@@ -2357,6 +2357,57 @@ input:checked + .toggle-slider:before {
     backdrop-filter: blur(10px);
 }
 
+/* Reddit Disconnect Instructions */
+.reddit-disconnect-instructions {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(255, 69, 0, 0.03));
+    border: 1px solid rgba(255, 107, 53, 0.15);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.instruction-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.instruction-content i {
+    color: #ff6b35;
+    font-size: 1.1rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.instruction-text h4 {
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.instruction-text p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0 0 0.75rem 0;
+}
+
+.instruction-text p:last-child {
+    margin-bottom: 0;
+}
+
+.instruction-text a {
+    color: #ff6b35;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.instruction-text a:hover {
+    color: #ff8c42;
+    text-decoration: underline;
+}
+
 .connection-status {
     margin-bottom: 1.5rem;
 }
@@ -3076,6 +3127,216 @@ input:checked + .toggle-slider:before {
     
     .notification.enhanced.show {
         transform: translateY(0);
+    }
+}
+
+/* Reddit Token Expired Popup */
+.reddit-token-expired-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.reddit-token-expired-popup.active {
+    display: flex;
+}
+
+.reddit-token-expired-popup .popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.reddit-token-expired-popup .popup-content {
+    position: relative;
+    background: rgba(26, 26, 26, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.reddit-token-expired-popup .popup-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reddit-token-expired-popup .header-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #000000;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.reddit-token-expired-popup .header-content h3 {
+    color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.reddit-token-expired-popup .header-content p {
+    color: #cccccc;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.reddit-token-expired-popup .popup-close {
+    background: none;
+    border: none;
+    color: #cccccc;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+
+.reddit-token-expired-popup .popup-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.reddit-token-expired-popup .popup-body {
+    margin-bottom: 1.5rem;
+}
+
+.reddit-token-expired-popup .expired-info,
+.reddit-token-expired-popup .solution-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reddit-token-expired-popup .expired-info i {
+    color: #f59e0b;
+    font-size: 1.2rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.reddit-token-expired-popup .solution-info i {
+    color: #10b981;
+    font-size: 1.2rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.reddit-token-expired-popup .info-content h4 {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.reddit-token-expired-popup .info-content p {
+    color: #cccccc;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.reddit-token-expired-popup .popup-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reddit-token-expired-popup .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.reddit-token-expired-popup .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.reddit-token-expired-popup .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.reddit-token-expired-popup .btn-primary {
+    background: linear-gradient(135deg, #ff6b35, #ff8c42);
+    color: #000000;
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.reddit-token-expired-popup .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+}
+
+/* Responsive Reddit Token Expired Popup */
+@media (max-width: 768px) {
+    .reddit-token-expired-popup .popup-content {
+        width: 95%;
+        padding: 1.25rem;
+    }
+    
+    .reddit-token-expired-popup .popup-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .reddit-token-expired-popup .popup-close {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+    
+    .reddit-token-expired-popup .popup-actions {
+        flex-direction: column;
+    }
+    
+    .reddit-token-expired-popup .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
