@@ -246,14 +246,31 @@ async function cancelSubscription(orderId) {
 
 async function processSubscriptionEvent(eventData) {
     try {
-        // Digistore24 uses different field names
-        const productId = eventData.product_id || eventData.productId || eventData.product_id_digi;
+        console.log('Processing subscription event with data:', JSON.stringify(eventData, null, 2));
+        
+        // Digistore24 uses different field names - try multiple variations
+        const productId = eventData.product_id || eventData.productId || eventData.product_id_digi || 
+                         eventData.productid || eventData.product || eventData.item_id || eventData.itemid;
         const planCode = PRODUCT_MAPPINGS[productId];
+        
+        console.log('Product ID found:', productId);
+        console.log('Plan code mapped:', planCode);
         
         if (!planCode) {
             console.log('Available product IDs in mapping:', Object.keys(PRODUCT_MAPPINGS));
             console.log('Received product ID:', productId);
-            throw new Error(`Unknown product ID: ${productId}`);
+            console.log('All product-related fields:', Object.keys(eventData).filter(key => 
+                key.toLowerCase().includes('product') || key.toLowerCase().includes('item')));
+            
+            // Try to find any product-related field
+            const productFields = Object.keys(eventData).filter(key => 
+                key.toLowerCase().includes('product') || key.toLowerCase().includes('item'));
+            
+            if (productFields.length > 0) {
+                console.log('Product fields found:', productFields.map(field => `${field}: ${eventData[field]}`));
+            }
+            
+            throw new Error(`Unknown product ID: ${productId}. Available product fields: ${productFields.join(', ')}`);
         }
 
         // Handle upgrade products
@@ -263,10 +280,17 @@ async function processSubscriptionEvent(eventData) {
         }
 
         // Find user by email - Digistore24 uses different field names
-        const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || eventData.buyer_email;
+        const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || 
+                         eventData.buyer_email || eventData.user_email || eventData.customer_email_address || 
+                         eventData.email_address || eventData.customeremail || eventData.buyeremail;
+        
+        console.log('Email fields found:', Object.keys(eventData).filter(key => key.toLowerCase().includes('email')));
+        console.log('User email extracted:', userEmail);
+        
         if (!userEmail) {
-            console.log('Available email fields:', Object.keys(eventData).filter(key => key.toLowerCase().includes('email')));
-            throw new Error('No email found in event data');
+            const emailFields = Object.keys(eventData).filter(key => key.toLowerCase().includes('email'));
+            console.log('Available email fields:', emailFields.map(field => `${field}: ${eventData[field]}`));
+            throw new Error(`No email found in event data. Available email fields: ${emailFields.join(', ')}`);
         }
 
         const user = await findUserByEmail(userEmail);
@@ -383,6 +407,9 @@ export default async function handler(req, res) {
 
         const eventData = req.body;
         console.log('IPN received:', JSON.stringify(eventData, null, 2));
+        console.log('IPN headers:', JSON.stringify(req.headers, null, 2));
+        console.log('IPN method:', req.method);
+        console.log('IPN query:', JSON.stringify(req.query, null, 2));
         
         // Log the incoming IPN
         await logIPN(eventData, 'received');
@@ -391,11 +418,25 @@ export default async function handler(req, res) {
         let eventType = 'unknown';
         let result = null;
 
+        console.log('Available fields in eventData:', Object.keys(eventData));
+        console.log('Event type fields:', {
+            event_type: eventData.event_type,
+            event_name: eventData.event_name,
+            status: eventData.status,
+            payment_status: eventData.payment_status,
+            action: eventData.action,
+            type: eventData.type
+        });
+
         // Check for Digistore24 event types
         if (eventData.event_type) {
             eventType = eventData.event_type;
         } else if (eventData.event_name) {
             eventType = eventData.event_name;
+        } else if (eventData.action) {
+            eventType = eventData.action;
+        } else if (eventData.type) {
+            eventType = eventData.type;
         } else {
             // Fallback: try to determine from other fields
             if (eventData.status === 'completed' || eventData.payment_status === 'completed') {
@@ -406,6 +447,14 @@ export default async function handler(req, res) {
                 eventType = 'on_refund';
             } else if (eventData.status === 'failed' || eventData.payment_status === 'failed') {
                 eventType = 'payment_denial';
+            } else if (eventData.status === 'active' || eventData.payment_status === 'active') {
+                eventType = 'on_payment';
+            } else if (eventData.status === 'success' || eventData.payment_status === 'success') {
+                eventType = 'on_payment';
+            } else {
+                // If we can't determine the event type, try to process as payment anyway
+                eventType = 'on_payment';
+                console.log('Could not determine event type, defaulting to on_payment');
             }
         }
 
@@ -484,11 +533,22 @@ export default async function handler(req, res) {
             default:
                 // Try to process as payment event anyway
                 try {
+                    console.log(`Processing unknown event type '${eventType}' as payment event`);
                     result = await processSubscriptionEvent(eventData);
                     eventType = 'payment_processed';
+                    console.log('Successfully processed unknown event as payment');
                 } catch (err) {
                     console.log('Could not process as payment event:', err.message);
-                    result = { success: false, error: 'Unknown event type', eventType };
+                    console.log('Event data that failed:', JSON.stringify(eventData, null, 2));
+                    result = { 
+                        success: false, 
+                        error: 'Unknown event type', 
+                        eventType: eventType,
+                        debug: {
+                            availableFields: Object.keys(eventData),
+                            eventData: eventData
+                        }
+                    };
                 }
         }
 
