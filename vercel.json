@@ -15,10 +15,6 @@
       "destination": "/api/reddit-search.js"
     },
     {
-      "source": "/api/digistore-ipn",
-      "destination": "/api/digistore-ipn.js"
-    },
-    {
       "source": "/dashboard",
       "destination": "/webapp.html"
     },
