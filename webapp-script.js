@@ -1409,6 +1409,7 @@ function setupCommentPopupListeners() {
             sendBtn.innerHTML = '<i class="fas fa-check"></i> Comment Posted!';
             sendBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
             sendBtn.style.color = '#ffffff';
+            sendBtn.disabled = false; // Re-enable button for success state
             
             // Show success notification
             showNotification('Comment posted successfully!', 'success');
@@ -3408,7 +3409,6 @@ function createDashboardPostCard(post) {
                 </div>
         <div class="post-footer">
             <span class="campaign-info">From: ${post.campaignName || 'Unknown Campaign'}</span>
-            <span class="post-time">${timeAgo}</span>
         </div>
     `;
     
