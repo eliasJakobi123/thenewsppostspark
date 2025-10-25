@@ -281,6 +281,31 @@ class SubscriptionManager {
         return planNames[this.currentSubscription.plan_code] || 'Unknown Plan';
     }
 
+    getUserInitials() {
+        if (!this.currentUser || !this.currentUser.email) {
+            return 'U';
+        }
+
+        // Try to get name from user metadata or email
+        const fullName = this.currentUser.user_metadata?.full_name || 
+                        this.currentUser.user_metadata?.name || 
+                        this.currentUser.email.split('@')[0];
+        
+        if (fullName && fullName !== this.currentUser.email.split('@')[0]) {
+            // If we have a real name, use first two letters
+            const nameParts = fullName.trim().split(' ');
+            if (nameParts.length >= 2) {
+                return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+            } else {
+                return fullName.substring(0, 2).toUpperCase();
+            }
+        } else {
+            // Fallback to first two letters of email username
+            const emailUsername = this.currentUser.email.split('@')[0];
+            return emailUsername.substring(0, 2).toUpperCase();
+        }
+    }
+
     showPaywall(reason = 'no_subscription') {
         // Create and show paywall overlay
         const paywallHTML = this.createPaywallHTML(reason);
@@ -309,12 +334,38 @@ class SubscriptionManager {
             'refresh_limit': 'You\'ve reached your refresh limit. Upgrade to refresh more campaigns.'
         };
 
+        // Get user initials for profile picture
+        const userInitials = this.getUserInitials();
+
         return `
             <div id="subscription-paywall" class="paywall-overlay">
                 <div class="paywall-content">
                     <div class="paywall-header">
-                        <h2><i class="fas fa-crown"></i> Subscription Required</h2>
-                        <p>${reasonMessages[reason] || reasonMessages['no_subscription']}</p>
+                        <div class="paywall-user-info">
+                            <div class="paywall-profile-picture">
+                                <span class="profile-initials">${userInitials}</span>
+                            </div>
+                            <div class="paywall-user-details">
+                                <h2><i class="fas fa-crown"></i> Subscription Required</h2>
+                                <p>${reasonMessages[reason] || reasonMessages['no_subscription']}</p>
+                            </div>
+                        </div>
+                        <button class="paywall-expand-btn" id="paywall-expand-btn">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="paywall-expandable-section" id="paywall-expandable-section" style="display: none;">
+                        <div class="paywall-user-actions">
+                            <button class="paywall-action-btn" id="export-data-btn">
+                                <i class="fas fa-download"></i>
+                                Export Data
+                            </button>
+                            <button class="paywall-action-btn danger" id="delete-account-btn">
+                                <i class="fas fa-trash"></i>
+                                Delete Account
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="paywall-plans">
@@ -406,6 +457,38 @@ class SubscriptionManager {
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 this.hidePaywall();
+            });
+        }
+
+        // Expand/collapse button
+        const expandBtn = document.getElementById('paywall-expand-btn');
+        const expandableSection = document.getElementById('paywall-expandable-section');
+        if (expandBtn && expandableSection) {
+            expandBtn.addEventListener('click', () => {
+                const isExpanded = expandableSection.style.display !== 'none';
+                if (isExpanded) {
+                    expandableSection.style.display = 'none';
+                    expandBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    expandableSection.style.display = 'block';
+                    expandBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                }
+            });
+        }
+
+        // Export data button
+        const exportBtn = document.getElementById('export-data-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.exportUserData();
+            });
+        }
+
+        // Delete account button
+        const deleteBtn = document.getElementById('delete-account-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                this.deleteUserAccount();
             });
         }
 
@@ -859,6 +942,197 @@ class SubscriptionManager {
         if (upgradeUrl) {
             window.open(upgradeUrl, '_blank');
         }
+    }
+
+    async exportUserData() {
+        try {
+            if (!this.currentUser) {
+                throw new Error('No user logged in');
+            }
+
+            // Show loading state
+            const exportBtn = document.getElementById('export-data-btn');
+            if (exportBtn) {
+                exportBtn.disabled = true;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+            }
+
+            // Collect user data
+            const userData = {
+                user: {
+                    id: this.currentUser.id,
+                    email: this.currentUser.email,
+                    created_at: this.currentUser.created_at,
+                    user_metadata: this.currentUser.user_metadata
+                },
+                subscription: this.currentSubscription,
+                limits: this.subscriptionLimits,
+                export_date: new Date().toISOString()
+            };
+
+            // Get campaigns data
+            try {
+                const { data: campaigns, error: campaignsError } = await supabaseClient
+                    .from('campaigns')
+                    .select('*')
+                    .eq('user_id', this.currentUser.id);
+                
+                if (!campaignsError) {
+                    userData.campaigns = campaigns;
+                }
+            } catch (error) {
+                console.error('Error fetching campaigns:', error);
+            }
+
+            // Get posts data
+            try {
+                const { data: posts, error: postsError } = await supabaseClient
+                    .from('posts')
+                    .select('*')
+                    .eq('user_id', this.currentUser.id);
+                
+                if (!postsError) {
+                    userData.posts = posts;
+                }
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            }
+
+            // Get usage data
+            try {
+                const { data: usage, error: usageError } = await supabaseClient
+                    .from('subscription_usage')
+                    .select('*')
+                    .eq('user_id', this.currentUser.id);
+                
+                if (!usageError) {
+                    userData.usage = usage;
+                }
+            } catch (error) {
+                console.error('Error fetching usage:', error);
+            }
+
+            // Create and download JSON file
+            const dataStr = JSON.stringify(userData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `postspark-data-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // Reset button
+            if (exportBtn) {
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = '<i class="fas fa-download"></i> Export Data';
+            }
+
+            // Show success notification
+            this.showNotification('Data exported successfully!', 'success');
+
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            
+            // Reset button
+            const exportBtn = document.getElementById('export-data-btn');
+            if (exportBtn) {
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = '<i class="fas fa-download"></i> Export Data';
+            }
+
+            this.showNotification('Error exporting data: ' + error.message, 'error');
+        }
+    }
+
+    async deleteUserAccount() {
+        try {
+            if (!this.currentUser) {
+                throw new Error('No user logged in');
+            }
+
+            // Show confirmation dialog
+            const confirmed = confirm(
+                'Are you sure you want to delete your account? This action cannot be undone.\n\n' +
+                'This will permanently delete:\n' +
+                '- Your account and profile\n' +
+                '- All campaigns and posts\n' +
+                '- All subscription data\n' +
+                '- All usage history\n\n' +
+                'Type "DELETE" to confirm:'
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            // Show loading state
+            const deleteBtn = document.getElementById('delete-account-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            }
+
+            // Delete user data from Supabase
+            const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(this.currentUser.id);
+            
+            if (deleteError) {
+                throw new Error('Failed to delete user: ' + deleteError.message);
+            }
+
+            // Show success message and redirect
+            this.showNotification('Account deleted successfully. Redirecting to login...', 'success');
+            
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+                window.location.href = '/login.html';
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            
+            // Reset button
+            const deleteBtn = document.getElementById('delete-account-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete Account';
+            }
+
+            this.showNotification('Error deleting account: ' + error.message, 'error');
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+
+        // Add to page
+        document.body.appendChild(notification);
+
+        // Show notification
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
     }
 }
 

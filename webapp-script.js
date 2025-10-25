@@ -573,31 +573,8 @@ function createCampaignCard(campaign) {
 
 // Update user info in sidebar
 function updateUserInfo() {
-    if (!postSparkDB.userData) {
-        // Show loading state for user info
-        const userInfo = document.querySelector('.user-info');
-        if (userInfo) {
-            userInfo.classList.add('loading');
-        }
-        return;
-    }
-    
-    const userNameElement = document.querySelector('.user-name');
-    const userRoleElement = document.querySelector('.user-role');
-    const userInfo = document.querySelector('.user-info');
-    
-    // Remove loading state
-    if (userInfo) {
-        userInfo.classList.remove('loading');
-    }
-    
-    if (userNameElement) {
-        userNameElement.textContent = postSparkDB.userData.full_name || 'User';
-    }
-    
-    if (userRoleElement) {
-        userRoleElement.textContent = postSparkDB.userData.subscription_plan || 'starter';
-    }
+    // User info has been removed from navigation
+    // No need to update user name and role in sidebar
 }
 
 // Initialize navigation
@@ -3858,10 +3835,19 @@ async function loadUserSettings() {
     console.log(`✅ User settings loaded in ${(endTime - startTime).toFixed(2)}ms`);
 }
 
-function loadSubscriptionData() {
+async function loadSubscriptionData() {
     if (!postSparkDB.userData) return;
     
-    const plan = postSparkDB.userData.subscription_plan || 'starter';
+    // Get the actual plan from subscription manager if available
+    let plan = 'starter';
+    if (window.subscriptionManager && window.subscriptionManager.isInitialized) {
+        plan = window.subscriptionManager.getSubscriptionPlan();
+        if (plan === 'none') {
+            plan = 'starter';
+        }
+    } else {
+        plan = postSparkDB.userData.subscription_plan || 'starter';
+    }
     
     // Update plan name
     const planNameElement = document.getElementById('current-plan-name');
@@ -3876,7 +3862,7 @@ function loadSubscriptionData() {
     if (planPriceElement && planPeriodElement) {
         switch (plan) {
             case 'starter':
-                planPriceElement.textContent = '€0';
+                planPriceElement.textContent = '€9';
                 planPeriodElement.textContent = '/month';
                 break;
             case 'pro':
@@ -3888,13 +3874,18 @@ function loadSubscriptionData() {
                 planPeriodElement.textContent = '/month';
                 break;
             default:
-                planPriceElement.textContent = '€0';
+                planPriceElement.textContent = '€9';
                 planPeriodElement.textContent = '/month';
         }
     }
     
     // Update plan features based on subscription
     updatePlanFeatures(plan);
+    
+    // Update subscription limits display if subscription manager is available
+    if (window.subscriptionManager && window.subscriptionManager.isInitialized) {
+        window.subscriptionManager.updateSettingsLimitsDisplay();
+    }
 }
 
 function updatePlanFeatures(plan) {
@@ -3906,24 +3897,28 @@ function updatePlanFeatures(plan) {
     switch (plan) {
         case 'starter':
             features = [
-                '5 Campaigns per Month',
-                '100 Leads per Month',
-                'Basic Analytics',
-                'Email Support'
+                '1 Campaign',
+                '10 Refreshes per month',
+                '100 AI Responses',
+                'Up to 10 Keywords',
+                'Start 7 days free trial'
             ];
             break;
         case 'pro':
             features = [
-                'Unlimited Campaigns',
-                '1,000 Leads per Month',
-                'Advanced Analytics',
-                'Priority Support'
+                '5 Campaigns',
+                '10 Refreshes per campaign',
+                '500 AI Responses',
+                'Up to 10 Keywords',
+                'Start 7 days free trial'
             ];
             break;
         case 'enterprise':
             features = [
-                'Unlimited Campaigns',
-                '10,000 Leads per Month',
+                '10 Campaigns',
+                '10 Refreshes per campaign',
+                '2000 AI Responses',
+                'Up to 10 Keywords',
                 'Advanced Analytics',
                 'Priority Support',
                 'Custom Integrations'
@@ -3931,10 +3926,11 @@ function updatePlanFeatures(plan) {
             break;
         default:
             features = [
-                '5 Campaigns per Month',
-                '100 Leads per Month',
-                'Basic Analytics',
-                'Email Support'
+                '1 Campaign',
+                '10 Refreshes per month',
+                '100 AI Responses',
+                'Up to 10 Keywords',
+                'Start 7 days free trial'
             ];
     }
     
