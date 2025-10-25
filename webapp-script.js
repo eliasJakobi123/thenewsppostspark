@@ -334,7 +334,50 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Check Reddit connection status after app initialization
     await checkRedditConnection();
+    
+    // Start automatic Reddit token refresh
+    startRedditTokenRefresh();
 });
+
+// Start automatic Reddit token refresh
+function startRedditTokenRefresh() {
+    console.log('🔄 Starting automatic Reddit token refresh...');
+    
+    // Check and refresh token immediately
+    checkAndRefreshRedditToken();
+    
+    // Set up interval to check every 5 minutes
+    setInterval(async () => {
+        await checkAndRefreshRedditToken();
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    console.log('✅ Automatic Reddit token refresh started (every 5 minutes)');
+}
+
+// Check and refresh Reddit token if needed
+async function checkAndRefreshRedditToken() {
+    try {
+        if (!postSparkDB) {
+            console.log('PostSparkDB not initialized, skipping token refresh check');
+            return;
+        }
+        
+        // Check if Reddit is connected
+        const isConnected = await postSparkDB.isRedditConnected();
+        if (!isConnected) {
+            console.log('Reddit not connected, skipping token refresh check');
+            return;
+        }
+        
+        // Ensure fresh token
+        const wasRefreshed = await postSparkDB.ensureFreshRedditToken();
+        if (wasRefreshed) {
+            console.log('🔄 Reddit token was automatically refreshed');
+        }
+    } catch (error) {
+        console.error('Error in automatic token refresh:', error);
+    }
+}
 
 // Show loading overlay
 function showLoadingOverlay() {
@@ -1613,6 +1656,7 @@ function setupCommentPopupListeners() {
                 
                 if (aiPopup) {
                     aiPopup.style.display = 'flex';
+                    aiPopup.classList.add('active');
                     console.log('AI style popup displayed for editing');
                 } else {
                     console.error('AI style popup element not found for editing');
@@ -1627,6 +1671,14 @@ function setupCommentPopupListeners() {
     if (connectRedditBtn) {
         connectRedditBtn.addEventListener('click', function() {
             connectRedditAccount();
+        });
+    }
+
+    // Refresh Reddit token button
+    const refreshRedditBtn = document.getElementById('refresh-reddit-btn');
+    if (refreshRedditBtn) {
+        refreshRedditBtn.addEventListener('click', function() {
+            refreshRedditToken();
         });
     }
 
@@ -3695,6 +3747,14 @@ function initializeSettings() {
         });
     }
     
+    // Refresh Reddit token button
+    const refreshRedditBtn = document.getElementById('refresh-reddit-btn');
+    if (refreshRedditBtn) {
+        refreshRedditBtn.addEventListener('click', function() {
+            refreshRedditToken();
+        });
+    }
+    
     if (disconnectRedditBtn) {
         disconnectRedditBtn.addEventListener('click', function() {
             disconnectRedditAccount();
@@ -3724,6 +3784,14 @@ function initializeSettings() {
     if (commentPopupConnectBtn) {
         commentPopupConnectBtn.addEventListener('click', function() {
             connectRedditAccount();
+        });
+    }
+    
+    // Refresh Reddit token button in comment popup
+    const commentPopupRefreshBtn = document.getElementById('refresh-reddit-btn');
+    if (commentPopupRefreshBtn) {
+        commentPopupRefreshBtn.addEventListener('click', function() {
+            refreshRedditToken();
         });
     }
     
@@ -4440,6 +4508,42 @@ async function deleteUserAccount() {
     }
 }
 
+// Refresh Reddit token manually
+async function refreshRedditToken() {
+    try {
+        console.log('=== MANUAL REDDIT TOKEN REFRESH ===');
+        
+        if (!postSparkDB) {
+            showNotification('Database not initialized', 'error');
+            return;
+        }
+        
+        // Check if Reddit is connected
+        const isConnected = await postSparkDB.isRedditConnected();
+        if (!isConnected) {
+            showNotification('Reddit account not connected', 'warning');
+            return;
+        }
+        
+        showNotification('Refreshing Reddit token...', 'info');
+        
+        // Refresh the token
+        const wasRefreshed = await postSparkDB.ensureFreshRedditToken();
+        
+        if (wasRefreshed) {
+            showNotification('Reddit token refreshed successfully!', 'success');
+            // Update settings UI
+            await updateRedditSettingsStatus();
+        } else {
+            showNotification('Reddit token is already fresh', 'info');
+        }
+        
+    } catch (error) {
+        console.error('Error refreshing Reddit token:', error);
+        showNotification('Error refreshing Reddit token: ' + error.message, 'error');
+    }
+}
+
 // Connect Reddit account
 async function connectRedditAccount() {
     try {
@@ -4630,7 +4734,10 @@ function showAIStylePopup() {
     
     // Show popup
     const popup = document.getElementById('ai-style-popup');
-    popup.classList.add('active');
+    if (popup) {
+        popup.style.display = 'flex';
+        popup.classList.add('active');
+    }
     
     // Add event listeners for new buttons
     setupAIPopupEventListeners();
@@ -4655,11 +4762,22 @@ function openAIStylePopup(postData) {
 
 function closeAIStylePopup() {
     const popup = document.getElementById('ai-style-popup');
-    popup.classList.remove('active');
+    if (popup) {
+        popup.classList.remove('active');
+        popup.style.display = 'none';
+    }
     currentPostData = null;
 }
 
+// Track if AI popup event listeners have been set up
+let aiPopupListenersSetup = false;
+
 function setupAIPopupEventListeners() {
+    // Only set up listeners once
+    if (aiPopupListenersSetup) {
+        return;
+    }
+    
     // Close button
     const closeBtn = document.getElementById('ai-popup-close');
     if (closeBtn) {
@@ -4681,10 +4799,11 @@ function setupAIPopupEventListeners() {
     // Generate Response button
     const generateBtn = document.getElementById('ai-generate-btn');
     if (generateBtn) {
-        // Remove existing listeners to prevent duplicates
-        generateBtn.removeEventListener('click', generateAIResponseWithLoading);
         generateBtn.addEventListener('click', generateAIResponseWithLoading);
     }
+    
+    // Mark as set up
+    aiPopupListenersSetup = true;
     
     // Tone selection
     setupToneSelection();
@@ -4921,6 +5040,7 @@ async function loadStyleSettings() {
         if (dbStyle) {
             document.getElementById('tone-select').value = dbStyle.tone || 'friendly';
             document.getElementById('sales-strength').value = dbStyle.sales_strength || 2;
+            document.getElementById('response-length').value = dbStyle.response_length || 'medium';
             document.getElementById('custom-offer').value = dbStyle.custom_offer || '';
             document.getElementById('save-style').checked = true;
             
@@ -4946,7 +5066,9 @@ async function loadStyleSettings() {
             
             document.getElementById('tone-select').value = settings.tone || 'friendly';
             document.getElementById('sales-strength').value = settings.salesStrength || 2;
+            document.getElementById('response-length').value = settings.responseLength || 'medium';
             document.getElementById('custom-offer').value = settings.customOffer || '';
+            document.getElementById('include-website').checked = settings.includeWebsite !== false;
             document.getElementById('save-style').checked = settings.saveStyle !== false;
             
             console.log('AI style settings loaded from localStorage:', settings);
@@ -4960,7 +5082,9 @@ async function saveStyleSettings() {
     const settings = {
         tone: document.getElementById('tone-select').value,
         salesStrength: parseInt(document.getElementById('sales-strength').value),
+        responseLength: document.getElementById('response-length').value,
         customOffer: document.getElementById('custom-offer').value,
+        includeWebsite: document.getElementById('include-website').checked,
         saveStyle: document.getElementById('save-style').checked
     };
     
@@ -4984,7 +5108,9 @@ async function saveCampaignAIStyle() {
     const settings = {
         tone: document.getElementById('tone-select').value,
         salesStrength: parseInt(document.getElementById('sales-strength').value),
+        responseLength: document.getElementById('response-length').value,
         customOffer: document.getElementById('custom-offer').value,
+        includeWebsite: document.getElementById('include-website').checked,
         saveStyle: document.getElementById('save-style').checked
     };
     
@@ -5042,13 +5168,16 @@ async function generateAIResponseWithSavedStyle() {
         return;
     }
     
-    // Get website URL from campaign
-    let websiteUrl = campaign.website_url || '';
-    if (!websiteUrl) {
-        websiteUrl = prompt('Please enter your website URL:');
+    // Get website URL from campaign, respecting includeWebsite setting
+    let websiteUrl = '';
+    if (settings.includeWebsite !== false) {
+        websiteUrl = campaign.website_url || '';
         if (!websiteUrl) {
-            showNotification('Website URL is required for AI responses', 'error');
-            return;
+            websiteUrl = prompt('Please enter your website URL:');
+            if (!websiteUrl) {
+                showNotification('Website URL is required for AI responses', 'error');
+                return;
+            }
         }
     }
     
@@ -5067,7 +5196,9 @@ async function generateAIResponseWithSavedStyle() {
                 websiteUrl: websiteUrl,
                 tone: settings.tone,
                 salesStrength: settings.salesStrength,
-                customOffer: settings.customOffer
+                responseLength: settings.responseLength || 'medium',
+                customOffer: settings.customOffer,
+                subreddit: currentPostData.subreddit || ''
             })
         });
         
@@ -5344,7 +5475,9 @@ async function generateAIResponseWithSavedStyleNew(style) {
                 websiteUrl: style.includeWebsite ? (campaign.website_url || "") : "",
                 tone: style.tone,
                 salesStrength: style.salesStrength,
-                customOffer: style.customOffer
+                responseLength: style.responseLength,
+                customOffer: style.customOffer,
+                subreddit: currentPostData.subreddit || ''
             })
         });
         
@@ -5400,7 +5533,7 @@ async function saveAIStyleToDatabase(styleData, isDefault = false) {
     console.log("AI style saving disabled - using localStorage only");
 }
 
-async function loadStyleSettings() {
+async function loadStyleSettingsNew() {
     // Disabled to avoid 406 errors - using localStorage only
     console.log("AI style loading disabled - using localStorage only");
 }

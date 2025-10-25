@@ -23,13 +23,22 @@ export default async function handler(req, res) {
 
         console.log('Refreshing Reddit token...');
 
+        // Reddit API credentials from environment variables
+        const clientId = process.env.VITE_REDDIT_CLIENT_ID;
+        const clientSecret = process.env.VITE_REDDIT_CLIENT_SECRET;
+        const userAgent = 'PostSpark/1.0 by PostSparkApp';
+
+        if (!clientId || !clientSecret) {
+            throw new Error('Reddit API credentials not configured');
+        }
+
         // Refresh the token with Reddit API
         const response = await fetch('https://www.reddit.com/api/v1/access_token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': 'Basic ' + btoa('xnfBBEUETLqctZnhAka0DA:uLXMyoHsE8uQyZGhYW3ZMpbJ65BdHA'),
-                'User-Agent': 'PostSpark/1.0 (by Available-Rest2392)'
+                'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+                'User-Agent': userAgent
             },
             body: new URLSearchParams({
                 grant_type: 'refresh_token',

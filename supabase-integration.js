@@ -802,9 +802,14 @@ class PostSparkSupabase {
             const newTokens = await response.json();
             console.log('Token refresh successful, storing new tokens...');
             
-            // Calculate expiration time (Reddit tokens typically last 1 hour)
+            // Calculate expiration time using Reddit's expires_in value (in seconds)
             const expiresAt = new Date();
-            expiresAt.setHours(expiresAt.getHours() + 1);
+            if (newTokens.data && newTokens.data.expires_in) {
+                expiresAt.setSeconds(expiresAt.getSeconds() + newTokens.data.expires_in);
+            } else {
+                // Fallback: Reddit tokens typically last 1 hour
+                expiresAt.setHours(expiresAt.getHours() + 1);
+            }
             newTokens.reddit_token_expires = expiresAt.toISOString();
             
             await this.storeRedditTokens(newTokens);
@@ -813,6 +818,39 @@ class PostSparkSupabase {
         } catch (error) {
             console.error('Error refreshing Reddit token:', error);
             throw error;
+        }
+    }
+
+    // Proactive token refresh - call this periodically to ensure tokens stay fresh
+    async ensureFreshRedditToken() {
+        try {
+            console.log('=== ENSURING FRESH REDDIT TOKEN ===');
+            let tokens = await this.getRedditTokens();
+            if (!tokens || !tokens.reddit_access_token) {
+                console.log('No Reddit tokens found, skipping refresh check');
+                return false;
+            }
+
+            // Check if token needs refresh (expires within 10 minutes)
+            if (tokens.reddit_token_expires) {
+                const now = new Date();
+                const expiresAt = new Date(tokens.reddit_token_expires);
+                const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+                const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+                
+                if (timeUntilExpiry <= tenMinutes) {
+                    console.log(`Reddit token expires in ${Math.round(timeUntilExpiry / 1000 / 60)} minutes, refreshing...`);
+                    await this.refreshRedditToken();
+                    return true; // Token was refreshed
+                } else {
+                    console.log(`Reddit token is still valid for ${Math.round(timeUntilExpiry / 1000 / 60)} minutes`);
+                }
+            }
+            
+            return false; // No refresh needed
+        } catch (error) {
+            console.error('Error ensuring fresh Reddit token:', error);
+            return false;
         }
     }
 
@@ -876,10 +914,17 @@ class PostSparkSupabase {
                 expiresAt: tokens.reddit_token_expires
             });
 
-            // Check if token is expired and refresh if needed
-            if (tokens.reddit_token_expires && new Date(tokens.reddit_token_expires) <= new Date()) {
-                console.log('Reddit token expired, refreshing...');
-                tokens = await this.refreshRedditToken();
+            // Check if token is expired or will expire soon (within 5 minutes) and refresh if needed
+            if (tokens.reddit_token_expires) {
+                const now = new Date();
+                const expiresAt = new Date(tokens.reddit_token_expires);
+                const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+                const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+                
+                if (timeUntilExpiry <= fiveMinutes) {
+                    console.log(`Reddit token expires in ${Math.round(timeUntilExpiry / 1000 / 60)} minutes, refreshing proactively...`);
+                    tokens = await this.refreshRedditToken();
+                }
             }
 
             // Test the connection with the current token first
