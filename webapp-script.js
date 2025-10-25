@@ -1479,6 +1479,7 @@ function setupCommentPopupListeners() {
                 // Try to get post ID from multiple sources
                 if (currentPostData && currentPostData.id) {
                     postId = currentPostData.id;
+                    console.log('✅ Using post ID from currentPostData:', postId);
                 } else {
                     // Try to get from post preview element
                     const postPreview = document.getElementById('post-preview');
@@ -1486,23 +1487,27 @@ function setupCommentPopupListeners() {
                         const dataPostId = postPreview.getAttribute('data-post-id');
                         if (dataPostId) {
                             postId = dataPostId;
+                            console.log('✅ Using post ID from post preview:', postId);
                         }
                     }
                 }
                 
                 if (postId) {
+                    console.log('🔄 Marking post as contacted:', postId);
                     await postSparkDB.markPostAsContacted(postId);
-                    console.log('✅ Post automatically marked as contacted:', postId);
+                    console.log('✅ Post successfully marked as contacted:', postId);
                     
                     // Update UI elements
                     await updateContactedStats();
                     await refreshPostCards();
                 } else {
-                    console.warn('Cannot auto-mark as contacted: postId not available from any source');
+                    console.warn('❌ Cannot auto-mark as contacted: postId not available from any source');
+                    console.log('Current post data:', currentPostData);
+                    console.log('Post preview element:', document.getElementById('post-preview'));
                 }
             } catch (contactError) {
-                console.warn('Could not auto-mark post as contacted:', contactError);
-                // Don't show error to user as comment was successful
+                console.error('❌ Error auto-marking post as contacted:', contactError);
+                showNotification('Comment posted but could not mark as contacted. Please mark manually.', 'warning');
             }
             
             // Show enhanced success message
@@ -1658,6 +1663,9 @@ function setupCommentPopupListeners() {
                     aiPopup.style.display = 'flex';
                     aiPopup.classList.add('active');
                     console.log('AI style popup displayed for editing');
+                    
+                    // Setup event listeners for the popup
+                    setupAIPopupEventListeners();
                 } else {
                     console.error('AI style popup element not found for editing');
                     showNotification('AI style popup not found. Please refresh the page.', 'error');
@@ -4001,14 +4009,15 @@ async function openCommentForPost(postId) {
     const actualRedditPostId = postElement.getAttribute('data-reddit-id');
     console.log('Actual Reddit post ID from element:', actualRedditPostId);
     
-    // Set currentPostData for AI generation with Reddit post ID
-    currentPostData = {
-        ...postData,
-        reddit_post_id: actualRedditPostId,
-        reddit_id: actualRedditPostId ? actualRedditPostId.replace('t3_', '') : null,
-        url: actualRedditPostId ? `https://reddit.com/r/${postData.subreddit}/comments/${actualRedditPostId.replace('t3_', '')}/` : null
-    };
-    console.log('Post data set for AI with Reddit ID:', currentPostData); // Debug log
+        // Set currentPostData for AI generation with Reddit post ID
+        currentPostData = {
+            ...postData,
+            id: postId, // Ensure database ID is preserved
+            reddit_post_id: actualRedditPostId,
+            reddit_id: actualRedditPostId ? actualRedditPostId.replace('t3_', '') : null,
+            url: actualRedditPostId ? `https://reddit.com/r/${postData.subreddit}/comments/${actualRedditPostId.replace('t3_', '')}/` : null
+        };
+        console.log('Post data set for AI with Reddit ID:', currentPostData); // Debug log
     
     // Use the actual Reddit post ID instead of database ID
     if (actualRedditPostId) {
@@ -4035,6 +4044,7 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
         };
         
         console.log('🔍 Updated currentPostData:', currentPostData);
+        console.log('✅ Database ID set for marking as contacted:', postId);
         console.log('Post data stored for AI in writeComment:', currentPostData); // Debug log
         
         // Show comment popup
@@ -4774,32 +4784,35 @@ let aiPopupListenersSetup = false;
 
 function setupAIPopupEventListeners() {
     // Only set up listeners once
-    if (aiPopupListenersSetup) {
-        return;
-    }
-    
-    // Close button
+    // Remove existing listeners first to avoid duplicates
     const closeBtn = document.getElementById('ai-popup-close');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeAIStylePopup);
-    }
-    
-    // Cancel button
     const cancelBtn = document.getElementById('ai-cancel-btn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', closeAIStylePopup);
-    }
-    
-    // Save Style button
     const saveStyleBtn = document.getElementById('ai-save-style-btn');
-    if (saveStyleBtn) {
-        saveStyleBtn.addEventListener('click', saveAIStyleAndClose);
+    const generateBtn = document.getElementById('ai-generate-btn');
+    
+    // Clone and replace elements to remove all event listeners
+    if (closeBtn) {
+        const newCloseBtn = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+        newCloseBtn.addEventListener('click', closeAIStylePopup);
     }
     
-    // Generate Response button
-    const generateBtn = document.getElementById('ai-generate-btn');
+    if (cancelBtn) {
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        newCancelBtn.addEventListener('click', closeAIStylePopup);
+    }
+    
+    if (saveStyleBtn) {
+        const newSaveStyleBtn = saveStyleBtn.cloneNode(true);
+        saveStyleBtn.parentNode.replaceChild(newSaveStyleBtn, saveStyleBtn);
+        newSaveStyleBtn.addEventListener('click', saveAIStyleAndClose);
+    }
+    
     if (generateBtn) {
-        generateBtn.addEventListener('click', generateAIResponseWithLoading);
+        const newGenerateBtn = generateBtn.cloneNode(true);
+        generateBtn.parentNode.replaceChild(newGenerateBtn, generateBtn);
+        newGenerateBtn.addEventListener('click', generateAIResponseWithLoading);
     }
     
     // Mark as set up
@@ -4817,7 +4830,10 @@ function setupAIPopupEventListeners() {
     // Close on overlay click
     const overlay = document.querySelector('.ai-style-popup .popup-overlay');
     if (overlay) {
-        overlay.addEventListener('click', closeAIStylePopup);
+        // Remove existing listener and add new one
+        const newOverlay = overlay.cloneNode(true);
+        overlay.parentNode.replaceChild(newOverlay, overlay);
+        newOverlay.addEventListener('click', closeAIStylePopup);
     }
 }
 
@@ -5265,17 +5281,22 @@ async function saveAIStyleAndClose() {
     }
 }
 
+// Global flag to prevent multiple simultaneous generations
+let isGeneratingAIResponse = false;
+
 async function generateAIResponseWithLoading() {
     const generateBtn = document.getElementById('ai-generate-btn');
     
-    // Prevent multiple clicks
-    if (generateBtn.disabled) {
+    // Prevent multiple clicks and simultaneous generations
+    if (generateBtn.disabled || isGeneratingAIResponse) {
+        console.log('AI response generation already in progress, ignoring click');
         return;
     }
     
     const originalText = generateBtn.innerHTML;
     
     try {
+        isGeneratingAIResponse = true;
         // Add loading state
         generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
         generateBtn.disabled = true;
@@ -5290,12 +5311,19 @@ async function generateAIResponseWithLoading() {
         // Remove loading state
         generateBtn.innerHTML = originalText;
         generateBtn.disabled = false;
+        isGeneratingAIResponse = false;
     }
 }
 
 async function generateAIResponse() {
     if (!currentPostData) {
         showNotification('No post data available', 'error');
+        return;
+    }
+    
+    // Prevent multiple simultaneous generations
+    if (isGeneratingAIResponse) {
+        console.log('AI response generation already in progress, ignoring call');
         return;
     }
     
@@ -5436,6 +5464,12 @@ function showAIStyleInfoNew(style) {
 async function generateAIResponseWithSavedStyleNew(style) {
     if (!currentPostData) {
         showNotification("No post data available", "error");
+        return;
+    }
+    
+    // Prevent multiple simultaneous generations
+    if (isGeneratingAIResponse) {
+        console.log('AI response generation already in progress, ignoring call');
         return;
     }
     

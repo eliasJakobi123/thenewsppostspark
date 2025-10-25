@@ -294,6 +294,8 @@ class PostSparkSupabase {
         if (!this.user) throw new Error('User not authenticated');
 
         try {
+            console.log('🔄 Marking post as contacted in database:', postId);
+            
             const updateData = {
                 is_contacted: true,
                 contact_date: new Date().toISOString()
@@ -303,6 +305,8 @@ class PostSparkSupabase {
                 updateData.ai_generated_comment = aiComment;
             }
 
+            console.log('Update data:', updateData);
+
             const { data, error } = await supabaseClient
                 .from(TABLES.POSTS)
                 .update(updateData)
@@ -310,11 +314,15 @@ class PostSparkSupabase {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error('❌ Database error marking post as contacted:', error);
+                throw error;
+            }
             
+            console.log('✅ Post successfully marked as contacted in database:', data);
             return data;
         } catch (error) {
-            console.error('Error marking post as contacted:', error);
+            console.error('❌ Error marking post as contacted:', error);
             throw error;
         }
     }
