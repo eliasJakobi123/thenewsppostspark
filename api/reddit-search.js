@@ -796,7 +796,7 @@ export default async function handler(req, res) {
                         // Check for tool seeking
                         for (const keyword of toolSeekingKeywords) {
                             if (combinedText.includes(keyword)) {
-                                topicMatchScore += 40; // High score for tool seeking
+                                topicMatchScore += 25; // Moderate score for tool seeking
                                 break;
                             }
                         }
@@ -804,7 +804,7 @@ export default async function handler(req, res) {
                         // Check for SaaS seeking
                         for (const keyword of saasSeekingKeywords) {
                             if (combinedText.includes(keyword)) {
-                                topicMatchScore += 45; // Very high score for SaaS seeking
+                                topicMatchScore += 30; // Good score for SaaS seeking
                                 break;
                             }
                         }
@@ -812,7 +812,7 @@ export default async function handler(req, res) {
                         // Check for management/process keywords
                         for (const keyword of managementKeywords) {
                             if (combinedText.includes(keyword)) {
-                                topicMatchScore += 35; // High score for management needs
+                                topicMatchScore += 20; // Moderate score for management needs
                                 break;
                             }
                         }
@@ -820,7 +820,7 @@ export default async function handler(req, res) {
                         // Check for problem/solution keywords
                         for (const keyword of problemSolutionKeywords) {
                             if (combinedText.includes(keyword)) {
-                                topicMatchScore += 30; // Good score for problem solving
+                                topicMatchScore += 15; // Moderate score for problem solving
                                 break;
                             }
                         }
@@ -828,7 +828,7 @@ export default async function handler(req, res) {
                         // Check for buying intent
                         for (const keyword of buyingIntentKeywords) {
                             if (combinedText.includes(keyword)) {
-                                topicMatchScore += 25; // Good score for buying intent
+                                topicMatchScore += 15; // Moderate score for buying intent
                                 break;
                             }
                         }
@@ -884,18 +884,19 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Very lenient threshold to ensure we get results
-                        const minRequiredScore = 15; // Much more inclusive
+                        // Balanced threshold - not too strict, not too loose
+                        const minRequiredScore = 20; // Moderate threshold
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // Accept posts with any offer match OR decent overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 10; // Much more inclusive
-                        const hasVeryHighScore = relevanceScore >= 25; // Much more inclusive
+                        // Accept posts with good offer match OR decent overall score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 15; // Good offer match
+                        const hasVeryHighScore = relevanceScore >= 30; // High overall score
                         
-                        // Very flexible keyword matching
-                        const hasMinimumKeywordMatches = keywordMatches >= 1; // Keep at 1
+                        // Flexible keyword matching - require at least some relevance
+                        const hasMinimumKeywordMatches = keywordMatches >= 1; // At least 1 keyword match
                         const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1);
                         
+                        // Accept posts that are relevant to the offer/keywords
                         if ((hasStrongOfferConnection || hasVeryHighScore) && 
                             relevanceScore >= minRequiredScore && 
                             hasMinimumKeywordMatches && 
