@@ -662,21 +662,42 @@ export default async function handler(req, res) {
                         
                         // Score based on keywords - MUST match at least one keyword
                         let keywordMatches = 0;
+                        
+                        // Add synonyms for common keywords
+                        const keywordSynonyms = {
+                            'self confidence': ['confidence', 'self-esteem', 'self esteem', 'self worth', 'self-worth', 'self belief', 'self-belief'],
+                            'self improvement': ['self improvement', 'self-improvement', 'personal development', 'self development', 'self-development', 'self growth', 'self-growth'],
+                            'apps': ['app', 'application', 'software', 'tool', 'platform', 'program']
+                        };
+                        
+                        // Expand keywords with synonyms
+                        const expandedKeywords = [...searchKeywords];
                         for (const keyword of searchKeywords) {
+                            const keywordLower = keyword.toLowerCase();
+                            if (keywordSynonyms[keywordLower]) {
+                                expandedKeywords.push(...keywordSynonyms[keywordLower]);
+                            }
+                        }
+                        
+                        for (const keyword of expandedKeywords) {
                             const keywordLower = keyword.toLowerCase();
                             // Check for exact match
                             if (combinedText.includes(keywordLower)) {
                                 keywordMatches++;
                                 relevanceScore += 30;
                             } else {
-                                // Check for partial matches (word parts)
+                                // Check for partial matches (word parts) - more lenient
                                 const keywordWords = keywordLower.split(' ');
+                                let wordMatches = 0;
                                 for (const word of keywordWords) {
-                                    if (word.length > 3 && combinedText.includes(word)) {
-                                        keywordMatches++;
-                                        relevanceScore += 20; // Lower score for partial matches
-                                        break;
+                                    if (word.length > 2 && combinedText.includes(word)) { // Reduced from 3 to 2
+                                        wordMatches++;
                                     }
+                                }
+                                // If at least 50% of words match, count as keyword match
+                                if (wordMatches >= Math.ceil(keywordWords.length * 0.5)) {
+                                    keywordMatches++;
+                                    relevanceScore += 20; // Lower score for partial matches
                                 }
                             }
                         }
