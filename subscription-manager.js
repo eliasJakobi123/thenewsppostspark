@@ -239,13 +239,20 @@ class SubscriptionManager {
             currentPlan = this.getSubscriptionPlan();
         }
 
+        // Get current order ID from subscription
+        let orderId = 'BESTELLID'; // Placeholder if no order ID found
+        
+        if (this.currentSubscription && this.currentSubscription.digistore_order_id) {
+            orderId = this.currentSubscription.digistore_order_id;
+        }
+
         switch (currentPlan) {
             case 'starter':
-                return baseUrl + '1322890'; // Upgrade to Pro
+                return baseUrl + '1322890/' + orderId; // Upgrade to Pro
             case 'pro':
-                return baseUrl + '1322889'; // Upgrade to Enterprise
+                return baseUrl + '1322889/' + orderId; // Upgrade to Enterprise
             default:
-                return baseUrl + '643746'; // Default to Starter
+                return baseUrl + '643746/' + orderId; // Default to Starter
         }
     }
 
@@ -515,8 +522,11 @@ class SubscriptionManager {
             return;
         }
 
-        // Redirect to Digistore24 checkout
-        const checkoutUrl = `https://www.checkout-ds24.com/product/${productId}`;
+        // Get user ID for tracking
+        const userId = this.currentUser ? this.currentUser.id : 'unknown';
+        
+        // Redirect to Digistore24 checkout with custom parameter
+        const checkoutUrl = `https://www.checkout-ds24.com/product/${productId}?custom=${userId}`;
         window.open(checkoutUrl, '_blank');
     }
 

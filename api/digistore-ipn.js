@@ -279,23 +279,48 @@ async function processSubscriptionEvent(eventData) {
             return await processUpgrade(eventData, targetPlan);
         }
 
-        // Find user by email - Digistore24 uses different field names
-        const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || 
-                         eventData.buyer_email || eventData.user_email || eventData.customer_email_address || 
-                         eventData.email_address || eventData.customeremail || eventData.buyeremail;
+        // Find user by custom parameter first, then fallback to email
+        let user = null;
         
-        console.log('Email fields found:', Object.keys(eventData).filter(key => key.toLowerCase().includes('email')));
-        console.log('User email extracted:', userEmail);
-        
-        if (!userEmail) {
-            const emailFields = Object.keys(eventData).filter(key => key.toLowerCase().includes('email'));
-            console.log('Available email fields:', emailFields.map(field => `${field}: ${eventData[field]}`));
-            throw new Error(`No email found in event data. Available email fields: ${emailFields.join(', ')}`);
+        // Try to find user by custom parameter from checkout URL
+        const customUserId = eventData.custom || eventData.transaction?.custom;
+        if (customUserId && customUserId !== 'unknown') {
+            console.log('Custom user ID found in event data:', customUserId);
+            try {
+                const { data: userData, error: userError } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', customUserId)
+                    .single();
+                
+                if (!userError && userData) {
+                    user = userData;
+                    console.log('User found by custom ID:', user.id);
+                }
+            } catch (err) {
+                console.log('Error finding user by custom ID:', err.message);
+            }
         }
-
-        const user = await findUserByEmail(userEmail);
+        
+        // Fallback to email if custom parameter not found or failed
         if (!user) {
-            throw new Error(`User not found for email: ${userEmail}`);
+            const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || 
+                             eventData.buyer_email || eventData.user_email || eventData.customer_email_address || 
+                             eventData.email_address || eventData.customeremail || eventData.buyeremail;
+            
+            console.log('Email fields found:', Object.keys(eventData).filter(key => key.toLowerCase().includes('email')));
+            console.log('User email extracted:', userEmail);
+            
+            if (!userEmail) {
+                const emailFields = Object.keys(eventData).filter(key => key.toLowerCase().includes('email'));
+                console.log('Available email fields:', emailFields.map(field => `${field}: ${eventData[field]}`));
+                throw new Error(`No custom parameter or email found in event data. Available fields: ${Object.keys(eventData).join(', ')}`);
+            }
+
+            user = await findUserByEmail(userEmail);
+            if (!user) {
+                throw new Error(`User not found for email: ${userEmail}`);
+            }
         }
 
         // Create or update subscription
@@ -320,14 +345,40 @@ async function processUpgrade(eventData, targetPlan) {
             throw new Error('Supabase client not initialized');
         }
 
-        const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || eventData.buyer_email;
-        if (!userEmail) {
-            throw new Error('No email found in upgrade event data');
+        // Find user by custom parameter first, then fallback to email
+        let user = null;
+        
+        // Try to find user by custom parameter from checkout URL
+        const customUserId = eventData.custom || eventData.transaction?.custom;
+        if (customUserId && customUserId !== 'unknown') {
+            console.log('Custom user ID found in upgrade event data:', customUserId);
+            try {
+                const { data: userData, error: userError } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', customUserId)
+                    .single();
+                
+                if (!userError && userData) {
+                    user = userData;
+                    console.log('User found by custom ID for upgrade:', user.id);
+                }
+            } catch (err) {
+                console.log('Error finding user by custom ID for upgrade:', err.message);
+            }
         }
-
-        const user = await findUserByEmail(userEmail);
+        
+        // Fallback to email if custom parameter not found or failed
         if (!user) {
-            throw new Error(`User not found for email: ${userEmail}`);
+            const userEmail = eventData.email || eventData.customer_email || eventData.customer_email_address || eventData.buyer_email;
+            if (!userEmail) {
+                throw new Error('No custom parameter or email found in upgrade event data');
+            }
+
+            user = await findUserByEmail(userEmail);
+            if (!user) {
+                throw new Error(`User not found for email: ${userEmail}`);
+            }
         }
 
         // Get target plan
