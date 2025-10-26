@@ -150,3 +150,4 @@ Die Anwendung respektiert automatisch die Abonnement-Limits:
 
 Die gesamte PostSpark-Anwendung ist jetzt vollständig mit Supabase integriert und bereit für den produktiven Einsatz!
 
+

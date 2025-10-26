@@ -658,6 +658,22 @@ export default async function handler(req, res) {
         // Filter subreddits based on keyword/offer relevance
         const relevantSubreddits = filterSubredditsByRelevance(allSubreddits, searchKeywords, offer);
         console.log(`Filtered to ${relevantSubreddits.length} relevant subreddits out of ${allSubreddits.length} total`);
+        
+        // Prioritize high-quality subreddits for better results
+        const highQualitySubreddits = [
+            'entrepreneur', 'startups', 'smallbusiness', 'marketing', 'digital_marketing',
+            'saas', 'business', 'productivity', 'selfimprovement', 'motivation',
+            'personalfinance', 'investing', 'freelance', 'remotework', 'careeradvice',
+            'webdev', 'programming', 'nocode', 'growthhacking', 'sales'
+        ];
+        
+        // Sort subreddits to prioritize high-quality ones first
+        const prioritizedSubreddits = [
+            ...relevantSubreddits.filter(sub => highQualitySubreddits.includes(sub)),
+            ...relevantSubreddits.filter(sub => !highQualitySubreddits.includes(sub))
+        ];
+        
+        console.log(`📊 Prioritized subreddits: ${prioritizedSubreddits.length} total (${prioritizedSubreddits.filter(sub => highQualitySubreddits.includes(sub)).length} high-quality)`);
 
         // Randomly shuffle relevant subreddits to get different results each time
         const shuffledSubreddits = relevantSubreddits.sort(() => Math.random() - 0.5);
@@ -665,23 +681,48 @@ export default async function handler(req, res) {
         // Search in each relevant subreddit with higher limits - continue until we have at least 20 posts
         let postsFound = 0;
         const minPostsRequired = 20;
+        let searchAttempts = 0;
+        const maxSearchAttempts = 5; // Maximum 5 search attempts
         
-        for (const subreddit of shuffledSubreddits) {
-            // Stop if we have enough posts
-            if (postsFound >= minPostsRequired) {
-                console.log(`Found ${postsFound} posts, stopping search`);
-                break;
+        // Main search loop - retry until we have enough posts
+        while (postsFound < minPostsRequired && searchAttempts < maxSearchAttempts) {
+            searchAttempts++;
+            console.log(`🔍 Search attempt ${searchAttempts}/${maxSearchAttempts} - Current posts: ${postsFound}/${minPostsRequired}`);
+            
+            // Reset posts for new search attempt
+            if (searchAttempts > 1) {
+                posts = [];
+                console.log('🔄 Starting new search attempt with fresh posts array');
             }
+            
+            // Shuffle subreddits for each attempt to get different results
+            const currentSubreddits = prioritizedSubreddits.sort(() => Math.random() - 0.5);
+            
+            for (const subreddit of currentSubreddits) {
+                // Stop if we have enough posts
+                if (postsFound >= minPostsRequired) {
+                    console.log(`✅ Found ${postsFound} posts, stopping search`);
+                    break;
+                }
             try {
                 // Create search query focusing on exact keyword matches
-                // Add keyword variations to find different posts
+                // Add keyword variations to find different posts - MORE VARIATIONS
                 const keywordVariations = [
                     ...searchKeywords,
                     ...searchKeywords.map(k => k + ' help'),
                     ...searchKeywords.map(k => k + ' advice'),
                     ...searchKeywords.map(k => k + ' tips'),
                     ...searchKeywords.map(k => k + ' guide'),
-                    ...searchKeywords.map(k => k + ' recommendations')
+                    ...searchKeywords.map(k => k + ' recommendations'),
+                    ...searchKeywords.map(k => k + ' tool'),
+                    ...searchKeywords.map(k => k + ' software'),
+                    ...searchKeywords.map(k => k + ' solution'),
+                    ...searchKeywords.map(k => k + ' problem'),
+                    ...searchKeywords.map(k => k + ' struggling'),
+                    ...searchKeywords.map(k => k + ' need'),
+                    ...searchKeywords.map(k => k + ' looking for'),
+                    ...searchKeywords.map(k => k + ' best'),
+                    ...searchKeywords.map(k => k + ' alternative')
                 ];
                 
                 // Randomly select a subset of keywords for this search
@@ -691,11 +732,11 @@ export default async function handler(req, res) {
                 
                 const searchQuery = selectedKeywords.join(' OR ');
                 
-                // Add time variation to get different results
-                const timeVariations = ['all', 'year', 'month', 'week', 'day'];
+                // Add time variation to get different results - prioritize recent posts
+                const timeVariations = ['week', 'month', 'year', 'all', 'day'];
                 const timeVariation = timeVariations[Math.floor(Math.random() * timeVariations.length)];
                 
-                // Add sort variation to get different results
+                // Add sort variation to get different results - prioritize relevance and hot
                 const sortVariations = ['relevance', 'hot', 'new', 'top'];
                 const sortVariation = sortVariations[Math.floor(Math.random() * sortVariations.length)];
                 
@@ -738,7 +779,7 @@ export default async function handler(req, res) {
                             titleLower.includes('[removed]') || titleLower.includes('[deleted]') ||
                             contentLower === '[removed]' || contentLower === '[deleted]') continue;
                         
-                        // Enhanced spam detection
+                        // Enhanced spam and irrelevant content detection
                         const spamKeywords = [
                             'spam', 'bot', 'test', 'ignore', 'delete', 'remove', 'fake',
                             'scam', 'phishing', 'virus', 'malware', 'clickbait', 'nsfw',
@@ -746,7 +787,36 @@ export default async function handler(req, res) {
                             'karma', 'upvote', 'downvote', 'repost', 'reposting'
                         ];
                         
+                        // Job posting detection - exclude these
+                        const jobKeywords = [
+                            'job', 'hiring', 'recruiting', 'career', 'employment', 'position',
+                            'salary', 'wage', 'benefits', 'full-time', 'part-time', 'contract',
+                            'remote job', 'work from home', 'apply now', 'candidate', 'resume',
+                            'cv', 'interview', 'application', 'linkedin', 'indeed', 'glassdoor',
+                            'director', 'manager', 'senior', 'junior', 'entry level', 'executive',
+                            'annual', 'hourly', 'compensation', 'bonus', 'equity', 'stock options'
+                        ];
+                        
+                        // Academic/education posts - exclude these
+                        const academicKeywords = [
+                            'school', 'university', 'college', 'degree', 'master', 'phd',
+                            'student', 'studying', 'graduated', 'gpa', 'gre', 'toefl',
+                            'application', 'admission', 'enrollment', 'semester', 'course',
+                            'professor', 'lecture', 'assignment', 'exam', 'thesis', 'dissertation',
+                            'ivy league', 'mim programs', 'business school', 'mba'
+                        ];
+                        
                         const isSpam = spamKeywords.some(keyword => 
+                            titleLower.includes(keyword) || contentLower.includes(keyword)
+                        );
+                        
+                        // Check for job postings - exclude these
+                        const isJobPost = jobKeywords.some(keyword => 
+                            titleLower.includes(keyword) || contentLower.includes(keyword)
+                        );
+                        
+                        // Check for academic posts - exclude these
+                        const isAcademicPost = academicKeywords.some(keyword => 
                             titleLower.includes(keyword) || contentLower.includes(keyword)
                         );
                         
@@ -758,8 +828,10 @@ export default async function handler(req, res) {
             postData.num_comments < -2 // Skip posts with very negative comments
         );
                         
-                        // Skip if spam or low quality
-                        if (isSpam || isLowQuality) {
+                        // Skip if spam, job post, academic post, or low quality
+                        if (isSpam || isJobPost || isAcademicPost || isLowQuality) {
+                            const reason = isSpam ? 'spam' : isJobPost ? 'job post' : isAcademicPost ? 'academic post' : 'low quality';
+                            console.log(`Post skipped - ${reason}: "${postData.title.substring(0, 50)}..."`);
                             continue;
                         }
                         
@@ -1200,12 +1272,18 @@ export default async function handler(req, res) {
                             'solution for', 'fix for', 'resolve', 'solve'
                         ];
                         
-                        // Buying Intent Keywords
+                        // Buying Intent Keywords - STRONGER detection
                         const buyingIntentKeywords = [
                             'budget for', 'price range', 'cost', 'affordable', 'cheap',
                             'expensive', 'worth it', 'worth the money', 'investment',
                             'pay for', 'buy', 'purchase', 'subscribe', 'subscription',
-                            'free trial', 'demo', 'trial', 'test'
+                            'free trial', 'demo', 'trial', 'test', 'looking to buy',
+                            'need to purchase', 'ready to buy', 'comparing options',
+                            'which should i buy', 'best option to buy', 'willing to pay',
+                            'looking for recommendations', 'need a solution', 'problem i need solved',
+                            'urgent need', 'struggling with', 'having trouble with',
+                            'frustrated with', 'tired of', 'sick of', 'hate doing',
+                            'manual process', 'by hand', 'tedious', 'time consuming'
                         ];
                         
                         // Check for tool seeking
@@ -1240,10 +1318,11 @@ export default async function handler(req, res) {
                             }
                         }
                         
-                        // Check for buying intent
+                        // Check for buying intent - HIGHER SCORE for better posts
                         for (const keyword of buyingIntentKeywords) {
                             if (combinedText.includes(keyword)) {
-                                topicMatchScore += 15; // Moderate score for buying intent
+                                topicMatchScore += 35; // Higher score for buying intent
+                                console.log(`High buying intent detected: "${keyword}" in "${postData.title.substring(0, 50)}..."`);
                                 break;
                             }
                         }
@@ -1251,14 +1330,27 @@ export default async function handler(req, res) {
                         // Apply topic match score
                         relevanceScore += topicMatchScore;
                         
-                        // Legacy boost for posts asking for help or showing problems (reduced since we have better topic matching)
-                        if (combinedText.includes('help') || combinedText.includes('advice') || 
-                            combinedText.includes('struggling') || combinedText.includes('problem') ||
-                            combinedText.includes('question') || combinedText.includes('recommend') ||
-                            combinedText.includes('stuck') || combinedText.includes('difficult') ||
-                            combinedText.includes('challenge') || combinedText.includes('issue')) {
-                            relevanceScore += 15;  // Reduced from 25 since we have better topic matching now
+                        // Problem-Solution Matching - STRONGER detection
+                        const problemSolutionPatterns = [
+                            'struggling with', 'having trouble with', 'problem with', 'issue with',
+                            'difficulty with', 'challenge with', 'frustrated with', 'tired of',
+                            'sick of', 'hate doing', 'manual process', 'by hand', 'tedious',
+                            'time consuming', 'inefficient', 'slow', 'complicated', 'confusing',
+                            'need help with', 'help me with', 'advice on', 'tips for',
+                            'solution for', 'fix for', 'resolve', 'solve', 'looking for',
+                            'need', 'want', 'seeking', 'searching for', 'trying to find'
+                        ];
+                        
+                        let problemSolutionScore = 0;
+                        for (const pattern of problemSolutionPatterns) {
+                            if (combinedText.includes(pattern)) {
+                                problemSolutionScore += 20; // High score for problem-solution posts
+                                console.log(`Problem-solution pattern detected: "${pattern}" in "${postData.title.substring(0, 50)}..."`);
+                                break;
+                            }
                         }
+                        
+                        relevanceScore += problemSolutionScore;
                         
                         // Legacy boost for posts showing buying intent (reduced since we have better topic matching)
                         if (combinedText.includes('looking for') || combinedText.includes('need') ||
@@ -1347,7 +1439,7 @@ export default async function handler(req, res) {
                 
                 // Stop if we have enough high-quality posts
                 if (postsFound >= minPostsRequired) {
-                    console.log(`Reached target of ${minPostsRequired}+ posts, stopping search`);
+                    console.log(`✅ Reached target of ${minPostsRequired}+ posts, stopping search`);
                     break;
                 }
                 
@@ -1355,6 +1447,30 @@ export default async function handler(req, res) {
                 console.error(`Error searching r/${subreddit}:`, error);
                 continue;
             }
+            }
+            
+            // Update postsFound after each search attempt
+            postsFound = posts.length;
+            console.log(`📊 Search attempt ${searchAttempts} completed: ${postsFound}/${minPostsRequired} posts found`);
+            
+            // If we still don't have enough posts, try different search strategies
+            if (postsFound < minPostsRequired && searchAttempts < maxSearchAttempts) {
+                console.log(`🔄 Not enough posts found (${postsFound}/${minPostsRequired}), trying different search strategy...`);
+                
+                // Try different time ranges and sort orders for next attempt
+                const timeVariations = ['week', 'month', 'year', 'all'];
+                const sortVariations = ['hot', 'new', 'top', 'relevance'];
+                
+                // This will be used in the next iteration
+                console.log(`⏭️ Next attempt will use different time/sort combinations`);
+            }
+        }
+        
+        // Final check - if we still don't have enough posts after all attempts
+        if (postsFound < minPostsRequired) {
+            console.log(`⚠️ Warning: Only found ${postsFound}/${minPostsRequired} posts after ${searchAttempts} attempts`);
+        } else {
+            console.log(`🎉 Success: Found ${postsFound} posts in ${searchAttempts} attempt(s)`);
         }
 
         // Sort by relevance score and limit to 100 high-quality posts

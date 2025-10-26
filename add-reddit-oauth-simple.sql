@@ -4,3 +4,4 @@ ADD COLUMN IF NOT EXISTS reddit_access_token TEXT,
 ADD COLUMN IF NOT EXISTS reddit_refresh_token TEXT,
 ADD COLUMN IF NOT EXISTS reddit_token_expires TIMESTAMP WITH TIME ZONE;
 
+

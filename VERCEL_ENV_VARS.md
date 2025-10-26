@@ -40,3 +40,4 @@ https://deine-domain.vercel.app/api/digistore-ipn
 ## Testen:
 
 Nach dem Deploy kannst du den IPN-Test in Digistore24 erneut ausführen.
+

@@ -32,3 +32,4 @@ const testIPN = async () => {
 
 // Run test
 testIPN();
+

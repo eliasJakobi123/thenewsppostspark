@@ -27,3 +27,4 @@ CREATE POLICY "Users can update own AI response styles" ON public.ai_response_st
 CREATE POLICY "Users can delete own AI response styles" ON public.ai_response_styles
     FOR DELETE USING (auth.uid() = user_id);
 
+

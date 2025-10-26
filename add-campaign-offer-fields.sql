@@ -16,3 +16,4 @@ SET
     offer = COALESCE(offer, ''),
     website_url = COALESCE(website_url, '')
 WHERE offer IS NULL OR website_url IS NULL;
+

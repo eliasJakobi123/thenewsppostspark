@@ -2620,12 +2620,29 @@ function initializeSettings() {
         });
     }
     
-    // Logout button
+    // Logout button - improved event listener
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', async function() {
+        console.log('Logout button found, adding event listener');
+        logoutBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Logout button clicked');
             await handleLogout();
         });
+    } else {
+        console.error('Logout button not found!');
+        // Try to find it with a different selector
+        const logoutBtnAlt = document.querySelector('[id*="logout"]');
+        if (logoutBtnAlt) {
+            console.log('Found logout button with alternative selector');
+            logoutBtnAlt.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Logout button clicked (alternative)');
+                await handleLogout();
+            });
+        }
     }
     
     // Cancel subscription
@@ -2648,36 +2665,47 @@ function initializeSettings() {
 // Handle logout
 async function handleLogout() {
     try {
+        console.log('Starting logout process...');
+        
         // Show confirmation dialog
         const confirmed = confirm('Are you sure you want to log out?');
         if (!confirmed) {
+            console.log('Logout cancelled by user');
             return;
         }
         
         // Show loading state
         const logoutBtn = document.getElementById('logout-btn');
-        const originalText = logoutBtn.innerHTML;
-        logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-        logoutBtn.disabled = true;
+        if (logoutBtn) {
+            const originalText = logoutBtn.innerHTML;
+            logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+            logoutBtn.disabled = true;
+        }
         
         // Clear all local storage data
+        console.log('Clearing local storage...');
         localStorage.clear();
         sessionStorage.clear();
         
         // Sign out from Supabase
+        console.log('Signing out from Supabase...');
         try {
             const { error } = await supabaseClient.auth.signOut();
             if (error) {
                 console.error('Error signing out from Supabase:', error);
+            } else {
+                console.log('Successfully signed out from Supabase');
             }
         } catch (error) {
             console.error('Error signing out from Supabase:', error);
         }
         
         // Show success message
+        console.log('Showing success message...');
         showNotification('Logged out successfully!', 'success');
         
         // Redirect to website after a short delay
+        console.log('Redirecting to index page...');
         setTimeout(() => {
             window.location.href = '/index.html';
         }, 1000);
@@ -3202,14 +3230,16 @@ async function createCampaign(campaignData) {
 }
 
 async function deleteCampaign(campaignId) {
-    if (!confirm('Are you sure you want to delete this campaign?')) {
-        return;
-    }
-    
     try {
+        console.log('Deleting campaign:', campaignId);
         await postSparkDB.deleteCampaign(campaignId);
         showNotification('Campaign deleted successfully!', 'success');
-        await loadCampaigns(); // Reload campaigns
+        
+        // Navigate back to campaigns page
+        showCampaigns();
+        
+        // Reload campaigns to update the list
+        await loadCampaigns();
     } catch (error) {
         console.error('Error deleting campaign:', error);
         showNotification('Error deleting campaign: ' + error.message, 'error');
