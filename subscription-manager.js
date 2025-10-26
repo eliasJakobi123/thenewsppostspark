@@ -242,18 +242,30 @@ class SubscriptionManager {
         // Get current order ID from subscription
         let orderId = 'BESTELLID'; // Placeholder if no order ID found
         
+        console.log('Debug - Current subscription:', this.currentSubscription);
+        console.log('Debug - Digistore order ID:', this.currentSubscription?.digistore_order_id);
+        
         if (this.currentSubscription && this.currentSubscription.digistore_order_id) {
             orderId = this.currentSubscription.digistore_order_id;
+            console.log('Using real order ID:', orderId);
+        } else {
+            console.log('No order ID found, using placeholder:', orderId);
         }
 
-        switch (currentPlan) {
-            case 'starter':
-                return baseUrl + '1322890/' + orderId; // Upgrade to Pro
-            case 'pro':
-                return baseUrl + '1322889/' + orderId; // Upgrade to Enterprise
-            default:
-                return baseUrl + '643746/' + orderId; // Default to Starter
-        }
+        const upgradeUrl = baseUrl + this.getUpgradeProductId(currentPlan) + '/' + orderId;
+        console.log('Generated upgrade URL:', upgradeUrl);
+        
+        return upgradeUrl;
+    }
+    
+    getUpgradeProductId(currentPlan) {
+        const upgradeProductIds = {
+            'starter': '1322890', // Upgrade to Pro
+            'pro': '1322889',     // Upgrade to Enterprise
+            'none': '643746'      // Default to Starter
+        };
+        
+        return upgradeProductIds[currentPlan] || '643746';
     }
 
     getPlanLimits() {

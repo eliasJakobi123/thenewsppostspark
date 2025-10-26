@@ -80,6 +80,160 @@ function extractOfferContext(offerText) {
     return contextKeywords;
 }
 
+// Filter subreddits based on keyword and offer relevance
+function filterSubredditsByRelevance(subreddits, keywords, offer) {
+    const relevantSubreddits = [];
+    const keywordLower = keywords.map(k => k.toLowerCase());
+    const offerLower = offer ? offer.toLowerCase() : '';
+    
+    // Subreddit relevance mapping
+    const subredditRelevance = {
+        // Business & Entrepreneurship
+        'business': ['business', 'company', 'startup', 'entrepreneur', 'marketing', 'sales', 'revenue', 'profit'],
+        'startups': ['startup', 'founder', 'funding', 'investor', 'venture', 'scale', 'growth'],
+        'entrepreneur': ['entrepreneur', 'business', 'startup', 'founder', 'success', 'money'],
+        'smallbusiness': ['small business', 'local', 'owner', 'shop', 'store', 'service'],
+        'marketing': ['marketing', 'advertising', 'promotion', 'brand', 'campaign', 'social media'],
+        'digital_marketing': ['digital marketing', 'online', 'seo', 'ppc', 'email', 'content'],
+        'ecommerce': ['ecommerce', 'online store', 'shopify', 'amazon', 'selling', 'products'],
+        'dropship': ['dropship', 'dropshipping', 'supplier', 'inventory', 'fulfillment'],
+        
+        // Finance & Money
+        'personalfinance': ['money', 'finance', 'budget', 'saving', 'investing', 'debt'],
+        'financialindependence': ['fire', 'retirement', 'passive income', 'wealth', 'freedom'],
+        'investing': ['investing', 'stocks', 'portfolio', 'returns', 'dividends'],
+        'cryptocurrency': ['crypto', 'bitcoin', 'ethereum', 'blockchain', 'trading'],
+        
+        // Productivity & Self-Improvement
+        'productivity': ['productivity', 'efficient', 'time management', 'organization', 'workflow'],
+        'selfimprovement': ['self improvement', 'better', 'growth', 'development', 'skills'],
+        'motivation': ['motivation', 'motivated', 'inspiration', 'drive', 'goals'],
+        'lifehacks': ['life hacks', 'tips', 'tricks', 'efficiency', 'optimization'],
+        
+        // Health & Fitness
+        'fitness': ['fitness', 'workout', 'exercise', 'gym', 'health', 'training'],
+        'nutrition': ['nutrition', 'diet', 'food', 'healthy', 'eating', 'supplements'],
+        'health': ['health', 'wellness', 'medical', 'doctor', 'treatment'],
+        
+        // Tech & Development
+        'programming': ['programming', 'coding', 'developer', 'software', 'tech'],
+        'webdev': ['web development', 'website', 'frontend', 'backend', 'full stack'],
+        'saas': ['saas', 'software as a service', 'subscription', 'platform', 'app'],
+        'nocode': ['no code', 'nocode', 'automation', 'tools', 'platform'],
+        
+        // Career & Work
+        'careeradvice': ['career', 'job', 'work', 'profession', 'advancement'],
+        'freelance': ['freelance', 'freelancing', 'contractor', 'gig', 'remote work'],
+        'remotework': ['remote work', 'work from home', 'telecommute', 'distributed'],
+        
+        // Education & Learning
+        'education': ['education', 'learning', 'study', 'course', 'training', 'skill'],
+        'learnprogramming': ['learn programming', 'coding bootcamp', 'tutorial', 'course'],
+        
+        // Social Media & Content
+        'socialmedia': ['social media', 'instagram', 'facebook', 'twitter', 'linkedin'],
+        'youtube': ['youtube', 'video', 'content creation', 'channel', 'subscriber'],
+        'contentcreators': ['content creator', 'influencer', 'creator', 'monetization'],
+        
+        // New Self-Improvement Subreddits
+        'selfgrowth': ['self growth', 'personal development', 'improvement', 'better'],
+        'improveyourself': ['improve yourself', 'self improvement', 'better', 'growth'],
+        'selfdevelopment': ['self development', 'personal growth', 'improvement', 'skills'],
+        'personalgrowth': ['personal growth', 'development', 'improvement', 'better'],
+        'confidencebuilding': ['confidence', 'self confidence', 'self esteem', 'self worth'],
+        'atomicHabits': ['habits', 'atomic habits', 'routine', 'discipline'],
+        'mindset': ['mindset', 'mental', 'attitude', 'thinking'],
+        'motivation': ['motivation', 'motivated', 'inspiration', 'drive'],
+        'discipline': ['discipline', 'self discipline', 'willpower', 'control'],
+        'productivity': ['productivity', 'efficient', 'time management', 'organization'],
+        
+        // New Business & Startup Subreddits
+        'saasfounders': ['saas', 'founder', 'startup', 'software'],
+        'saasgrowth': ['saas', 'growth', 'scaling', 'startup'],
+        'startupgrowth': ['startup growth', 'scaling', 'expansion', 'growth'],
+        'bootstrapstartups': ['bootstrap', 'startup', 'funding', 'self funded'],
+        'startupmarketing': ['startup marketing', 'growth', 'acquisition', 'customers'],
+        'venturecapital': ['venture capital', 'vc', 'funding', 'investment'],
+        'angelinvesting': ['angel investor', 'funding', 'investment', 'startup'],
+        'startupfunding': ['startup funding', 'investment', 'capital', 'money'],
+        'productlaunch': ['product launch', 'launch', 'release', 'product'],
+        'customersuccess': ['customer success', 'retention', 'satisfaction', 'support'],
+        
+        // New Fitness Subreddits
+        'fitgoals': ['fitness goals', 'workout', 'exercise', 'training'],
+        'bodytransformation': ['body transformation', 'fitness', 'weight loss', 'muscle'],
+        'fitnessjourney': ['fitness journey', 'workout', 'exercise', 'progress'],
+        'strengthtraining': ['strength training', 'weightlifting', 'powerlifting', 'muscle'],
+        'musclebuilding': ['muscle building', 'hypertrophy', 'strength', 'gains'],
+        'nutritiontips': ['nutrition', 'diet', 'food', 'healthy eating'],
+        'workoutroutines': ['workout routine', 'exercise', 'training', 'fitness'],
+        'fitnessscience': ['fitness science', 'exercise science', 'research', 'evidence'],
+        
+        // New Sports Subreddits
+        'sportsdiscussion': ['sports', 'athletes', 'competition', 'performance'],
+        'athletes': ['athletes', 'sports', 'performance', 'training'],
+        'sportstraining': ['sports training', 'athletic training', 'performance', 'conditioning'],
+        'sportsperformance': ['sports performance', 'athletic performance', 'training', 'conditioning'],
+        'sportsscience': ['sports science', 'exercise science', 'research', 'performance'],
+        'sportspsychology': ['sports psychology', 'mental training', 'mindset', 'performance'],
+        'strengthandconditioning': ['strength and conditioning', 'athletic training', 'performance', 'fitness']
+    };
+    
+    for (const subreddit of subreddits) {
+        let relevanceScore = 0;
+        
+        // Check keyword matches in subreddit name
+        for (const keyword of keywordLower) {
+            if (subreddit.toLowerCase().includes(keyword)) {
+                relevanceScore += 50; // High score for direct name match
+            }
+        }
+        
+        // Check offer context matches
+        if (offerLower) {
+            const offerWords = offerLower.split(' ').filter(word => word.length > 3);
+            for (const word of offerWords) {
+                if (subreddit.toLowerCase().includes(word)) {
+                    relevanceScore += 40; // High score for offer match
+                }
+            }
+        }
+        
+        // Check predefined relevance mapping
+        if (subredditRelevance[subreddit]) {
+            for (const relevantTerm of subredditRelevance[subreddit]) {
+                for (const keyword of keywordLower) {
+                    if (relevantTerm.includes(keyword) || keyword.includes(relevantTerm)) {
+                        relevanceScore += 30;
+                    }
+                }
+                
+                if (offerLower && relevantTerm.split(' ').some(term => offerLower.includes(term))) {
+                    relevanceScore += 25;
+                }
+            }
+        }
+        
+        // Only include subreddits with meaningful relevance
+        if (relevanceScore >= 20) {
+            relevantSubreddits.push(subreddit);
+        }
+    }
+    
+    // If no subreddits are relevant enough, return top 20 most general ones
+    if (relevantSubreddits.length === 0) {
+        const generalSubreddits = [
+            'selfimprovement', 'productivity', 'motivation', 'business', 'entrepreneur',
+            'smallbusiness', 'marketing', 'personalfinance', 'careeradvice', 'lifehacks',
+            'advice', 'askreddit', 'life', 'success', 'goals', 'habits', 'discipline',
+            'freelance', 'remotework', 'startups'
+        ];
+        return generalSubreddits.filter(sub => subreddits.includes(sub)).slice(0, 20);
+    }
+    
+    return relevantSubreddits;
+}
+
 // Reddit API integration for finding real posts
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -131,7 +285,9 @@ export default async function handler(req, res) {
         // Search for posts using Reddit API
         const posts = [];
         let rateLimitHit = false;
-        const subreddits = [
+        
+        // Get relevant subreddits based on keywords and offer
+        const allSubreddits = [
             // Core self-improvement and life
             'selfimprovement', 'motivation', 'productivity', 'lifehacks', 
             'mentalhealth', 'advice', 'getmotivated', 
@@ -314,13 +470,97 @@ export default async function handler(req, res) {
             // 🧩 OTHER USEFUL / META & NETWORKING (15 Subreddits)
             'RedditMarketing', 'Subreddit', 'ModHelp', 'FindAPath', 'EntrepreneurRideAlong',
             'TechBiz', 'FinanceCareer', 'StartupsForGood', 'RemoteJobs', 'WorkFromHome',
-            'CareerGuidance', 'MoneyTalks', 'Philosophy', 'SelfReliance', 'LifeLessons'
+            'CareerGuidance', 'MoneyTalks', 'Philosophy', 'SelfReliance', 'LifeLessons',
+            
+            // 🧠 Self-Improvement, Self-Confidence & Motivation (50)
+            'selfgrowth', 'ImproveYourself', 'SelfDevelopment', 'PersonalGrowth', 'BetterEveryLoop',
+            'LearnMindset', 'MindsetMatters', 'PowerOfHabits', 'FocusOnGrowth', 'BuildBetterHabits',
+            'ConfidenceTips', 'PersonalEvolution', 'LifeProgress', 'DisciplineDaily', 'GrowthDaily',
+            'BetterHumans', 'WinStreak', 'MindUpgrade', 'LearnToChange', 'Positivity',
+            'MentalToughness', 'GoalCrushers', 'MorningRoutine', 'Visualization', 'AtomicHabits',
+            'ImproveDaily', 'LifeEngineering', 'BehavioralScience', 'BecomeBetter', 'Reflect',
+            'GrowthMindset', 'MotivationStation', 'ImprovementPill', 'MindGym', 'DailyMotivation',
+            'UpgradeHumans', 'SelfCare', 'InnerStrength', 'SelfWorth', 'SelfEsteem',
+            'ConfidenceBuilding', 'BeYourBest', 'LearnDiscipline', 'SuccessDriven', 'WinningMindset',
+            'SelfConfidenceTips', 'BetterMen', 'BetterWomen', 'PositivePsychology', 'BuildYourCharacter',
+            'LifeOptimization',
+            
+            // 💼 Entrepreneurship, Startups, Marketing & Social Media (50)
+            'StartupSuccess', 'MarketingMind', 'AdTech', 'BrandStrategy', 'MarketResearch',
+            'EntrepreneurIdeas', 'CreativeBusiness', 'StartupGrowth', 'StartupMarketing', 'SaaSFounders',
+            'SaaSgrowth', 'BootstrapStartups', 'Bootstrapped', 'SmallBiz', 'StartupTools',
+            'CustomerSuccess', 'InfluencerHub', 'DigitalBusiness', 'OnlineMarketing', 'EmailMarketers',
+            'MarketingProfs', 'StartUpLife', 'VentureCapital', 'AngelInvesting', 'StartupFunding',
+            'StartupCommunity', 'StartupFounders', 'ProductLaunch', 'BusinessStrategy', 'BrandBuilders',
+            'CMO', 'SocialSelling', 'SocialGrowth', 'LinkedInGrowth', 'SocialMediaTips',
+            'TikTokGrowth', 'InstagramMarketing', 'CreatorEconomy', 'OnlineEntrepreneurs', 'DigitalCreators',
+            'Podcasting', 'StartupMarketingTips', 'GrowthMarketers', 'AdsGrowth', 'SEOmarketing',
+            'ContentCreatorsHub', 'Copywriters', 'BusinessGrowth', 'AdTechStartups', 'BrandingDesign',
+            'StartupFoundersClub',
+            
+            // 🏋️‍♂️ Sport, Gym & Fitness (50)
+            'FitAndNatural', 'FitGoals', 'LiftHeavy', 'Powerbuilding', 'FitTips',
+            'BodyTransformation', 'FitnessJourney', 'HealthyLifting', 'StrengthTraining', 'FitLifestyle',
+            'FunctionalFitness', 'EnduranceTraining', 'FitCouples', 'MuscleBuilding', 'Hypertrophy',
+            'FitOver30', 'FitOver40', 'FitnessOver50', 'AthleticTraining', 'PerformanceTraining',
+            'BodyweightFitness', 'StreetLifting', 'FitnessOverhaul', 'NutritionTips', 'TrainingAdvice',
+            'GymWorkouts', 'GymLife', 'LiftingMotivation', 'FitnessRoutines', 'CoachAdvice',
+            'FitnessScience', 'Conditioning', 'FitWomen', 'FitMen', 'WorkoutRoutines',
+            'FitnessAddiction', 'FitCheck', 'FitnessLifestyle', 'FitnessJourneyMen', 'GymCulture',
+            'PowerAthletes', 'FitnessGear', 'FitnessSupplements', 'WeightliftingWomen', 'MobilityTraining',
+            'FunctionalMovement', 'FitLifeGoals', 'FitnessCommunity', 'SportsPerformance', 'AthleticRecovery',
+            'FitTalk',
+            
+            // ⚽ Sports (General / Competitive / Teams / Analysis) (50)
+            'SportsDiscussion', 'SportsNews', 'Athletes', 'SportsTraining', 'RunningShoeGeeks',
+            'Football', 'Basketball', 'Baseball', 'Tennis', 'Cycling',
+            'Swimming', 'Climbing', 'Hiking', 'Skiing', 'Snowboarding',
+            'Soccer', 'AmericanFootball', 'NFL', 'NBA', 'NHL',
+            'MLB', 'UFC', 'BoxingTalk', 'Golf', 'Cricket',
+            'Formula1', 'Motorsports', 'MountainBiking', 'TrackAndField', 'Triathlon',
+            'Rugby', 'MMAFights', 'FitnessAthletes', 'FantasyFootball', 'CollegeBasketball',
+            'CollegeFootball', 'Esports', 'SportsBetting', 'RunningCommunity', 'FitnessForAthletes',
+            'OutdoorSports', 'SportsTech', 'SportsMedicine', 'SportsAnalytics', 'Coaching',
+            'SportsPsychology', 'SportsScience', 'AthleticPerformance', 'Referees', 'StrengthAndConditioning',
+            
+            // 💻 SaaS, Startups & App Development (Core Targets)
+            'SaaS', 'SaaSStartups', 'SaaSgrowth', 'startups', 'Entrepreneur',
+            'Startup_Ideas', 'IndieHackers', 'BuildInPublic', 'SideProject', 'BootstrapStartups',
+            'StartupGrowth', 'startup', 'TechStartups', 'NoCode', 'LowCode',
+            'NoCodeDevs', 'WebApps', 'ProductManagement', 'AppIdeas', 'Programming',
+            'learnprogramming', 'SoftwareDevelopment', 'EntrepreneurRideAlong', 'SmallBusiness', 'OnlineBusiness',
+            'ProductivityTools',
+            
+            // 📈 Marketing, Launch & Growth
+            'GrowthHacking', 'marketing', 'digital_marketing', 'ContentMarketing', 'StartupMarketing',
+            'SocialMediaMarketing', 'ProductHunt', 'EmailMarketing', 'LinkedInGrowth', 'AdOps',
+            'Branding', 'Copywriting', 'SEO', 'MarketingMind', 'GrowthMarketers',
+            'MarketResearch', 'Business_Ideas', 'OnlineMarketing', 'CustomerSuccess', 'SaaSMarketing',
+            'CreatorEconomy', 'Podcasting', 'InfluencerMarketing', 'MarketingProfs', 'Advertising',
+            
+            // 🧩 Product Feedback, Validation & User Research
+            'UserExperience', 'ProductDesign', 'UXDesign', 'UXResearch', 'UI_Design',
+            'AppFeedback', 'EntrepreneurTools', 'AskMarketing', 'AskEntrepreneurs', 'AskStartup',
+            'ProductLaunch', 'SideHustle', 'CodingHelp', 'learnUX', 'CustomerDevelopment',
+            'ProductStrategy', 'ProductFeedback', 'ProductTesting', 'AppDev', 'Frontend',
+            'WebDesign', 'DevOps', 'SoftwareEngineering', 'SmallBusinessOwners', 'TechBiz',
+            
+            // 💰 Funding, Monetization & Business Models
+            'VentureCapital', 'AngelInvesting', 'BusinessModels', 'StartupFunding', 'SaaSMonetization',
+            'BusinessStrategy', 'EntrepreneurFinance', 'LeanStartup', 'bootstrapping', 'Finance',
+            'FinancialIndependence', 'OnlineEntrepreneurs', 'Passive_Income', 'EntrepreneurshipFinance', 'StartUpLife',
+            'Consulting', 'WealthBuilding', 'StartupCommunity', 'Founders', 'FemaleFounders',
+            'BusinessGrowth', 'RevenueModels', 'NoCodeStartups', 'SaaSFounders', 'InvestorStartups'
         ];
-
-        // Randomly shuffle subreddits to get different results each time
-        const shuffledSubreddits = subreddits.sort(() => Math.random() - 0.5);
         
-        // Search in each subreddit with higher limits
+        // Filter subreddits based on keyword/offer relevance
+        const relevantSubreddits = filterSubredditsByRelevance(allSubreddits, searchKeywords, offer);
+        console.log(`Filtered to ${relevantSubreddits.length} relevant subreddits out of ${allSubreddits.length} total`);
+
+        // Randomly shuffle relevant subreddits to get different results each time
+        const shuffledSubreddits = relevantSubreddits.sort(() => Math.random() - 0.5);
+        
+        // Search in each relevant subreddit with higher limits
         for (const subreddit of shuffledSubreddits) {
             try {
                 // Create search query focusing on exact keyword matches
@@ -378,12 +618,40 @@ export default async function handler(req, res) {
                     for (const post of searchData.data.children) {
                         const postData = post.data;
                         
-                        // Filter out stickied posts, ads, and reposts
+                        // Enhanced filtering for better quality
+                        const titleLower = postData.title.toLowerCase();
+                        const contentLower = (postData.selftext || '').toLowerCase();
+                        
+                        // Filter out stickied posts, ads, reposts, and removed content
                         if (postData.stickied || postData.promoted || 
                             postData.is_self === false || postData.crosspost_parent_list ||
-                            postData.title.toLowerCase().includes('[removed]') ||
-                            postData.title.toLowerCase().includes('[deleted]') ||
-                            postData.selftext === '[removed]' || postData.selftext === '[deleted]') continue;
+                            titleLower.includes('[removed]') || titleLower.includes('[deleted]') ||
+                            contentLower === '[removed]' || contentLower === '[deleted]') continue;
+                        
+                        // Enhanced spam detection
+                        const spamKeywords = [
+                            'spam', 'bot', 'test', 'ignore', 'delete', 'remove', 'fake',
+                            'scam', 'phishing', 'virus', 'malware', 'clickbait', 'nsfw',
+                            'nsfl', 'gore', 'violence', 'hate', 'racist', 'sexist',
+                            'karma', 'upvote', 'downvote', 'repost', 'reposting'
+                        ];
+                        
+                        const isSpam = spamKeywords.some(keyword => 
+                            titleLower.includes(keyword) || contentLower.includes(keyword)
+                        );
+                        
+                        // Quality checks
+                        const isLowQuality = (
+                            postData.title.length < 15 ||
+                            (postData.selftext && postData.selftext.length < 30) ||
+                            postData.ups < 0 || // Downvoted posts
+                            postData.num_comments < 1 // No engagement
+                        );
+                        
+                        // Skip if spam or low quality
+                        if (isSpam || isLowQuality) {
+                            continue;
+                        }
                         
                         // Calculate relevance score based on keywords and offer
                         const title = postData.title.toLowerCase();
@@ -481,16 +749,109 @@ export default async function handler(req, res) {
                             }
                         }
                         
-                        // Boost score for posts asking for help or showing problems
+                        // Advanced Topic Matching - Look for specific buying intent and problem-solving keywords
+                        let topicMatchScore = 0;
+                        
+                        // Tool/Solution Seeking Keywords
+                        const toolSeekingKeywords = [
+                            'looking for tool', 'need a tool', 'recommend a tool', 'best tool for',
+                            'tool recommendation', 'suggest a tool', 'what tool', 'which tool',
+                            'tool that', 'tool to', 'find a tool', 'get a tool'
+                        ];
+                        
+                        // SaaS/Software Seeking Keywords
+                        const saasSeekingKeywords = [
+                            'recommend a saas', 'best saas', 'saas recommendation', 'suggest a saas',
+                            'looking for saas', 'need a saas', 'what saas', 'which saas',
+                            'saas for', 'saas to', 'find a saas', 'get a saas',
+                            'software recommendation', 'best software', 'recommend software',
+                            'looking for software', 'need software', 'what software', 'which software'
+                        ];
+                        
+                        // Management/Process Keywords
+                        const managementKeywords = [
+                            'how do you manage', 'how to manage', 'manage my', 'managing',
+                            'how do you handle', 'how to handle', 'handle my', 'handling',
+                            'how do you organize', 'how to organize', 'organize my', 'organizing',
+                            'how do you track', 'how to track', 'track my', 'tracking',
+                            'how do you automate', 'how to automate', 'automate my', 'automating',
+                            'any tips for managing', 'hard to keep track', 'spending too much time',
+                            'bottleneck', 'wasting time on', "can't find a tool for",
+                            'looking for an easier way', 'manual process', 'need a better system',
+                            'need to streamline', 'my workflow sucks', 'too much overhead',
+                            'need help with process'
+                        ];
+                        
+                        // Problem/Solution Keywords
+                        const problemSolutionKeywords = [
+                            'struggling with', 'problem with', 'issue with', 'trouble with',
+                            'difficulty with', 'challenge with', 'frustrated with', 'annoyed with',
+                            'need help with', 'help me with', 'advice on', 'tips for',
+                            'solution for', 'fix for', 'resolve', 'solve',
+                            'pain point', 'issues with', 'what do you use for'
+                        ];
+                        
+                        // Buying Intent Keywords
+                        const buyingIntentKeywords = [
+                            'budget for', 'price range', 'cost', 'affordable', 'cheap',
+                            'expensive', 'worth it', 'worth the money', 'investment',
+                            'pay for', 'buy', 'purchase', 'subscribe', 'subscription',
+                            'free trial', 'demo', 'trial', 'test'
+                        ];
+                        
+                        // Check for tool seeking
+                        for (const keyword of toolSeekingKeywords) {
+                            if (combinedText.includes(keyword)) {
+                                topicMatchScore += 40; // High score for tool seeking
+                                break;
+                            }
+                        }
+                        
+                        // Check for SaaS seeking
+                        for (const keyword of saasSeekingKeywords) {
+                            if (combinedText.includes(keyword)) {
+                                topicMatchScore += 45; // Very high score for SaaS seeking
+                                break;
+                            }
+                        }
+                        
+                        // Check for management/process keywords
+                        for (const keyword of managementKeywords) {
+                            if (combinedText.includes(keyword)) {
+                                topicMatchScore += 35; // High score for management needs
+                                break;
+                            }
+                        }
+                        
+                        // Check for problem/solution keywords
+                        for (const keyword of problemSolutionKeywords) {
+                            if (combinedText.includes(keyword)) {
+                                topicMatchScore += 30; // Good score for problem solving
+                                break;
+                            }
+                        }
+                        
+                        // Check for buying intent
+                        for (const keyword of buyingIntentKeywords) {
+                            if (combinedText.includes(keyword)) {
+                                topicMatchScore += 25; // Good score for buying intent
+                                break;
+                            }
+                        }
+                        
+                        // Apply topic match score
+                        relevanceScore += topicMatchScore;
+                        
+                        // Legacy boost for posts asking for help or showing problems (reduced since we have better topic matching)
                         if (combinedText.includes('help') || combinedText.includes('advice') || 
                             combinedText.includes('struggling') || combinedText.includes('problem') ||
                             combinedText.includes('question') || combinedText.includes('recommend') ||
                             combinedText.includes('stuck') || combinedText.includes('difficult') ||
                             combinedText.includes('challenge') || combinedText.includes('issue')) {
-                            relevanceScore += 25;  // Erhöht von 20
+                            relevanceScore += 15;  // Reduced from 25 since we have better topic matching now
                         }
                         
-                        // Boost for posts showing buying intent or need for solutions
+                        // Legacy boost for posts showing buying intent (reduced since we have better topic matching)
                         if (combinedText.includes('looking for') || combinedText.includes('need') ||
                             combinedText.includes('want') || combinedText.includes('seeking') ||
                             combinedText.includes('searching for') || combinedText.includes('trying to find') ||
@@ -501,7 +862,7 @@ export default async function handler(req, res) {
                             combinedText.includes('worth the money') || combinedText.includes('investment') ||
                             combinedText.includes('looking') || combinedText.includes('which') ||
                             combinedText.includes('should i') || combinedText.includes('can someone')) {
-                            relevanceScore += 30;  // Erhöht von 25
+                            relevanceScore += 15;  // Reduced from 30 since we have better topic matching now
                         }
                         
                         // Boost for motivation/life related posts
@@ -529,15 +890,22 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Higher threshold for better quality - require strong offer match AND minimum connection to offer
-                        const minRequiredScore = 60; // Increased to require much better matches
+                        // MUCH HIGHER threshold for better quality - require STRONG offer match AND minimum connection to offer
+                        const minRequiredScore = 80; // Increased significantly to require much better matches
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // Only accept posts that have a strong offer match OR a very high overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 50;
-                        const hasVeryHighScore = relevanceScore >= 80;
+                        // Only accept posts that have a VERY strong offer match OR an extremely high overall score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 70;
+                        const hasVeryHighScore = relevanceScore >= 100;
                         
-                        if ((hasStrongOfferConnection || hasVeryHighScore) && relevanceScore >= minRequiredScore) {
+                        // Additional quality checks
+                        const hasMinimumKeywordMatches = keywordMatches >= 3; // Require at least 3 keyword matches
+                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 3 || semanticMatches >= 3);
+                        
+                        if ((hasStrongOfferConnection || hasVeryHighScore) && 
+                            relevanceScore >= minRequiredScore && 
+                            hasMinimumKeywordMatches && 
+                            hasMinimumOfferMatches) {
                             console.log(`Post accepted - score: ${relevanceScore}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,

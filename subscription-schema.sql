@@ -137,7 +137,9 @@ RETURNS TABLE (
     max_campaigns INTEGER,
     max_refreshes_per_campaign INTEGER,
     max_refreshes_per_month INTEGER,
-    features JSONB
+    features JSONB,
+    digistore_order_id TEXT,
+    digistore_transaction_id TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -150,7 +152,9 @@ BEGIN
         sp.max_campaigns,
         sp.max_refreshes_per_campaign,
         sp.max_refreshes_per_month,
-        sp.features
+        sp.features,
+        us.digistore_order_id,
+        us.digistore_transaction_id
     FROM public.user_subscriptions us
     JOIN public.subscription_plans sp ON us.plan_id = sp.id
     WHERE us.user_id = user_uuid 
