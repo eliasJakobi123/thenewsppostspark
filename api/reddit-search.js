@@ -1,3 +1,77 @@
+// Helper function to extract topics/themes from text
+function extractTopics(text) {
+    const topics = [];
+    const lowerText = text.toLowerCase();
+    
+    // Topic mapping for thematic relevance
+    const topicMap = {
+        'productivity': ['productivity', 'efficient', 'time management', 'organization', 'workflow', 'automation'],
+        'marketing': ['marketing', 'advertising', 'promotion', 'brand', 'campaign', 'social media', 'seo'],
+        'business': ['business', 'company', 'startup', 'entrepreneur', 'revenue', 'profit', 'growth'],
+        'design': ['design', 'graphic', 'logo', 'visual', 'creative', 'art', 'branding'],
+        'development': ['code', 'develop', 'programming', 'tech', 'software', 'build', 'app'],
+        'finance': ['finance', 'money', 'budget', 'investment', 'cost', 'revenue', 'profit'],
+        'health': ['health', 'fitness', 'workout', 'exercise', 'diet', 'nutrition', 'wellness'],
+        'education': ['education', 'learning', 'course', 'training', 'skill', 'study', 'tutorial'],
+        'communication': ['communication', 'email', 'message', 'chat', 'social', 'contact'],
+        'management': ['management', 'leadership', 'team', 'project', 'task', 'coordination'],
+        'analytics': ['analytics', 'data', 'metrics', 'reporting', 'insights', 'tracking'],
+        'sales': ['sales', 'selling', 'customer', 'client', 'lead', 'conversion', 'revenue']
+    };
+    
+    for (const [topic, keywords] of Object.entries(topicMap)) {
+        for (const keyword of keywords) {
+            if (lowerText.includes(keyword)) {
+                topics.push(topic);
+                break; // Avoid duplicates
+            }
+        }
+    }
+    
+    return [...new Set(topics)]; // Remove duplicates
+}
+
+// Helper function to check if topics are related
+function areRelatedTopics(topic1, topic2) {
+    const relatedTopics = {
+        'business': ['marketing', 'finance', 'management', 'sales'],
+        'marketing': ['business', 'design', 'communication', 'analytics'],
+        'development': ['design', 'productivity', 'management'],
+        'finance': ['business', 'analytics', 'management'],
+        'productivity': ['management', 'development', 'education'],
+        'design': ['marketing', 'development', 'communication'],
+        'communication': ['marketing', 'management', 'sales'],
+        'analytics': ['finance', 'marketing', 'business'],
+        'management': ['business', 'productivity', 'leadership'],
+        'sales': ['marketing', 'business', 'communication']
+    };
+    
+    return relatedTopics[topic1]?.includes(topic2) || relatedTopics[topic2]?.includes(topic1) || false;
+}
+
+// Helper function to calculate thematic relevance
+function calculateThematicRelevance(postText, offerText) {
+    const postTopics = extractTopics(postText);
+    const offerTopics = extractTopics(offerText);
+    
+    if (postTopics.length === 0 || offerTopics.length === 0) {
+        return 0;
+    }
+    
+    let relevance = 0;
+    for (const postTopic of postTopics) {
+        for (const offerTopic of offerTopics) {
+            if (postTopic === offerTopic) {
+                relevance += 0.5; // High relevance for exact match
+            } else if (areRelatedTopics(postTopic, offerTopic)) {
+                relevance += 0.3; // Moderate relevance for related topics
+            }
+        }
+    }
+    
+    return Math.min(relevance, 1.0);
+}
+
 // Helper function to extract semantic context from offer - DEEP ANALYSIS
 function extractOfferContext(offerText) {
     const contextKeywords = [];
@@ -970,10 +1044,18 @@ export default async function handler(req, res) {
                             }
                         }
                         
-                        // If no keywords match, skip this post entirely
+                        // Calculate thematic relevance as alternative to keyword matching
+                        const thematicRelevance = calculateThematicRelevance(combinedText, offer || '');
+                        
+                        // If no keywords match, check thematic relevance
                         if (keywordMatches === 0) {
-                            console.log(`Post skipped - no keyword matches: "${postData.title.substring(0, 50)}..."`);
-                            continue;
+                            if (thematicRelevance < 0.3) {
+                                console.log(`Post skipped - no keyword matches and low thematic relevance (${thematicRelevance.toFixed(2)}): "${postData.title.substring(0, 50)}..."`);
+                                continue;
+                            } else {
+                                console.log(`Post accepted via thematic relevance (${thematicRelevance.toFixed(2)}): "${postData.title.substring(0, 50)}..."`);
+                                relevanceScore += thematicRelevance * 30; // Add thematic relevance score
+                            }
                         }
                         
                         // Score based on offer context - CRITICAL for better matches
@@ -1173,21 +1255,32 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Balanced threshold - high offer relevance but flexible keyword matching
-                        const minRequiredScore = 15; // Moderate threshold
+                        // Flexible threshold for "good fit" matching
+                        const minRequiredScore = 10; // Lower threshold for more flexibility
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // HIGH offer match requirements for quality
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 25; // High offer match required
-                        const hasVeryHighScore = relevanceScore >= 35; // High overall score
+                        // Flexible offer match requirements for "good fit"
+                        const hasGoodOfferConnection = hasOfferMatch && relevanceScore >= 15; // Moderate offer match for "good fit"
+                        const hasHighScore = relevanceScore >= 25; // Good overall score
                         
-                        // Very flexible keyword matching - accept almost anything
-                        const hasMinimumKeywordMatches = keywordMatches >= 0; // Accept even with 0 keyword matches
-                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 2 || semanticMatches >= 2); // Require strong offer match
+                        // Very flexible matching - accept posts that "good fit"
+                        const hasMinimumKeywordMatches = keywordMatches >= 0 || thematicRelevance >= 0.3; // Accept via keywords OR thematic relevance
+                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1 || thematicRelevance >= 0.4); // Flexible offer matching
                         
-                        // Accept posts - very lenient to ensure we find posts
-                        if (relevanceScore >= minRequiredScore) {
-                            console.log(`Post accepted - score: ${relevanceScore}, title: "${postData.title.substring(0, 50)}..."`);
+                        // Accept posts with flexible criteria for "good fit"
+                        const isGoodFit = (
+                            relevanceScore >= minRequiredScore && 
+                            (hasMinimumKeywordMatches || hasMinimumOfferMatches) &&
+                            (thematicRelevance >= 0.2 || keywordMatches >= 1 || hasOfferMatch)
+                        );
+                        
+                        if (isGoodFit) {
+                            const acceptanceReason = [];
+                            if (keywordMatches > 0) acceptanceReason.push(`${keywordMatches} keyword matches`);
+                            if (thematicRelevance >= 0.3) acceptanceReason.push(`thematic relevance: ${thematicRelevance.toFixed(2)}`);
+                            if (hasOfferMatch) acceptanceReason.push('offer match');
+                            
+                            console.log(`Post accepted - score: ${relevanceScore}, reason: ${acceptanceReason.join(', ')}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,
