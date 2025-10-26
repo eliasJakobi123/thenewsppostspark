@@ -16,7 +16,9 @@ function extractTopics(text) {
         'communication': ['communication', 'email', 'message', 'chat', 'social', 'contact'],
         'management': ['management', 'leadership', 'team', 'project', 'task', 'coordination'],
         'analytics': ['analytics', 'data', 'metrics', 'reporting', 'insights', 'tracking'],
-        'sales': ['sales', 'selling', 'customer', 'client', 'lead', 'conversion', 'revenue']
+        'sales': ['sales', 'selling', 'customer', 'client', 'lead', 'conversion', 'revenue', 'outreach', 'prospecting', 'cold call', 'cold email'],
+        'lead_generation': ['lead generation', 'lead finder', 'prospecting', 'finding leads', 'lead hunting', 'prospect discovery'],
+        'outreach': ['outreach', 'cold outreach', 'cold email', 'cold calling', 'prospecting', 'initial contact', 'first contact']
     };
     
     for (const [topic, keywords] of Object.entries(topicMap)) {
@@ -43,7 +45,9 @@ function areRelatedTopics(topic1, topic2) {
         'communication': ['marketing', 'management', 'sales'],
         'analytics': ['finance', 'marketing', 'business'],
         'management': ['business', 'productivity', 'leadership'],
-        'sales': ['marketing', 'business', 'communication']
+        'sales': ['marketing', 'business', 'communication'],
+        'lead_generation': ['sales', 'marketing', 'business'],
+        'outreach': ['sales', 'marketing', 'communication']
     };
     
     return relatedTopics[topic1]?.includes(topic2) || relatedTopics[topic2]?.includes(topic1) || false;
@@ -318,13 +322,37 @@ export default async function handler(req, res) {
         const { campaignData } = req.body;
         const { businessName, offer, keywords } = campaignData;
         
-        // Ensure keywords is an array
-        const searchKeywords = Array.isArray(keywords) ? keywords : [keywords || 'general'];
+        // Ensure keywords is an array and properly split
+        let searchKeywords;
+        if (Array.isArray(keywords)) {
+            searchKeywords = keywords;
+        } else if (typeof keywords === 'string') {
+            // Split keywords by common separators and clean them
+            searchKeywords = keywords
+                .split(/[\s,;|]+/) // Split by space, comma, semicolon, pipe
+                .map(k => k.trim())
+                .filter(k => k.length > 0)
+                .filter(k => k !== 'general');
+            
+            // If no valid keywords found, use the original string
+            if (searchKeywords.length === 0) {
+                searchKeywords = [keywords || 'general'];
+            }
+        } else {
+            searchKeywords = ['general'];
+        }
+        
+        console.log('Processed keywords:', searchKeywords);
 
-        console.log('Reddit API search started:', {
+        console.log('🔍 Reddit API search started:', {
             businessName,
             keywords: searchKeywords.join(', '),
             offer: offer ? offer.substring(0, 100) + '...' : 'No offer provided'
+        });
+        console.log('📊 Search parameters:', {
+            keywordCount: searchKeywords.length,
+            hasOffer: !!offer,
+            offerLength: offer ? offer.length : 0
         });
 
         // Reddit API credentials from environment variables
@@ -755,6 +783,9 @@ export default async function handler(req, res) {
                             'ai': ['artificial intelligence', 'automation', 'automated', 'smart', 'intelligent', 'machine learning', 'ml', 'chatbot', 'bot', 'assistant', 'algorithm', 'data science', 'predictive', 'analytics'],
                             'sales': ['selling', 'sales process', 'sales team', 'sales strategy', 'revenue', 'business development', 'business', 'marketing', 'commerce', 'trade', 'deal', 'transaction', 'conversion', 'closing', 'prospecting'],
                             'cold call': ['cold calling', 'phone calls', 'telemarketing', 'sales calls', 'prospecting', 'calling', 'phone', 'telephone', 'dialing', 'ringing', 'contacting by phone'],
+                            'cold outreach': ['cold outreach', 'cold email', 'cold messaging', 'outreach', 'prospecting', 'lead generation', 'cold contact', 'initial contact', 'first contact'],
+                            'lead finder': ['lead finder', 'lead generation', 'prospect finder', 'lead hunting', 'finding leads', 'lead discovery', 'prospect discovery', 'lead research'],
+                            'sales ai': ['sales ai', 'sales automation', 'ai sales', 'automated sales', 'sales intelligence', 'ai prospecting', 'smart sales', 'intelligent sales'],
                             'tool': ['software', 'app', 'application', 'platform', 'service', 'solution', 'system', 'utility', 'instrument', 'device', 'gadget', 'resource', 'helper'],
                             'business': ['company', 'enterprise', 'organization', 'firm', 'corporation', 'startup', 'venture', 'operation', 'establishment', 'institution'],
                             'marketing': ['advertising', 'promotion', 'branding', 'campaign', 'strategy', 'outreach', 'communication', 'publicity', 'promotion', 'selling'],
@@ -1047,14 +1078,27 @@ export default async function handler(req, res) {
                         // Calculate thematic relevance as alternative to keyword matching
                         const thematicRelevance = calculateThematicRelevance(combinedText, offer || '');
                         
-                        // If no keywords match, check thematic relevance
+                        // MUCH MORE FLEXIBLE: Accept posts with ANY relevance
                         if (keywordMatches === 0) {
-                            if (thematicRelevance < 0.3) {
-                                console.log(`Post skipped - no keyword matches and low thematic relevance (${thematicRelevance.toFixed(2)}): "${postData.title.substring(0, 50)}..."`);
-                                continue;
-                            } else {
+                            if (thematicRelevance >= 0.2) { // Lower threshold for thematic relevance
                                 console.log(`Post accepted via thematic relevance (${thematicRelevance.toFixed(2)}): "${postData.title.substring(0, 50)}..."`);
-                                relevanceScore += thematicRelevance * 30; // Add thematic relevance score
+                                relevanceScore += thematicRelevance * 40; // Higher score for thematic relevance
+                            } else {
+                                // Even if no thematic relevance, check for ANY keyword-like matches
+                                const hasAnyRelevance = (
+                                    combinedText.includes('tool') || combinedText.includes('software') || 
+                                    combinedText.includes('app') || combinedText.includes('solution') ||
+                                    combinedText.includes('help') || combinedText.includes('need') ||
+                                    combinedText.includes('looking') || combinedText.includes('recommend')
+                                );
+                                
+                                if (hasAnyRelevance) {
+                                    console.log(`Post accepted via general relevance: "${postData.title.substring(0, 50)}..."`);
+                                    relevanceScore += 15; // Give some score for general relevance
+                                } else {
+                                    console.log(`Post skipped - no relevance found: "${postData.title.substring(0, 50)}..."`);
+                                    continue;
+                                }
                             }
                         }
                         
@@ -1255,32 +1299,32 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Flexible threshold for "good fit" matching
-                        const minRequiredScore = 10; // Lower threshold for more flexibility
+                        // VERY FLEXIBLE threshold - accept almost anything relevant
+                        const minRequiredScore = 5; // Very low threshold for maximum flexibility
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // Flexible offer match requirements for "good fit"
-                        const hasGoodOfferConnection = hasOfferMatch && relevanceScore >= 15; // Moderate offer match for "good fit"
-                        const hasHighScore = relevanceScore >= 25; // Good overall score
+                        // ULTRA flexible matching - accept posts with ANY relevance
+                        const hasAnyRelevance = (
+                            keywordMatches >= 1 || 
+                            thematicRelevance >= 0.2 || 
+                            hasOfferMatch ||
+                            relevanceScore >= 10
+                        );
                         
-                        // Very flexible matching - accept posts that "good fit"
-                        const hasMinimumKeywordMatches = keywordMatches >= 0 || thematicRelevance >= 0.3; // Accept via keywords OR thematic relevance
-                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1 || thematicRelevance >= 0.4); // Flexible offer matching
-                        
-                        // Accept posts with flexible criteria for "good fit"
+                        // Accept posts with ULTRA flexible criteria
                         const isGoodFit = (
                             relevanceScore >= minRequiredScore && 
-                            (hasMinimumKeywordMatches || hasMinimumOfferMatches) &&
-                            (thematicRelevance >= 0.2 || keywordMatches >= 1 || hasOfferMatch)
+                            hasAnyRelevance
                         );
                         
                         if (isGoodFit) {
                             const acceptanceReason = [];
                             if (keywordMatches > 0) acceptanceReason.push(`${keywordMatches} keyword matches`);
-                            if (thematicRelevance >= 0.3) acceptanceReason.push(`thematic relevance: ${thematicRelevance.toFixed(2)}`);
+                            if (thematicRelevance >= 0.2) acceptanceReason.push(`thematic relevance: ${thematicRelevance.toFixed(2)}`);
                             if (hasOfferMatch) acceptanceReason.push('offer match');
+                            if (relevanceScore >= 10) acceptanceReason.push('high score');
                             
-                            console.log(`Post accepted - score: ${relevanceScore}, reason: ${acceptanceReason.join(', ')}, title: "${postData.title.substring(0, 50)}..."`);
+                            console.log(`✅ Post accepted - score: ${relevanceScore}, reason: ${acceptanceReason.join(', ')}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,
                                 title: postData.title,
