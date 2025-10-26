@@ -725,7 +725,7 @@ export default async function handler(req, res) {
                             for (const word of offerWords) {
                                 if (combinedText.includes(word)) {
                                     offerWordMatches++;
-                                    relevanceScore += 30; // Increased weight
+                                    relevanceScore += 40; // Higher weight for offer relevance
                                 }
                             }
                             
@@ -734,7 +734,7 @@ export default async function handler(req, res) {
                             for (const context of offerContext) {
                                 if (combinedText.includes(context)) {
                                     semanticMatches++;
-                                    relevanceScore += 35; // Increased weight
+                                    relevanceScore += 45; // Higher weight for semantic relevance
                                 }
                             }
                             
@@ -906,17 +906,17 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Flexible threshold - works for specific keywords
-                        const minRequiredScore = 15; // Lower threshold for specific keywords
+                        // Quality-focused threshold - prioritize offer relevance
+                        const minRequiredScore = 25; // Higher threshold for quality
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // Accept posts with good offer match OR decent overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 10; // Lower for specific keywords
-                        const hasVeryHighScore = relevanceScore >= 25; // Lower for specific keywords
+                        // STRICT: Require strong offer match for high-quality posts
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 20; // Strong offer match required
+                        const hasVeryHighScore = relevanceScore >= 40; // High overall score
                         
-                        // Flexible keyword matching - require at least some relevance
+                        // Keyword matching - require relevance
                         const hasMinimumKeywordMatches = keywordMatches >= 1; // At least 1 keyword match
-                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1);
+                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 2 || semanticMatches >= 2); // Require stronger offer match
                         
                         // Accept posts that are relevant to the offer/keywords
                         if ((hasStrongOfferConnection || hasVeryHighScore) && 
