@@ -2677,9 +2677,9 @@ async function handleLogout() {
         // Show success message
         showNotification('Logged out successfully!', 'success');
         
-        // Redirect to login page after a short delay
+        // Redirect to website after a short delay
         setTimeout(() => {
-            window.location.href = '/login.html';
+            window.location.href = '/index.html';
         }, 1000);
         
     } catch (error) {
