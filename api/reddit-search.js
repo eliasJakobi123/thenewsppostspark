@@ -768,27 +768,21 @@ export default async function handler(req, res) {
                             'looking for software', 'need software', 'what software', 'which software'
                         ];
                         
-                        // Management/Process Keywords
+                        // Management/Process Keywords (simplified)
                         const managementKeywords = [
-                            'how do you manage', 'how to manage', 'manage my', 'managing',
-                            'how do you handle', 'how to handle', 'handle my', 'handling',
-                            'how do you organize', 'how to organize', 'organize my', 'organizing',
-                            'how do you track', 'how to track', 'track my', 'tracking',
-                            'how do you automate', 'how to automate', 'automate my', 'automating',
-                            'any tips for managing', 'hard to keep track', 'spending too much time',
-                            'bottleneck', 'wasting time on', "can't find a tool for",
-                            'looking for an easier way', 'manual process', 'need a better system',
-                            'need to streamline', 'my workflow sucks', 'too much overhead',
-                            'need help with process'
+                            'manage my', 'managing',
+                            'handle my', 'handling',
+                            'organize my', 'organizing',
+                            'track my', 'tracking',
+                            'automate my', 'automating'
                         ];
                         
-                        // Problem/Solution Keywords
+                        // Problem/Solution Keywords (simplified)
                         const problemSolutionKeywords = [
-                            'struggling with', 'problem with', 'issue with', 'trouble with',
-                            'difficulty with', 'challenge with', 'frustrated with', 'annoyed with',
+                            'problem with', 'issue with', 'trouble with',
+                            'difficulty with', 'challenge with',
                             'need help with', 'help me with', 'advice on', 'tips for',
-                            'solution for', 'fix for', 'resolve', 'solve',
-                            'pain point', 'issues with', 'what do you use for'
+                            'solution for', 'fix for', 'resolve', 'solve'
                         ];
                         
                         // Buying Intent Keywords
@@ -891,12 +885,12 @@ export default async function handler(req, res) {
                         }
                         
                         // Very lenient threshold to ensure we get results
-                        const minRequiredScore = 30; // Further reduced to be very inclusive
+                        const minRequiredScore = 15; // Much more inclusive
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
                         // Accept posts with any offer match OR decent overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 25; // Further reduced
-                        const hasVeryHighScore = relevanceScore >= 50; // Further reduced
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 10; // Much more inclusive
+                        const hasVeryHighScore = relevanceScore >= 25; // Much more inclusive
                         
                         // Very flexible keyword matching
                         const hasMinimumKeywordMatches = keywordMatches >= 1; // Keep at 1
