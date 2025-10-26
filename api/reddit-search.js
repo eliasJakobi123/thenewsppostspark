@@ -652,7 +652,99 @@ export default async function handler(req, res) {
             'BusinessStrategy', 'EntrepreneurFinance', 'LeanStartup', 'bootstrapping', 'Finance',
             'FinancialIndependence', 'OnlineEntrepreneurs', 'Passive_Income', 'EntrepreneurshipFinance', 'StartUpLife',
             'Consulting', 'WealthBuilding', 'StartupCommunity', 'Founders', 'FemaleFounders',
-            'BusinessGrowth', 'RevenueModels', 'NoCodeStartups', 'SaaSFounders', 'InvestorStartups'
+            'BusinessGrowth', 'RevenueModels', 'NoCodeStartups', 'SaaSFounders', 'InvestorStartups',
+            
+            // 🎨 DESIGN & CREATIVITY (50 Subreddits)
+            'design', 'GraphicDesign', 'Photoshop', 'Illustrator', 'Adobe',
+            'UI_Design', 'UX_Design', 'WebDesign', 'DesignPorn', 'Typography',
+            'PrintDesign', 'Branding', 'LogoDesign', 'DesignCritiques', 'UserExperience',
+            'Figma', 'Sketch', 'InVision', 'DesignSystems', 'DesignThinking',
+            'Minimalism', 'CleanDesign', 'ModernDesign', 'CreativeDesign', 'DesignInspiration',
+            'DesignTools', 'DesignJobs', 'Designer', 'DesignAwards', 'DesignTrends',
+            '3DModeling', 'Blender', 'Maya', 'Cinema4D', 'Houdini',
+            'DigitalArt', 'ConceptArt', 'DigitalPainting', 'VectorArt', 'PixelArt',
+            'Animation', 'MotionDesign', 'AfterEffects', 'MotionGraphics', 'VideoEditing',
+            'ColorGrading', 'VFX', 'Cinematography', 'FilmProduction', 'Screenwriting',
+            
+            // 💪 HEALTH & WELLNESS (50 Subreddits)
+            'Health', 'Nutrition', 'HealthyEating', 'WeightLoss', 'Fitness',
+            'Yoga', 'Meditation', 'Mindfulness', 'MentalHealth', 'Therapy',
+            'Anxiety', 'Depression', 'SelfCare', 'Wellness', 'HolisticHealth',
+            'Fasting', 'IntermittentFasting', 'Keto', 'Paleo', 'Vegan',
+            'Supplements', 'Prebiotics', 'Probiotics', 'GutHealth', 'Inflammation',
+            'Sleep', 'Insomnia', 'SleepHygiene', 'CircadianRhythm', 'SleepRecovery',
+            'Cardio', 'StrengthTraining', 'HIIT', 'Endurance', 'Flexibility',
+            'Stretching', 'Recovery', 'InjuryRecovery', 'SportsMedicine', 'PhysicalTherapy',
+            'Breathing', 'StressManagement', 'Relaxation', 'Massage', 'Acupuncture',
+            'Chiropractic', 'Osteopathy', 'Naturopathy', 'Homeopathy', 'Herbal',
+            
+            // 🌍 TRAVEL & ADVENTURE (50 Subreddits)
+            'Travel', 'SoloTravel', 'Backpacking', 'Camping', 'Hiking',
+            'NationalPark', 'RoadTrips', 'VanLife', 'DigitalNomad', 'ExpatFIRE',
+            'Expat', 'LivingAbroad', 'SlowTravel', 'AdventureTravel', 'EcoTravel',
+            'Safari', 'Beach', 'Mountains', 'Desert', 'UrbanExploration',
+            'FoodTravel', 'CulinaryTravel', 'WineTravel', 'BeerTravel', 'Coffee',
+            'ScubaDiving', 'Snorkeling', 'Sailing', 'Surfing', 'Windsurfing',
+            'RockClimbing', 'Mountaineering', 'TrailRunning', 'Cycling', 'Motorcycle',
+            'RoadTrip', 'Overlanding', '4x4', 'OffRoading', 'Caravanning',
+            'RV', 'Motorhome', 'TinyHouse', 'MinimalistLiving', 'Sustainable',
+            'ZeroWaste', 'PlasticFree', 'EcoFriendly', 'GreenLiving', 'Homesteading',
+            
+            // 📚 LEARNING & EDUCATION (50 Subreddits)
+            'Learning', 'StudyTips', 'StudyMotivation', 'ExamPreparation', 'LanguageLearning',
+            'Spanish', 'French', 'German', 'Italian', 'Portuguese',
+            'Japanese', 'Chinese', 'Korean', 'Arabic', 'Russian',
+            'Duolingo', 'RosettaStone', 'Babbel', 'Pimsleur', 'Anki',
+            'Memorization', 'Mnemonics', 'ActiveRecall', 'SpacedRepetition', 'Flashcards',
+            'OnlineLearning', 'Coursera', 'Udemy', 'EdX', 'KhanAcademy',
+            'Programming', 'Coding', 'WebDevelopment', 'DataScience', 'MachineLearning',
+            'ArtificialIntelligence', 'Statistics', 'Mathematics', 'Physics', 'Chemistry',
+            'Biology', 'History', 'Philosophy', 'Literature', 'Writing',
+            'Reading', 'BookClub', 'Books', 'Audiobooks', 'Podcasts',
+            
+            // 💰 PERSONAL FINANCE & MONEY (50 Subreddits)
+            'PersonalFinance', 'FinancialPlanning', 'Investing', 'Stocks', 'Options',
+            'Dividends', 'IndexFunds', 'ETFs', 'MutualFunds', 'Bonds',
+            'RealEstate', 'RealEstateInvesting', 'HouseHacking', 'BRRR', 'FIRE',
+            'FinancialIndependence', 'Retirement', '401k', 'IRA', 'Taxes',
+            'CreditCards', 'Debt', 'DebtFree', 'SavingMoney', 'Budgeting',
+            'Frugal', 'Minimalism', 'SimpleLiving', 'Thrifty', 'Couponing',
+            'RedditDeals', 'Bartering', 'Trading', 'SideHustle', 'PassiveIncome',
+            'Sales', 'Marketing', 'Business', 'Entrepreneurship', 'Startups',
+            'SaaS', 'OnlineBusiness', 'Ecommerce', 'Dropshipping', 'Affiliate',
+            
+            // 💼 LARGE BUSINESS & ENTREPRENEURSHIP SUBREDDITS (Missing Big Ones)
+            'Entrepreneurship', 'Businesstips', 'BusinessAdvice', 'SmallBusinessOwner', 'Entrepreneurs',
+            'BusinessDevelopment', 'CompanyFounding', 'BusinessStrategy', 'BusinessGrowth', 'BusinessTalent',
+            'BusinessNetworking', 'BusinessLeadership', 'BusinessCoaching', 'BusinessConsulting', 'BusinessPlanning',
+            'Innovation', 'DisruptiveInnovation', 'BusinessModel', 'RevenueModel', 'BusinessOperations',
+            'BusinessMetrics', 'BusinessAnalytics', 'BusinessIntelligence', 'BusinessReporting', 'BusinessKPIs',
+            'CustomerAcquisition', 'CustomerRetention', 'CustomerSuccess', 'CustomerSupport', 'CustomerExperience',
+            'BusinessAutomation', 'BusinessTools', 'BusinessSoftware', 'BusinessApps', 'BusinessPlatforms',
+            
+            // 💰 LARGE MONEY & FINANCE SUBREDDITS (Missing Big Ones)
+            'Credit', 'CreditScore', 'CreditCards', 'CreditBuilding', 'CreditRepair',
+            'Banking', 'Banks', 'BankingAdvice', 'BankingTips', 'BankingTipsAndTricks',
+            'InvestingStrategy', 'Investment', 'InvestmentStrategy', 'InvestmentAdvice', 'InvestmentTips',
+            'Trading', 'Daytrading', 'Stocktrading', 'OptionsTrading', 'FuturesTrading',
+            'Cryptotrading', 'Cryptoinvesting', 'Cryptocurrency', 'Crypto', 'Cryptocurrencytrading',
+            'Blockchain', 'DeFi', 'NFT', 'NFTmarketplace', 'CryptoNews',
+            'FinancialAdvice', 'FinancialPlanning', 'FinancialGoals', 'FinancialFreedom', 'FinancialEducation',
+            'MoneyManagement', 'MoneySaving', 'MoneyHacks', 'MoneyTips', 'MoneyAdvice',
+            'Budgeting', 'BudgetingTips', 'BudgetingAdvice', 'BudgetingHelp', 'BudgetingStrategy',
+            'DebtManagement', 'DebtFree', 'DebtConsolidation', 'DebtAdvice', 'DebtTips',
+            
+            // 💸 LARGE PASSIVE INCOME & SIDE HUSTLES (Missing Big Ones)
+            'PassiveIncome', 'PassiveIncomeIdeas', 'PassiveIncomeSources', 'PassiveIncomeStreams', 'PassiveIncomeTips',
+            'SideIncome', 'SideHustleIdeas', 'SideHustleAdvice', 'SideHustleTips', 'SideHustleSuccess',
+            'FreelanceWriting', 'FreelanceDesign', 'FreelanceProgramming', 'FreelanceMarketing', 'FreelancePhotography',
+            'OnlineIncome', 'OnlineBusinesses', 'OnlineMarketing', 'OnlineSales', 'OnlineEntrepreneurship',
+            'DigitalProducts', 'DigitalProductsForSale', 'DigitalProductCreation', 'DigitalProductMarketing', 'DigitalProductSales',
+            'AffiliateProgram', 'AffiliateMarketingTips', 'AffiliateMarketingAdvice', 'AffiliateMarketingStrategy', 'AffiliateMarketingTools',
+            'DropshippingBusiness', 'DropshippingAdvice', 'DropshippingTips', 'DropshippingStrategy', 'DropshippingSuccess',
+            'RealEstateInvesting', 'RealEstateInvestingAdvice', 'RealEstateInvestingTips', 'RealEstateInvestingStrategy', 'RealEstateInvestingBusiness',
+            'StockDividends', 'DividendInvesting', 'DividendStocks', 'DividendStrategy', 'DividendIncome',
+            'InvestmentProperties', 'InvestmentProperty', 'InvestmentPropertyTips', 'InvestmentPropertyAdvice', 'InvestmentPropertyStrategy'
         ];
         
         // Filter subreddits based on keyword/offer relevance
@@ -694,9 +786,9 @@ export default async function handler(req, res) {
         const maxSearchAttempts = 5; // Maximum 5 search attempts
         
         // Main search loop - retry until we have enough posts
-        const minSubredditsToSearch = 20; // Increased to 20 minimum subreddits for better coverage
+        const minSubredditsToSearch = 30; // Increased to 30 minimum subreddits for maximum coverage
         let subredditsSearched = new Set(); // Track which subreddits we've searched
-        const maxSubredditsToSearch = 50; // Maximum subreddits to search
+        const maxSubredditsToSearch = 100; // Increased maximum for even better coverage
         
         while (postsFound < minPostsRequired && searchAttempts < maxSearchAttempts) {
             searchAttempts++;
@@ -830,6 +922,15 @@ export default async function handler(req, res) {
                             'annual', 'hourly', 'compensation', 'bonus', 'equity', 'stock options'
                         ];
                         
+                        // "Looking to buy" post detection - exclude these
+                        const buyPostKeywords = [
+                            'looking to buy', 'want to buy', 'interested in buying', 'buying business',
+                            'acquire business', 'purchase business', 'budget', 'cash buyer', 'pof available',
+                            'i can\'t buy', 'brokers/finders welcome', 'finders fee', 'looking for sellers',
+                            'contact me via', 'dm or via email', 'reason for selling', 'after sales support',
+                            'monthly multiple', 'aged business', 'established business', 'existing business'
+                        ];
+                        
                         // Academic/education posts - exclude these
                         const academicKeywords = [
                             'school', 'university', 'college', 'degree', 'master', 'phd',
@@ -863,6 +964,11 @@ export default async function handler(req, res) {
                             titleLower.includes(keyword) || contentLower.includes(keyword)
                         );
                         
+                        // Check for "looking to buy" posts - exclude these
+                        const isBuyPost = buyPostKeywords.some(keyword => 
+                            titleLower.includes(keyword) || contentLower.includes(keyword)
+                        );
+                        
                         // Check for academic posts - exclude these
                         const isAcademicPost = academicKeywords.some(keyword => 
                             titleLower.includes(keyword) || contentLower.includes(keyword)
@@ -876,12 +982,13 @@ export default async function handler(req, res) {
             postData.num_comments < -2 // Skip posts with very negative comments
         );
                         
-                        // Skip if spam, job post, academic post, spam URL, spam subreddit, or low quality
-                        if (isSpam || isJobPost || isAcademicPost || isLowQuality || hasSpamUrl || isSpamSubreddit) {
+                        // Skip if spam, job post, buy post, academic post, spam URL, spam subreddit, or low quality
+                        if (isSpam || isJobPost || isBuyPost || isAcademicPost || isLowQuality || hasSpamUrl || isSpamSubreddit) {
                             const reason = isSpamSubreddit ? 'spam subreddit' : 
                                          hasSpamUrl ? 'spam URL' :
                                          isSpam ? 'spam' : 
-                                         isJobPost ? 'job post' : 
+                                         isJobPost ? 'job post' :
+                                         isBuyPost ? 'buy post' :
                                          isAcademicPost ? 'academic post' : 'low quality';
                             console.log(`Post skipped - ${reason}: "${postData.title.substring(0, 50)}..."`);
                             continue;

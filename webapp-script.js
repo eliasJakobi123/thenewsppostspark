@@ -767,12 +767,18 @@ function initializeNavigation() {
         });
     }
     
-    // Delete campaign functionality
+    // Delete campaign functionality - improved
     const deleteCampaignBtn = document.querySelector('.delete-campaign-btn');
     if (deleteCampaignBtn) {
-        deleteCampaignBtn.addEventListener('click', function() {
+        console.log('Delete campaign button found, adding event listener');
+        deleteCampaignBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Delete campaign button clicked');
             showDeleteConfirmation();
         });
+    } else {
+        console.error('Delete campaign button not found!');
     }
     
     // Create campaign functionality
@@ -961,7 +967,11 @@ async function showCampaignPosts(campaignId) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         
         // Show campaign posts page
-        document.getElementById('campaign-posts').classList.add('active');
+        const campaignPostsPage = document.getElementById('campaign-posts');
+        campaignPostsPage.classList.add('active');
+        
+        // Set campaign ID in dataset for delete functionality
+        campaignPostsPage.dataset.campaignId = campaignId;
         
         // Update page title
         document.getElementById('campaign-posts-title').textContent = `${campaign.name} Posts`;
@@ -3883,6 +3893,20 @@ function initializeSettings() {
         saveProfileBtn.addEventListener('click', function() {
             saveProfile();
         });
+    }
+    
+    // Logout button - FIXED: Add event listener here
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        console.log('Logout button found in settings, adding event listener');
+        logoutBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Logout button clicked');
+            await handleLogout();
+        });
+    } else {
+        console.error('Logout button not found in settings!');
     }
     
     // Initialize Reddit integration
