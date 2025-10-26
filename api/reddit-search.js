@@ -640,12 +640,13 @@ export default async function handler(req, res) {
                             titleLower.includes(keyword) || contentLower.includes(keyword)
                         );
                         
-        // Even more lenient quality checks for better coverage
+        // Quality checks - high quality posts regardless of keywords
         const isLowQuality = (
-            postData.title.length < 8 || // Further reduced from 10
-            (postData.selftext && postData.selftext.length < 15) || // Further reduced from 20
-            postData.ups < -10 || // Only skip heavily downvoted posts (was < -5)
-            postData.num_comments < -2 // Only skip posts with very negative comments (was < 0)
+            postData.title.length < 20 || // High minimum title length for quality
+            (postData.selftext && postData.selftext.length < 50) || // High minimum content length
+            postData.ups < -3 || // Skip downvoted posts
+            postData.num_comments < 0 || // Skip posts with negative comments
+            postData.ups < 2 && postData.num_comments < 3 // Skip posts with low engagement
         );
                         
                         // Skip if spam or low quality
@@ -905,13 +906,13 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Balanced threshold - not too strict, not too loose
-                        const minRequiredScore = 20; // Moderate threshold
+                        // Flexible threshold - works for specific keywords
+                        const minRequiredScore = 15; // Lower threshold for specific keywords
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
                         // Accept posts with good offer match OR decent overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 15; // Good offer match
-                        const hasVeryHighScore = relevanceScore >= 30; // High overall score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 10; // Lower for specific keywords
+                        const hasVeryHighScore = relevanceScore >= 25; // Lower for specific keywords
                         
                         // Flexible keyword matching - require at least some relevance
                         const hasMinimumKeywordMatches = keywordMatches >= 1; // At least 1 keyword match
