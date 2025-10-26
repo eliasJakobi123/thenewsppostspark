@@ -2665,12 +2665,13 @@ async function handleLogout() {
         sessionStorage.clear();
         
         // Sign out from Supabase
-        if (postSparkDB && postSparkDB.user) {
-            try {
-                await postSparkDB.supabase.auth.signOut();
-            } catch (error) {
+        try {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
                 console.error('Error signing out from Supabase:', error);
             }
+        } catch (error) {
+            console.error('Error signing out from Supabase:', error);
         }
         
         // Show success message
@@ -4320,8 +4321,18 @@ async function writeComment(postId, subreddit, title, content, created_at, actua
 // Logout function
 async function logout() {
     try {
-        await postSparkDB.logout();
-        window.location.href = '/login';
+        // Sign out from Supabase
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) {
+            console.error('Error signing out from Supabase:', error);
+        }
+        
+        // Clear all local storage data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Redirect to login page
+        window.location.href = '/login.html';
     } catch (error) {
         console.error('Logout error:', error);
         showNotification('Error logging out', 'error');

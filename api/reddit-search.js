@@ -214,8 +214,8 @@ function filterSubredditsByRelevance(subreddits, keywords, offer) {
             }
         }
         
-        // Only include subreddits with meaningful relevance to keywords
-        if (relevanceScore >= 30) { // Increased to be more selective
+        // Include subreddits with some relevance to keywords (more inclusive)
+        if (relevanceScore >= 15) { // Reduced from 30 to be more inclusive
             relevantSubreddits.push(subreddit);
         }
     }
@@ -640,13 +640,13 @@ export default async function handler(req, res) {
                             titleLower.includes(keyword) || contentLower.includes(keyword)
                         );
                         
-                        // More lenient quality checks
-                        const isLowQuality = (
-                            postData.title.length < 10 || // Reduced from 15
-                            (postData.selftext && postData.selftext.length < 20) || // Reduced from 30
-                            postData.ups < -5 || // Only skip heavily downvoted posts (was < 0)
-                            postData.num_comments < 0 // Only skip posts with negative comments (was < 1)
-                        );
+        // Even more lenient quality checks for better coverage
+        const isLowQuality = (
+            postData.title.length < 8 || // Further reduced from 10
+            (postData.selftext && postData.selftext.length < 15) || // Further reduced from 20
+            postData.ups < -10 || // Only skip heavily downvoted posts (was < -5)
+            postData.num_comments < -2 // Only skip posts with very negative comments (was < 0)
+        );
                         
                         // Skip if spam or low quality
                         if (isSpam || isLowQuality) {
@@ -890,16 +890,16 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Balanced threshold for good quality
-                        const minRequiredScore = 70; // Increased to 70
+                        // Balanced threshold - more lenient but still quality-focused
+                        const minRequiredScore = 50; // Reduced from 70 to be more inclusive
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
                         // Accept posts with good offer match OR decent overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 50;
-                        const hasVeryHighScore = relevanceScore >= 80;
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 40; // Reduced from 50
+                        const hasVeryHighScore = relevanceScore >= 70; // Reduced from 80
                         
-                        // Require 2 keyword matches for better quality
-                        const hasMinimumKeywordMatches = keywordMatches >= 2; // Increased to 2
+                        // More flexible keyword matching
+                        const hasMinimumKeywordMatches = keywordMatches >= 1; // Reduced from 2 to 1
                         const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1);
                         
                         if ((hasStrongOfferConnection || hasVeryHighScore) && 
