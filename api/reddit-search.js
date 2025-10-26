@@ -656,8 +656,17 @@ export default async function handler(req, res) {
         ];
         
         // Filter subreddits based on keyword/offer relevance
-        const relevantSubreddits = filterSubredditsByRelevance(allSubreddits, searchKeywords, offer);
+        let relevantSubreddits = filterSubredditsByRelevance(allSubreddits, searchKeywords, offer);
         console.log(`Filtered to ${relevantSubreddits.length} relevant subreddits out of ${allSubreddits.length} total`);
+        
+        // Remove known spam/low-quality subreddits
+        const spamSubreddits = [
+            'SelfWorth', // Too much spam
+            'all', 'popular' // Too general
+        ];
+        
+        relevantSubreddits = relevantSubreddits.filter(sub => !spamSubreddits.includes(sub));
+        console.log(`After spam filtering: ${relevantSubreddits.length} subreddits`);
         
         // Prioritize high-quality subreddits for better results
         const highQualitySubreddits = [
@@ -685,9 +694,13 @@ export default async function handler(req, res) {
         const maxSearchAttempts = 5; // Maximum 5 search attempts
         
         // Main search loop - retry until we have enough posts
+        const minSubredditsToSearch = 20; // Increased to 20 minimum subreddits for better coverage
+        let subredditsSearched = new Set(); // Track which subreddits we've searched
+        const maxSubredditsToSearch = 50; // Maximum subreddits to search
+        
         while (postsFound < minPostsRequired && searchAttempts < maxSearchAttempts) {
             searchAttempts++;
-            console.log(`🔍 Search attempt ${searchAttempts}/${maxSearchAttempts} - Current posts: ${postsFound}/${minPostsRequired}`);
+            console.log(`🔍 Search attempt ${searchAttempts}/${maxSearchAttempts} - Current posts: ${postsFound}/${minPostsRequired}, Subreddits searched: ${subredditsSearched.size}`);
             
             // Reset posts for new search attempt
             if (searchAttempts > 1) {
@@ -699,12 +712,26 @@ export default async function handler(req, res) {
             const currentSubreddits = prioritizedSubreddits.sort(() => Math.random() - 0.5);
             
             for (const subreddit of currentSubreddits) {
-                // Stop if we have enough posts
-                if (postsFound >= minPostsRequired) {
-                    console.log(`✅ Found ${postsFound} posts, stopping search`);
+                // Continue searching until we've searched at least minSubredditsToSearch
+                if (postsFound >= minPostsRequired && subredditsSearched.size >= minSubredditsToSearch) {
+                    console.log(`✅ Found ${postsFound} posts in ${subredditsSearched.size} subreddits, stopping search`);
+                    break;
+                }
+                
+                // If we have enough posts but haven't searched enough subreddits, continue
+                if (postsFound >= minPostsRequired && subredditsSearched.size < minSubredditsToSearch) {
+                    console.log(`📊 Found ${postsFound} posts but only searched ${subredditsSearched.size}/${minSubredditsToSearch} subreddits. Continuing to ensure good coverage...`);
+                }
+                
+                // Stop if we've searched too many subreddits
+                if (subredditsSearched.size >= maxSubredditsToSearch) {
+                    console.log(`⚠️ Reached maximum subreddits limit (${maxSubredditsToSearch}), stopping search`);
                     break;
                 }
             try {
+                // Track this subreddit as searched
+                subredditsSearched.add(subreddit);
+                
                 // Create search query focusing on exact keyword matches
                 // Add keyword variations to find different posts - MORE VARIATIONS
                 const keywordVariations = [
@@ -779,12 +806,18 @@ export default async function handler(req, res) {
                             titleLower.includes('[removed]') || titleLower.includes('[deleted]') ||
                             contentLower === '[removed]' || contentLower === '[deleted]') continue;
                         
-                        // Enhanced spam and irrelevant content detection
+                        // Enhanced spam and irrelevant content detection - STRICTER
                         const spamKeywords = [
                             'spam', 'bot', 'test', 'ignore', 'delete', 'remove', 'fake',
                             'scam', 'phishing', 'virus', 'malware', 'clickbait', 'nsfw',
                             'nsfl', 'gore', 'violence', 'hate', 'racist', 'sexist',
-                            'karma', 'upvote', 'downvote', 'repost', 'reposting'
+                            'karma', 'upvote', 'downvote', 'repost', 'reposting',
+                            'stream', 'live stream', 'watch live', 'free stream', 'hd stream',
+                            'match on', 'game on', 'watch now', 'live coverage', 'online stream',
+                            'premier sports', 'radio times', 'click here', 'watch free',
+                            'free live', 'streaming free', 'live streaming', 'watch online',
+                            'you can watch', 'how to watch', 'what channel', 'tv channel',
+                            'live football', 'live soccer', 'live sports', 'sports stream'
                         ];
                         
                         // Job posting detection - exclude these
@@ -810,6 +843,21 @@ export default async function handler(req, res) {
                             titleLower.includes(keyword) || contentLower.includes(keyword)
                         );
                         
+                        // Additional spam detection - check for spam URL patterns
+                        const hasSpamUrl = (
+                            contentLower.includes('radiottimes.com') ||
+                            contentLower.includes('premier sports') ||
+                            contentLower.includes('viaplay sports') ||
+                            contentLower.includes('click here to watch') ||
+                            contentLower.includes('subscribe to watch') ||
+                            (contentLower.includes('📺') && contentLower.includes('🔴'))
+                        );
+                        
+                        // Check for spam subreddits (low-quality content)
+                        const isSpamSubreddit = [
+                            'SelfWorth' // This subreddit has too much spam
+                        ].includes(postData.subreddit);
+                        
                         // Check for job postings - exclude these
                         const isJobPost = jobKeywords.some(keyword => 
                             titleLower.includes(keyword) || contentLower.includes(keyword)
@@ -828,9 +876,13 @@ export default async function handler(req, res) {
             postData.num_comments < -2 // Skip posts with very negative comments
         );
                         
-                        // Skip if spam, job post, academic post, or low quality
-                        if (isSpam || isJobPost || isAcademicPost || isLowQuality) {
-                            const reason = isSpam ? 'spam' : isJobPost ? 'job post' : isAcademicPost ? 'academic post' : 'low quality';
+                        // Skip if spam, job post, academic post, spam URL, spam subreddit, or low quality
+                        if (isSpam || isJobPost || isAcademicPost || isLowQuality || hasSpamUrl || isSpamSubreddit) {
+                            const reason = isSpamSubreddit ? 'spam subreddit' : 
+                                         hasSpamUrl ? 'spam URL' :
+                                         isSpam ? 'spam' : 
+                                         isJobPost ? 'job post' : 
+                                         isAcademicPost ? 'academic post' : 'low quality';
                             console.log(`Post skipped - ${reason}: "${postData.title.substring(0, 50)}..."`);
                             continue;
                         }
@@ -1190,7 +1242,7 @@ export default async function handler(req, res) {
                             for (const word of offerWords) {
                                 if (combinedText.includes(word)) {
                                     offerWordMatches++;
-                                    relevanceScore += 40; // Higher weight for offer relevance
+                                    relevanceScore += 60; // Much higher weight for offer relevance
                                 }
                             }
                             
@@ -1199,7 +1251,7 @@ export default async function handler(req, res) {
                             for (const context of offerContext) {
                                 if (combinedText.includes(context)) {
                                     semanticMatches++;
-                                    relevanceScore += 45; // Higher weight for semantic relevance
+                                    relevanceScore += 70; // Much higher weight for semantic relevance
                                 }
                             }
                             
@@ -1318,10 +1370,10 @@ export default async function handler(req, res) {
                             }
                         }
                         
-                        // Check for buying intent - HIGHER SCORE for better posts
+                        // Check for buying intent - VERY HIGH SCORE for better posts
                         for (const keyword of buyingIntentKeywords) {
                             if (combinedText.includes(keyword)) {
-                                topicMatchScore += 35; // Higher score for buying intent
+                                topicMatchScore += 50; // Very high score for buying intent
                                 console.log(`High buying intent detected: "${keyword}" in "${postData.title.substring(0, 50)}..."`);
                                 break;
                             }
@@ -1344,7 +1396,7 @@ export default async function handler(req, res) {
                         let problemSolutionScore = 0;
                         for (const pattern of problemSolutionPatterns) {
                             if (combinedText.includes(pattern)) {
-                                problemSolutionScore += 20; // High score for problem-solution posts
+                                problemSolutionScore += 40; // Much higher score for problem-solution posts
                                 console.log(`Problem-solution pattern detected: "${pattern}" in "${postData.title.substring(0, 50)}..."`);
                                 break;
                             }
@@ -1391,22 +1443,22 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // VERY FLEXIBLE threshold - accept almost anything relevant
-                        const minRequiredScore = 5; // Very low threshold for maximum flexibility
+                        // HIGHER QUALITY threshold - accept only highly relevant posts
+                        const minRequiredScore = 25; // Higher threshold for better quality
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // ULTRA flexible matching - accept posts with ANY relevance
-                        const hasAnyRelevance = (
+                        // HIGH QUALITY matching - accept only posts with strong relevance
+                        const hasStrongRelevance = (
                             keywordMatches >= 1 || 
-                            thematicRelevance >= 0.2 || 
-                            hasOfferMatch ||
-                            relevanceScore >= 10
+                            thematicRelevance >= 0.4 ||  // Increased from 0.2
+                            (hasOfferMatch && relevanceScore >= 20) ||  // Stronger offer match requirement
+                            relevanceScore >= 30  // Higher minimum score
                         );
                         
-                        // Accept posts with ULTRA flexible criteria
+                        // Accept only HIGH QUALITY posts
                         const isGoodFit = (
                             relevanceScore >= minRequiredScore && 
-                            hasAnyRelevance
+                            hasStrongRelevance
                         );
                         
                         if (isGoodFit) {
