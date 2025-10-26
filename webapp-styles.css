@@ -3539,6 +3539,90 @@ input:checked + .toggle-slider:before {
     }
 }
 
+/* Keyword Tips Styling */
+.keyword-tips {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(255, 107, 53, 0.05);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.keyword-tips h4 {
+    color: #ff6b35;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.tip-category {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tip-category strong {
+    color: #ffffff;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.tip-category ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tip-category li {
+    color: #cccccc;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    padding-left: 0.5rem;
+    position: relative;
+}
+
+.tip-category li::before {
+    content: '•';
+    color: #ff6b35;
+    position: absolute;
+    left: 0;
+}
+
+/* Responsive keyword tips */
+@media (max-width: 768px) {
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tip-category {
+        padding: 0.5rem;
+    }
+    
+    .keyword-tips h4 {
+        font-size: 0.8rem;
+    }
+    
+    .tip-category strong {
+        font-size: 0.75rem;
+    }
+    
+    .tip-category li {
+        font-size: 0.7rem;
+    }
+}
+
 /* End of styles */
 
 

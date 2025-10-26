@@ -214,8 +214,8 @@ function filterSubredditsByRelevance(subreddits, keywords, offer) {
             }
         }
         
-        // Include subreddits with some relevance to keywords (more inclusive)
-        if (relevanceScore >= 15) { // Reduced from 30 to be more inclusive
+        // Include subreddits with minimal relevance to keywords (very inclusive)
+        if (relevanceScore >= 5) { // Further reduced to be very inclusive
             relevantSubreddits.push(subreddit);
         }
     }
@@ -890,16 +890,16 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Balanced threshold - more lenient but still quality-focused
-                        const minRequiredScore = 50; // Reduced from 70 to be more inclusive
+                        // Very lenient threshold to ensure we get results
+                        const minRequiredScore = 30; // Further reduced to be very inclusive
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // Accept posts with good offer match OR decent overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 40; // Reduced from 50
-                        const hasVeryHighScore = relevanceScore >= 70; // Reduced from 80
+                        // Accept posts with any offer match OR decent overall score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 25; // Further reduced
+                        const hasVeryHighScore = relevanceScore >= 50; // Further reduced
                         
-                        // More flexible keyword matching
-                        const hasMinimumKeywordMatches = keywordMatches >= 1; // Reduced from 2 to 1
+                        // Very flexible keyword matching
+                        const hasMinimumKeywordMatches = keywordMatches >= 1; // Keep at 1
                         const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1);
                         
                         if ((hasStrongOfferConnection || hasVeryHighScore) && 
