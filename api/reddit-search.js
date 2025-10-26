@@ -560,8 +560,16 @@ export default async function handler(req, res) {
         // Randomly shuffle relevant subreddits to get different results each time
         const shuffledSubreddits = relevantSubreddits.sort(() => Math.random() - 0.5);
         
-        // Search in each relevant subreddit with higher limits
+        // Search in each relevant subreddit with higher limits - continue until we have at least 20 posts
+        let postsFound = 0;
+        const minPostsRequired = 20;
+        
         for (const subreddit of shuffledSubreddits) {
+            // Stop if we have enough posts
+            if (postsFound >= minPostsRequired) {
+                console.log(`Found ${postsFound} posts, stopping search`);
+                break;
+            }
             try {
                 // Create search query focusing on exact keyword matches
                 // Add keyword variations to find different posts
@@ -906,17 +914,17 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Quality-focused threshold - prioritize offer relevance
-                        const minRequiredScore = 25; // Higher threshold for quality
+                        // Balanced threshold - ensure we find enough posts
+                        const minRequiredScore = 15; // Lower threshold to find more posts
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // STRICT: Require strong offer match for high-quality posts
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 20; // Strong offer match required
-                        const hasVeryHighScore = relevanceScore >= 40; // High overall score
+                        // Flexible: Accept posts with decent offer match or good overall score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 10; // Decent offer match
+                        const hasVeryHighScore = relevanceScore >= 25; // Good overall score
                         
                         // Keyword matching - require relevance
                         const hasMinimumKeywordMatches = keywordMatches >= 1; // At least 1 keyword match
-                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 2 || semanticMatches >= 2); // Require stronger offer match
+                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1); // Require some offer match
                         
                         // Accept posts that are relevant to the offer/keywords
                         if ((hasStrongOfferConnection || hasVeryHighScore) && 
@@ -941,11 +949,12 @@ export default async function handler(req, res) {
                     }
                 }
                 
-                console.log(`Total posts found so far: ${posts.length}`);
+                postsFound = posts.length;
+                console.log(`Total posts found so far: ${postsFound}`);
                 
                 // Stop if we have enough high-quality posts
-                if (posts.length >= 100) {
-                    console.log('Reached target of 100+ high-quality posts, stopping search');
+                if (postsFound >= minPostsRequired) {
+                    console.log(`Reached target of ${minPostsRequired}+ posts, stopping search`);
                     break;
                 }
                 
