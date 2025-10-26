@@ -214,8 +214,8 @@ function filterSubredditsByRelevance(subreddits, keywords, offer) {
             }
         }
         
-        // Only include subreddits with meaningful relevance
-        if (relevanceScore >= 20) {
+        // Only include subreddits with meaningful relevance to keywords
+        if (relevanceScore >= 30) { // Increased to be more selective
             relevantSubreddits.push(subreddit);
         }
     }
@@ -640,12 +640,12 @@ export default async function handler(req, res) {
                             titleLower.includes(keyword) || contentLower.includes(keyword)
                         );
                         
-                        // Quality checks
+                        // More lenient quality checks
                         const isLowQuality = (
-                            postData.title.length < 15 ||
-                            (postData.selftext && postData.selftext.length < 30) ||
-                            postData.ups < 0 || // Downvoted posts
-                            postData.num_comments < 1 // No engagement
+                            postData.title.length < 10 || // Reduced from 15
+                            (postData.selftext && postData.selftext.length < 20) || // Reduced from 30
+                            postData.ups < -5 || // Only skip heavily downvoted posts (was < 0)
+                            postData.num_comments < 0 // Only skip posts with negative comments (was < 1)
                         );
                         
                         // Skip if spam or low quality
@@ -890,17 +890,17 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // MUCH HIGHER threshold for better quality - require STRONG offer match AND minimum connection to offer
-                        const minRequiredScore = 80; // Increased significantly to require much better matches
+                        // Balanced threshold for good quality
+                        const minRequiredScore = 70; // Increased to 70
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // Only accept posts that have a VERY strong offer match OR an extremely high overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 70;
-                        const hasVeryHighScore = relevanceScore >= 100;
+                        // Accept posts with good offer match OR decent overall score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 50;
+                        const hasVeryHighScore = relevanceScore >= 80;
                         
-                        // Additional quality checks
-                        const hasMinimumKeywordMatches = keywordMatches >= 3; // Require at least 3 keyword matches
-                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 3 || semanticMatches >= 3);
+                        // Require 2 keyword matches for better quality
+                        const hasMinimumKeywordMatches = keywordMatches >= 2; // Increased to 2
+                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1);
                         
                         if ((hasStrongOfferConnection || hasVeryHighScore) && 
                             relevanceScore >= minRequiredScore && 
