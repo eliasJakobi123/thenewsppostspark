@@ -648,13 +648,12 @@ export default async function handler(req, res) {
                             titleLower.includes(keyword) || contentLower.includes(keyword)
                         );
                         
-        // Quality checks - high quality posts regardless of keywords
+        // Quality checks - moderate quality posts
         const isLowQuality = (
-            postData.title.length < 20 || // High minimum title length for quality
-            (postData.selftext && postData.selftext.length < 50) || // High minimum content length
-            postData.ups < -3 || // Skip downvoted posts
-            postData.num_comments < 0 || // Skip posts with negative comments
-            postData.ups < 2 && postData.num_comments < 3 // Skip posts with low engagement
+            postData.title.length < 10 || // Moderate minimum title length
+            (postData.selftext && postData.selftext.length < 20) || // Moderate minimum content length
+            postData.ups < -5 || // Skip heavily downvoted posts
+            postData.num_comments < -2 // Skip posts with very negative comments
         );
                         
                         // Skip if spam or low quality
@@ -676,7 +675,12 @@ export default async function handler(req, res) {
                         const keywordSynonyms = {
                             'self confidence': ['confidence', 'self-esteem', 'self esteem', 'self worth', 'self-worth', 'self belief', 'self-belief'],
                             'self improvement': ['self improvement', 'self-improvement', 'personal development', 'self development', 'self-development', 'self growth', 'self-growth'],
-                            'apps': ['app', 'application', 'software', 'tool', 'platform', 'program']
+                            'apps': ['app', 'application', 'software', 'tool', 'platform', 'program'],
+                            'cold leads': ['leads', 'prospects', 'potential customers', 'potential clients', 'sales leads', 'business leads'],
+                            'outreach': ['contact', 'reach out', 'approach', 'connect', 'message', 'email', 'cold email', 'sales'],
+                            'ai': ['artificial intelligence', 'automation', 'automated', 'smart', 'intelligent'],
+                            'sales': ['selling', 'sales process', 'sales team', 'sales strategy', 'revenue', 'business development'],
+                            'cold call': ['cold calling', 'phone calls', 'telemarketing', 'sales calls', 'prospecting']
                         };
                         
                         // Expand keywords with synonyms
@@ -914,23 +918,20 @@ export default async function handler(req, res) {
                             relevanceScore -= 20;  // Strafe für alte Posts
                         }
                         
-                        // Balanced threshold - ensure we find enough posts
-                        const minRequiredScore = 15; // Lower threshold to find more posts
+                        // Very lenient threshold - ensure we find posts
+                        const minRequiredScore = 10; // Very low threshold to find posts
                         const requiresOfferMatch = offer && offer !== 'No offer provided' && offer.trim() !== '';
                         
-                        // Flexible: Accept posts with decent offer match or good overall score
-                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 10; // Decent offer match
-                        const hasVeryHighScore = relevanceScore >= 25; // Good overall score
+                        // Very flexible: Accept posts with any offer match or decent score
+                        const hasStrongOfferConnection = hasOfferMatch && relevanceScore >= 5; // Very low offer match
+                        const hasVeryHighScore = relevanceScore >= 15; // Low overall score
                         
-                        // Keyword matching - require relevance
-                        const hasMinimumKeywordMatches = keywordMatches >= 1; // At least 1 keyword match
-                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 1 || semanticMatches >= 1); // Require some offer match
+                        // Keyword matching - very flexible
+                        const hasMinimumKeywordMatches = keywordMatches >= 0; // Accept even with 0 keyword matches
+                        const hasMinimumOfferMatches = !requiresOfferMatch || (offerWordMatches >= 0 || semanticMatches >= 0); // Very flexible offer match
                         
-                        // Accept posts that are relevant to the offer/keywords
-                        if ((hasStrongOfferConnection || hasVeryHighScore) && 
-                            relevanceScore >= minRequiredScore && 
-                            hasMinimumKeywordMatches && 
-                            hasMinimumOfferMatches) {
+                        // Accept posts - very lenient to ensure we find posts
+                        if (relevanceScore >= minRequiredScore) {
                             console.log(`Post accepted - score: ${relevanceScore}, title: "${postData.title.substring(0, 50)}..."`);
                             posts.push({
                                 reddit_id: postData.id,
