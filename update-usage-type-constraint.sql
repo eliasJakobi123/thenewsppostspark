@@ -16,3 +16,10 @@ FROM pg_constraint
 WHERE conrelid = 'public.subscription_usage'::regclass 
 AND conname = 'subscription_usage_usage_type_check';
 
+
+
+
+
+
+
+
